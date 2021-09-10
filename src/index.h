@@ -4,16 +4,12 @@
 #include <stdint.h>
 
 typedef struct {
-    uint32_t len;
-    uint64_t *y;
-} bucket_t;
-
-typedef struct {
-    uint32_t b; // 1<<b: number of buckets
-    bucket_t *bucket;
+    uint8_t *strand;     // strand array
+    uint32_t *poisition; // position array
+    uint32_t *h;         // hash table // can be an issue, maybe on 64 bits ???
 } index_t;
 
-index_t * index_init(uint32_t b);
-index_t * create_index(uint32_t b);
+index_t *create_index(const char *file_name, const unsigned int w,
+                      const unsigned int k);
 
 #endif

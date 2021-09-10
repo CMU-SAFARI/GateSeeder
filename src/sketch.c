@@ -67,10 +67,10 @@ static inline int tq_shift(tiny_queue_t *q) {
  * the bottom strand. Callers may want to set "p->n = 0"; otherwise results are
  * appended to p
  */
-void mm_sketch(void *km, const char *str, int len, int w, int k, uint32_t rid,
-               int is_hpc, mm128_v *p) {
+void mm_sketch(void *km, const char *str, unsigned int len, int w, int k,
+               uint32_t rid, int is_hpc, mm128_v *p) {
     uint64_t shift1 = 2 * (k - 1), mask = (1ULL << 2 * k) - 1, kmer[2] = {0, 0};
-    int i, j, l, buf_pos, min_pos, kmer_span = 0;
+    unsigned int i, j, l, buf_pos, min_pos, kmer_span = 0;
     mm128_t buf[256], min = {UINT64_MAX, UINT64_MAX};
     tiny_queue_t tq;
 
@@ -82,12 +82,12 @@ void mm_sketch(void *km, const char *str, int len, int w, int k, uint32_t rid,
     kv_resize(mm128_t, km, *p, p->n + len / w);
 
     for (i = l = buf_pos = min_pos = 0; i < len; ++i) {
-        int c = seq_nt4_table[(uint8_t)str[i]];
+        unsigned int c = seq_nt4_table[(uint8_t)str[i]];
         mm128_t info = {UINT64_MAX, UINT64_MAX};
         if (c < 4) { // not an ambiguous base
             int z;
             if (is_hpc) {
-                int skip_len = 1;
+                unsigned int skip_len = 1;
                 if (i + 1 < len && seq_nt4_table[(uint8_t)str[i + 1]] == c) {
                     for (skip_len = 2; i + skip_len < len; ++skip_len)
                         if (seq_nt4_table[(uint8_t)str[i + skip_len]] != c)
@@ -110,7 +110,7 @@ void mm_sketch(void *km, const char *str, int len, int w, int k, uint32_t rid,
             ++l;
             if (l >= k && kmer_span < 256) {
                 info.x = hash64(kmer[z], mask) << 8 | kmer_span;
-                info.y = (uint64_t)rid << 32 | (uint32_t)i << 1 | z;
+                info.y = (uint64_t)rid << 32 | (uint32_t)i;
             }
         } else
             l = 0, tq.count = tq.front = 0, kmer_span = 0;
