@@ -2,7 +2,7 @@ SRC_DIR		:= src
 CC		:= gcc
 
 DEPFLAGS	= -MD -MP
-CFLAGS		= -g -O2 $(DEPFLAGS) -Wall
+CFLAGS		= -g -O3 $(DEPFLAGS) -Wall
 VPATH		= $(SRC_DIR)
 EXE		= main
 

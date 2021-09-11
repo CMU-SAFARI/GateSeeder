@@ -60,13 +60,22 @@ index_t *create_index(const char *file_name, const unsigned int w,
     free(read_buffer);
     fclose(fp);
 
-    printf("Info: DNA length: %u\n", dna_len);
+    printf("Info: Indexed DNA length: %u bases\n", dna_len);
 
     mm128_v *p = (mm128_v *)calloc(1, sizeof(mm128_v));
+
+    printf("Info: w = %u & k = %u\n", w, k);
     mm_sketch(0, dna_buffer, dna_len, w, k, 0, 0, p);
 
-    printf("Info: Number of entries: %lu\n", p->n);
-    printf("%lu\n", p->a[p->n - 1].y);
+    printf("Info: Number of positions: %lu\n", p->n);
+    float strand_size = (float)p->n / (1<<30);
+    float position_size = strand_size * 4;
+    float hash_size = (float)(1 << 2*(k+1)) / (1<<30);
+    printf("Info: Size of the position array: %fGB\n", position_size);
+    printf("Info: Size of the strand array: %fGB\n", strand_size);
+    printf("Info: Size of the hash table: %fGB\n", hash_size);
+    printf("Info: Total size: %fGB\n", position_size + strand_size + hash_size);
+
     free(dna_buffer);
     free(p);
     index_t *idx = (index_t *)malloc(sizeof(index_t));
