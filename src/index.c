@@ -1,6 +1,6 @@
 #include "index.h"
-#include "mmpriv.h"
 #include "kvec.h"
+#include "mmpriv.h"
 #include <stdio.h>
 #include <stdlib.h>
 #define BUFFER_SIZE 4294967296
@@ -11,6 +11,8 @@ static inline unsigned char compare(mm72_t left, mm72_t right) {
 
 index_t *create_index(const char *file_name, const unsigned int w,
                       const unsigned int k) {
+    printf("Info: w = %u & k = %u\n", w, k);
+
     FILE *fp = fopen(file_name, "r");
     if (fp == NULL) {
         fputs("File error\n", stderr);
@@ -37,19 +39,27 @@ index_t *create_index(const char *file_name, const unsigned int w,
 
     unsigned int i = 0;
     unsigned int dna_len = 0;
+    unsigned int chromo_len = 0;
+
+    mm72_v *p = (mm72_v *)calloc(1, sizeof(mm72_v));
 
     while (1) {
         char c = read_buffer[i];
 
         if (c == '>') {
+            if (chromo_len > 0) {
+                mm_sketch(0, dna_buffer, chromo_len, w, k, 0, 0, p);
+                dna_len += chromo_len;
+                chromo_len = 0;
+            }
             while (c != '\n' && c != 0) {
                 i++;
                 c = read_buffer[i];
             }
         } else {
             while (c != '\n' && c != 0) {
-                dna_buffer[dna_len] = c;
-                dna_len++;
+                dna_buffer[chromo_len] = c;
+                chromo_len++;
                 i++;
                 c = read_buffer[i];
             }
@@ -63,14 +73,12 @@ index_t *create_index(const char *file_name, const unsigned int w,
 
     free(read_buffer);
     fclose(fp);
+    if (chromo_len > 0) {
+        mm_sketch(0, dna_buffer, chromo_len, w, k, 0, 0, p);
+        dna_len += chromo_len;
+    }
 
     printf("Info: Indexed DNA length: %u bases\n", dna_len);
-
-    mm72_v *p = (mm72_v *)calloc(1, sizeof(mm72_v));
-
-    printf("Info: w = %u & k = %u\n", w, k);
-    mm_sketch(0, dna_buffer, dna_len, w, k, 0, 0, p);
-
     printf("Info: Number of positions: %lu\n", p->n);
     float strand_size = (float)p->n / (1 << 30);
     float position_size = strand_size * 4;
