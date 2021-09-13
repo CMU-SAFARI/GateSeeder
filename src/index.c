@@ -1,5 +1,6 @@
 #include "index.h"
 #include "mmpriv.h"
+#include "kvec.h"
 #include <stdio.h>
 #include <stdlib.h>
 #define BUFFER_SIZE 4294967296
@@ -109,9 +110,8 @@ index_t *create_index(const char *file_name, const unsigned int w,
         }
         diff = 0;
     }
-    free(p);
+    kv_destroy(*p);
     printf("Info: Distinct minimizers = %u\n", diff_c + 1);
-
     index_t *idx = (index_t *)malloc(sizeof(index_t));
     if (idx == NULL) {
         fputs("Memory error\n", stderr);
