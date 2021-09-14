@@ -5,7 +5,6 @@
 //#define FILE_NAME "res/test3.fna"
 
 int main() {
-    index_t *idx = create_index(FILE_NAME, 10, 15);
-    printf("%u\n", idx->h[0]);
+    create_index(FILE_NAME, 11, 14);
     return 0;
 }

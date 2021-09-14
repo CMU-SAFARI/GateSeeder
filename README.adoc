@@ -1,0 +1,117 @@
+= Genome indexing
+
+== Installation
+
+Clone the repository & build the program:
+[source, shell]
+----
+git clone git@github.com:jeudine/genome_indexing.git
+cd genome_indexing && make
+----
+
+== Usage
+
+TODO
+
+
+== Generated Hash table
+
+image::img/schematic.png[schematic]
+== Results
+
+In all the following results link:https://www.ncbi.nlm.nih.gov/assembly/GCF_000001405.39[GRCh38.p13] (3,209,286,105 bases) is used as the genome reference.
+
+=== w: 10, k:13
+[cols="1,1"]
+|===
+|Number of (minimizer, position, strand)
+|576,283,952
+|Number of distinct minimizers
+|14,192,855
+|Size of the position array
+|2.146825GB
+|Size of the strand array
+|0.536706GB
+|Size of the minimizer array
+|0.250000GB
+|Total size
+|2.933531GB
+|===
+
+=== w: 10, k:14
+[cols="1,1"]
+|===
+|Number of (minimizer, position, strand)
+|569,523,410
+|Number of distinct minimizers
+|40,737,512
+|Size of the position array
+|2.121640GB
+|Size of the strand array
+|0.530410GB
+|Size of the minimizer array
+|1.000000GB
+|Total size
+|3.652050GB
+|===
+
+=== w: 10, k:15
+[cols="1,1"]
+|===
+|Number of (minimizer, position, strand)
+|574,381,278
+|Number of distinct minimizers
+|100,202,295
+|Size of the position array
+|2.139737GB
+|Size of the strand array
+|0.534934GB
+|Size of the minimizer array
+|4.000000GB
+|Total size
+|6.674671GB
+|===
+
+=== w: 9, k:14
+[cols="1,1"]
+|===
+|Number of (minimizer, position, strand)
+|626,106,566
+|Number of distinct minimizers
+|44,112,343
+|Size of the position array
+|2.332429GB
+|Size of the strand array
+|0.583107GB
+|Size of the minimizer array
+|1.000000GB
+|Total size
+|3.915536GB
+|===
+
+=== w: 11, k:14
+[cols="1,1"]
+|===
+|Number of (minimizer, position, strand)
+|522,709,699
+|Number of distinct minimizers
+|37,843,165
+|Size of the position array
+|1.947245GB
+|Size of the strand array
+|0.486811GB
+|Size of the minimizer array
+|1.000000GB
+|Total size
+|3.434057GB
+|===
+
+== Questions
+
+* Since we have a small number of distinct minimizers (compared to the number of possible minimizers (`= 2**(2*k)`)), we could only save (minimizer, position, strand) with minimizer under a certain threshold (to reduce the size of the minimizer array).
+
+* Do we need the `kmerSpan`?
+
+* Does the data structure suits you?
+
+* Which `(k, w)` should I use?

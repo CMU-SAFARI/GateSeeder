@@ -79,14 +79,14 @@ index_t *create_index(const char *file_name, const unsigned int w,
     }
 
     printf("Info: Indexed DNA length: %u bases\n", dna_len);
-    printf("Info: Number of positions: %lu\n", p->n);
+    printf("Info: Number of (minimizer, position, strand): %lu\n", p->n);
     float strand_size = (float)p->n / (1 << 30);
     float position_size = strand_size * 4;
     float hash_size = k >= 14 ? 1 << (2 * (k + 1) - 30)
                               : 1 / (float)(1 << (30 - 2 * (k + 1)));
     printf("Info: Size of the position array: %fGB\n", position_size);
     printf("Info: Size of the strand array: %fGB\n", strand_size);
-    printf("Info: Size of the hash table: %fGB\n", hash_size);
+    printf("Info: Size of the Minimizer: %fGB\n", hash_size);
     printf("Info: Total size: %fGB\n", position_size + strand_size + hash_size);
     free(dna_buffer);
 
@@ -119,7 +119,7 @@ index_t *create_index(const char *file_name, const unsigned int w,
         diff = 0;
     }
     kv_destroy(*p);
-    printf("Info: Distinct minimizers = %u\n", diff_c + 1);
+    printf("Info: Number of distinct minimizers = %u\n", diff_c + 1);
     index_t *idx = (index_t *)malloc(sizeof(index_t));
     if (idx == NULL) {
         fputs("Memory error\n", stderr);
