@@ -1,7 +1,6 @@
 #include "index.h"
 #include "kvec.h"
 #include "mmpriv.h"
-#include <stdio.h>
 #include <stdlib.h>
 #define BUFFER_SIZE 4294967296
 
@@ -9,15 +8,8 @@ static inline unsigned char compare(mm72_t left, mm72_t right) {
     return (left.minimizer) <= (right.minimizer);
 }
 
-index_t *create_index(const char *file_name, const unsigned int w,
-                      const unsigned int k) {
+index_t *create_index(FILE *fp, const unsigned int w, const unsigned int k) {
     printf("Info: w = %u & k = %u\n", w, k);
-
-    FILE *fp = fopen(file_name, "r");
-    if (fp == NULL) {
-        fputs("File error\n", stderr);
-        exit(1);
-    }
 
     char *read_buffer = (char *)malloc(sizeof(char) * BUFFER_SIZE);
     if (read_buffer == NULL) {

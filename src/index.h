@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 
 typedef struct {
     uint32_t *h;        // hash table
@@ -21,8 +22,7 @@ typedef struct {
     mm72_t *a;
 } mm72_v;
 
-index_t *create_index(const char *file_name, const unsigned int w,
-                      const unsigned int k);
+index_t *create_index(FILE *fp, const unsigned int w, const unsigned int k);
 void merge_sort(mm72_t *a, unsigned int l, unsigned int r);
 void merge(mm72_t *a, unsigned int l, unsigned int m, unsigned int r);
 #endif
