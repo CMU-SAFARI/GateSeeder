@@ -11,8 +11,12 @@ cd genome_indexing && make
 
 == Usage
 
-TODO
+[source, shell]
+----
+./main -k <k-mer length> -w <window size> <Genome reference filename (.fna)> <Output binary file>
+----
 
+The default values for `k` and `w` are 15 and 10, respectively.
 
 == Generated Hash table
 

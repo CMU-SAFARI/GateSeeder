@@ -8,7 +8,7 @@ static inline unsigned char compare(mm72_t left, mm72_t right) {
     return (left.minimizer) <= (right.minimizer);
 }
 
-index_t *create_index(FILE *fp, const unsigned int w, const unsigned int k) {
+index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k) {
     printf("Info: w = %u & k = %u\n", w, k);
 
     char *read_buffer = (char *)malloc(sizeof(char) * BUFFER_SIZE);
@@ -23,8 +23,8 @@ index_t *create_index(FILE *fp, const unsigned int w, const unsigned int k) {
         exit(2);
     }
 
-    fread(read_buffer, sizeof(char), BUFFER_SIZE, fp);
-    if (!feof(fp)) {
+    fread(read_buffer, sizeof(char), BUFFER_SIZE, in_fp);
+    if (!feof(in_fp)) {
         fputs("Reading error: buffer too small\n", stderr);
         exit(3);
     }
@@ -64,7 +64,7 @@ index_t *create_index(FILE *fp, const unsigned int w, const unsigned int k) {
     }
 
     free(read_buffer);
-    fclose(fp);
+    fclose(in_fp);
     if (chromo_len > 0) {
         mm_sketch(0, dna_buffer, chromo_len, w, k, 0, 0, p);
         dna_len += chromo_len;
@@ -113,6 +113,8 @@ index_t *create_index(FILE *fp, const unsigned int w, const unsigned int k) {
     kv_destroy(*p);
     printf("Info: Number of distinct minimizers = %u\n", diff_c + 1);
     index_t *idx = (index_t *)malloc(sizeof(index_t));
+    idx->n = (1 << (2 * k));
+    idx->m = p->n;
     if (idx == NULL) {
         fputs("Memory error\n", stderr);
         exit(2);

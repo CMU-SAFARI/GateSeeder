@@ -27,17 +27,31 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (optind >= argc) {
-        fputs("Error: expected genome reference file name\n", stderr);
+    if (optind + 1 >= argc) {
+        fputs("Error: expected genome reference file name & output file name\n",
+              stderr);
         exit(3);
     }
 
-    FILE *fp = fopen(argv[optind], "r");
-    if (fp == NULL) {
+    FILE *in_fp = fopen(argv[optind], "r");
+    if (in_fp == NULL) {
         fprintf(stderr, "Error: cannot open `%s`\n", argv[optind]);
         exit(1);
     }
 
-    create_index(fp, w, k);
+    FILE *out_fp = fopen(argv[optind + 1], "wb");
+    if (out_fp == NULL) {
+        fprintf(stderr, "Error: cannot open `%s`\n", argv[optind + 1]);
+        exit(1);
+    }
+
+    index_t *idx = create_index(in_fp, w, k);
+    fwrite(&(idx->n), sizeof(idx->n), 1, out_fp);
+    fwrite(&(idx->m), sizeof(idx->m), 1, out_fp);
+    fwrite(idx->h, sizeof(idx->h[0]), idx->n, out_fp);
+    fwrite(idx->position, sizeof(idx->position[0]), idx->m, out_fp);
+    fwrite(idx->strand, sizeof(idx->strand[0]), idx->m, out_fp);
+    fclose(out_fp);
+    printf("Info: Binary file `%s` written\n", argv[optind + 1]);
     return 0;
 }
