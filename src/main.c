@@ -9,9 +9,10 @@ int main(int argc, char *argv[]) {
     unsigned int w = 10;
     unsigned int k = 15;
     unsigned int f = 500;
+    char p = 0;
 
     int option;
-    while ((option = getopt(argc, argv, ":w:k:f:")) != -1) {
+    while ((option = getopt(argc, argv, ":w:k:f:p")) != -1) {
         switch (option) {
         case 'w':
             w = atoi(optarg);
@@ -21,6 +22,9 @@ int main(int argc, char *argv[]) {
             break;
         case 'f':
             f = atoi(optarg);
+            break;
+        case 'p':
+            p = 1;
             break;
         case ':':
             fprintf(stderr, "Error: '%c' requires a value\n", optopt);
@@ -56,5 +60,18 @@ int main(int argc, char *argv[]) {
     fwrite(idx->strand, sizeof(idx->strand[0]), idx->m, out_fp);
     fclose(out_fp);
     printf("Info: Binary file `%s` written\n", argv[optind + 1]);
+
+    if (p) {
+        FILE *gnuplot = popen("gnuplot", "w");
+        fprintf(gnuplot, "set terminal png size 2000,1500\n");
+        fprintf(gnuplot, "set output 'plot.png'\n");
+        fprintf(gnuplot, "plot '-'\n");
+        for (unsigned int i = 0; i < idx->n; i += idx->n / 1000) {
+            fprintf(gnuplot, "%u %u\n", i, idx->h[i]);
+        }
+        fprintf(gnuplot, "e\n");
+        fflush(gnuplot);
+        puts("Info: plot.png written\n");
+    }
     return 0;
 }

@@ -8,7 +8,8 @@ static inline unsigned char compare(mm72_t left, mm72_t right) {
     return (left.minimizer) <= (right.minimizer);
 }
 
-index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k, const unsigned int filter_threshold) {
+index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k,
+                      const unsigned int filter_threshold) {
     printf("Info: w = %u, k = %u & f = %u\n", w, k, filter_threshold);
 
     char *read_buffer = (char *)malloc(sizeof(char) * BUFFER_SIZE);
@@ -101,8 +102,9 @@ index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k, c
     unsigned int filter_counter = 0;
     unsigned int pos = 0;
     unsigned int l = 0;
+
     for (unsigned int i = 1; i < p->n; i++) {
-        if(index == p->a[i].minimizer) {
+        if (index == p->a[i].minimizer) {
             freq_counter++;
         } else {
             if (freq_counter < filter_threshold) {
@@ -125,7 +127,7 @@ index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k, c
     }
     if (freq_counter < filter_threshold) {
         diff_counter++;
-        for (unsigned int j = pos; j < i; j++) {
+        for (unsigned int j = pos; j < p->n; j++) {
             position[l] = p->a[j].position;
             strand[l] = p->a[j].strand;
             l++;
@@ -138,7 +140,7 @@ index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k, c
     printf("Info: Number of ignored minimizers: %u\n", filter_counter);
     printf("Info: Number of distinct minimizers: %u\n", diff_counter);
     index_t *idx = (index_t *)malloc(sizeof(index_t));
-    idx->n = max_mini+1;
+    idx->n = max_mini + 1;
     idx->m = l;
     float strand_size = (float)idx->m / (1 << 30);
     float position_size = strand_size * 4;
@@ -147,6 +149,17 @@ index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k, c
     printf("Info: Size of the strand array: %fGB\n", strand_size);
     printf("Info: Size of the minimizer array: %fGB\n", hash_size);
     printf("Info: Total size: %fGB\n", position_size + strand_size + hash_size);
+    unsigned int empty_counter = 0;
+    unsigned int j = 0;
+    for (unsigned int i = 0; i < idx->n; i++) {
+        if (h[i] == j) {
+            empty_counter++;
+        } else {
+            j = h[i];
+        }
+    }
+    printf("Info: Number of empty entries in the hashtable: %u (%f%%)\n",
+           empty_counter, (float)empty_counter / idx->n * 100);
     if (idx == NULL) {
         fputs("Memory error\n", stderr);
         exit(2);

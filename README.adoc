@@ -111,11 +111,4 @@ In all the following results link:https://www.ncbi.nlm.nih.gov/assembly/GCF_0000
 |===
 
 == Questions
-
-* Since we have a small number of distinct minimizers (compared to the number of possible minimizers (`= 2**(2*k)`)), we could only save (minimizer, position, strand) with minimizer under a certain threshold (to reduce the size of the minimizer array).
-
-* Do we need the `kmerSpan`?
-
-* Does the data structure suits you?
-
-* Which `(k, w)` should I use?
+* How to reduce the size of the hash table?
