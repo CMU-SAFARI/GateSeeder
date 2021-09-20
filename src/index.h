@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 typedef struct {
-    uint32_t n, m;      // size of h & p
+    uint32_t n, m;      // size of h & position (or strand)
     uint32_t *h;        // hash table
     uint32_t *position; // position array
     uint8_t *strand;    // strand array
@@ -23,7 +23,7 @@ typedef struct {
     mm72_t *a;
 } mm72_v;
 
-index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k);
+index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k, const unsigned int filter_threshold);
 void merge_sort(mm72_t *a, unsigned int l, unsigned int r);
 void merge(mm72_t *a, unsigned int l, unsigned int m, unsigned int r);
 #endif

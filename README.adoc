@@ -13,10 +13,10 @@ cd genome_indexing && make
 
 [source, shell]
 ----
-./main -k <k-mer length> -w <window size> <Genome reference filename (.fna)> <Output binary file>
+./main -k <k-mer length> -w <window size> -f <frequency threshold> <Genome reference filename (.fna)> <Output binary file>
 ----
 
-The default values for `k` and `w` are 15 and 10, respectively.
+The default values for `k`, `w` and `f` are 15, 10 and 500, respectively.
 
 == Generated Hash table
 

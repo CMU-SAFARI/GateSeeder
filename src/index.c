@@ -8,8 +8,8 @@ static inline unsigned char compare(mm72_t left, mm72_t right) {
     return (left.minimizer) <= (right.minimizer);
 }
 
-index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k) {
-    printf("Info: w = %u & k = %u\n", w, k);
+index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k, const unsigned int filter_threshold) {
+    printf("Info: w = %u & k = %u & f = %u\n", w, k, f);
 
     char *read_buffer = (char *)malloc(sizeof(char) * BUFFER_SIZE);
     if (read_buffer == NULL) {
@@ -93,6 +93,7 @@ index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k) {
 
     printf("Info: Array sorted\n");
 
+    // Write the data in the struct & filter out the most frequent minimizers
     uint32_t *h = (uint32_t *)malloc(sizeof(uint32_t) * (max_mini + 1));
     uint32_t *position = (uint32_t *)malloc(sizeof(uint32_t) * p->n);
     uint8_t *strand = (uint8_t *)malloc(sizeof(uint8_t) * p->n);
@@ -101,27 +102,51 @@ index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k) {
         exit(2);
     }
 
+    unsigned int diff_counter = 0;
     unsigned int index = p->a[0].minimizer;
-    char diff = 0;
-    unsigned int diff_c = 0;
-    for (unsigned int i = 0; i < p->n; i++) {
-        position[i] = p->a[i].position;
-        strand[i] = p->a[i].strand;
-        while (index != p->a[i].minimizer) {
-            if (!diff) {
-                diff_c++;
+    unsigned int freq_counter = 0;
+    unsigned int filter_counter = 0;
+    unsigned int pos = 0;
+    unsigned int l = 0;
+    for (unsigned int i = 1; i < p->n; i++) {
+        if(index == p->a[i].minimizer) {
+            freq_counter++;
+        } else {
+            if (freq_counter < filter_threshold) {
+                diff_counter++;
+                for (unsigned int j = pos; j < i; j++) {
+                    position[l] = p->a[j].position;
+                    strand[l] = p->a[j].strand;
+                    l++;
+                }
+            } else {
+                filter_counter++;
             }
-            diff = 1;
-            h[index] = i;
-            index++;
+            pos = i;
+            freq_counter = 0;
+            while (index != p->a[i].minimizer) {
+                h[index] = l;
+                index++;
+            }
         }
-        diff = 0;
     }
+    if (freq_counter < filter_threshold) {
+        diff_counter++;
+        for (unsigned int j = pos; j < i; j++) {
+            position[l] = p->a[j].position;
+            strand[l] = p->a[j].strand;
+            l++;
+        }
+    } else {
+        filter_counter++;
+    }
+    h[index] = l;
     kv_destroy(*p);
-    printf("Info: Number of distinct minimizers = %u\n", diff_c + 1);
+    printf("Info: %u minimizer(s) ignored\n", filter_counter);
+    printf("Info: Number of distinct minimizers = %u\n", diff_counter);
     index_t *idx = (index_t *)malloc(sizeof(index_t));
     idx->n = max_mini+1;
-    idx->m = p->n;
+    idx->m = l;
     if (idx == NULL) {
         fputs("Memory error\n", stderr);
         exit(2);
