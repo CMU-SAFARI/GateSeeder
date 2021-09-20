@@ -70,15 +70,22 @@ index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k) {
         dna_len += chromo_len;
     }
 
+    uint32_t max_mini = 0;
+    for (unsigned int i = 0; i < p->n; i++) {
+        if (max_mini < p->a[i].minimizer) {
+            max_mini = p->a[i].minimizer;
+        }
+    }
+
     printf("Info: Indexed DNA length: %u bases\n", dna_len);
     printf("Info: Number of (minimizer, position, strand): %lu\n", p->n);
+    printf("Info: Maximum minimizer: %u\n", max_mini);
     float strand_size = (float)p->n / (1 << 30);
     float position_size = strand_size * 4;
-    float hash_size = k >= 14 ? 1 << (2 * (k + 1) - 30)
-                              : 1 / (float)(1 << (30 - 2 * (k + 1)));
+    float hash_size = (float)(max_mini + 1) / (1 << 28);
     printf("Info: Size of the position array: %fGB\n", position_size);
     printf("Info: Size of the strand array: %fGB\n", strand_size);
-    printf("Info: Size of the Minimizer: %fGB\n", hash_size);
+    printf("Info: Size of the minimizer array: %fGB\n", hash_size);
     printf("Info: Total size: %fGB\n", position_size + strand_size + hash_size);
     free(dna_buffer);
 
@@ -86,7 +93,7 @@ index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k) {
 
     printf("Info: Array sorted\n");
 
-    uint32_t *h = (uint32_t *)malloc(sizeof(uint32_t) * (1 << (2 * k)));
+    uint32_t *h = (uint32_t *)malloc(sizeof(uint32_t) * (max_mini + 1));
     uint32_t *position = (uint32_t *)malloc(sizeof(uint32_t) * p->n);
     uint8_t *strand = (uint8_t *)malloc(sizeof(uint8_t) * p->n);
     if (h == NULL || position == NULL || strand == NULL) {
@@ -113,7 +120,7 @@ index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k) {
     kv_destroy(*p);
     printf("Info: Number of distinct minimizers = %u\n", diff_c + 1);
     index_t *idx = (index_t *)malloc(sizeof(index_t));
-    idx->n = (1 << (2 * k));
+    idx->n = max_mini+1;
     idx->m = p->n;
     if (idx == NULL) {
         fputs("Memory error\n", stderr);
