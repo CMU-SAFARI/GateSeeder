@@ -9,7 +9,7 @@ static inline unsigned char compare(mm72_t left, mm72_t right) {
 }
 
 index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k, const unsigned int filter_threshold) {
-    printf("Info: w = %u & k = %u & f = %u\n", w, k, f);
+    printf("Info: w = %u, k = %u & f = %u\n", w, k, filter_threshold);
 
     char *read_buffer = (char *)malloc(sizeof(char) * BUFFER_SIZE);
     if (read_buffer == NULL) {
@@ -80,13 +80,6 @@ index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k, c
     printf("Info: Indexed DNA length: %u bases\n", dna_len);
     printf("Info: Number of (minimizer, position, strand): %lu\n", p->n);
     printf("Info: Maximum minimizer: %u\n", max_mini);
-    float strand_size = (float)p->n / (1 << 30);
-    float position_size = strand_size * 4;
-    float hash_size = (float)(max_mini + 1) / (1 << 28);
-    printf("Info: Size of the position array: %fGB\n", position_size);
-    printf("Info: Size of the strand array: %fGB\n", strand_size);
-    printf("Info: Size of the minimizer array: %fGB\n", hash_size);
-    printf("Info: Total size: %fGB\n", position_size + strand_size + hash_size);
     free(dna_buffer);
 
     merge_sort(p->a, 0, p->n - 1);
@@ -142,11 +135,18 @@ index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k, c
     }
     h[index] = l;
     kv_destroy(*p);
-    printf("Info: %u minimizer(s) ignored\n", filter_counter);
-    printf("Info: Number of distinct minimizers = %u\n", diff_counter);
+    printf("Info: Number of ignored minimizers: %u\n", filter_counter);
+    printf("Info: Number of distinct minimizers: %u\n", diff_counter);
     index_t *idx = (index_t *)malloc(sizeof(index_t));
     idx->n = max_mini+1;
     idx->m = l;
+    float strand_size = (float)idx->m / (1 << 30);
+    float position_size = strand_size * 4;
+    float hash_size = (float)(idx->n) / (1 << 28);
+    printf("Info: Size of the position array: %fGB\n", position_size);
+    printf("Info: Size of the strand array: %fGB\n", strand_size);
+    printf("Info: Size of the minimizer array: %fGB\n", hash_size);
+    printf("Info: Total size: %fGB\n", position_size + strand_size + hash_size);
     if (idx == NULL) {
         fputs("Memory error\n", stderr);
         exit(2);
