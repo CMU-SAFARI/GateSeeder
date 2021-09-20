@@ -63,15 +63,56 @@ int main(int argc, char *argv[]) {
 
     if (p) {
         FILE *gnuplot = popen("gnuplot", "w");
-        fprintf(gnuplot, "set terminal png size 2000,1500\n");
-        fprintf(gnuplot, "set output 'plot.png'\n");
-        fprintf(gnuplot, "plot '-'\n");
+        fprintf(gnuplot, "set terminal png size 1200, 900\n");
+        fprintf(gnuplot, "set logscale y\n");
+        fprintf(gnuplot, "set output 'cumulative.png'\n");
+        fprintf(gnuplot, "set title 'Cumulative sum of the number of entries "
+                         "(k = 15, w = 10 and f = 500)'\n");
+        fprintf(gnuplot, "set xlabel 'Minimizers'\n");
+        fprintf(gnuplot,
+                "set ylabel 'Cumulative sum of the number of positions'\n");
+        fprintf(gnuplot, "plot '-' with lines lw 3 notitle\n");
         for (unsigned int i = 0; i < idx->n; i += idx->n / 1000) {
             fprintf(gnuplot, "%u %u\n", i, idx->h[i]);
         }
         fprintf(gnuplot, "e\n");
         fflush(gnuplot);
-        puts("Info: plot.png written\n");
+        pclose(gnuplot);
+
+        gnuplot = popen("gnuplot", "w");
+        fprintf(gnuplot, "set terminal png size 1200, 900\n");
+        fprintf(gnuplot, "set output 'cumulative1.png'\n");
+        fprintf(gnuplot, "set title 'Cumulative sum of the number of entries "
+                         "starting at 6E8 (k = 15, w = 10 and f = 500)'\n");
+        fprintf(gnuplot, "set xlabel 'Minimizers'\n");
+        fprintf(gnuplot,
+                "set ylabel 'Cumulative sum of the number of positions'\n");
+        fprintf(gnuplot, "plot '-' with lines lw 3 notitle\n");
+        unsigned int i;
+        for (i = 600000000; i < idx->n; i += idx->n / 10000) {
+            fprintf(gnuplot, "%u %u\n", i, idx->h[i] - idx->h[600000000]);
+        }
+        fprintf(gnuplot, "e\n");
+        fflush(gnuplot);
+        pclose(gnuplot);
+
+        gnuplot = popen("gnuplot", "w");
+        fprintf(gnuplot, "set terminal png size 1200, 900\n");
+        fprintf(gnuplot, "set output 'cumulative2.png'\n");
+        fprintf(gnuplot, "set title 'Cumulative sum of the number of entries "
+                         "starting at 8.5E8 (k = 15, w = 10 and f = 500)'\n");
+        fprintf(gnuplot, "set xlabel 'Minimizers'\n");
+        fprintf(gnuplot,
+                "set ylabel 'Cumulative sum of the number of positions'\n");
+        fprintf(gnuplot, "plot '-' with lines lw 3 notitle\n");
+        for (i = 850000000; i < idx->n; i += idx->n / 10000) {
+            fprintf(gnuplot, "%u %u\n", i, idx->h[i] - idx->h[850000000]);
+        }
+        fprintf(gnuplot, "e\n");
+        fflush(gnuplot);
+        pclose(gnuplot);
+
+        puts("Info: cumulative.png & distribution.png written");
     }
     return 0;
 }
