@@ -19,4 +19,5 @@ format:
 clean:
 	$(RM) *.o $(EXE) *.d
 
+.PHONY: clean format all
 -include $(wildcard *.d)
