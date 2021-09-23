@@ -23,8 +23,16 @@ typedef struct {
     mm72_t *a;
 } mm72_v;
 
+typedef struct {
+    mm72_v *p;
+    unsigned int i;
+} thread_param_t;
+
 index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k,
                       const unsigned int filter_threshold);
+void sort(mm72_v *p);
+void *thread_merge_sort(void *arg);
 void merge_sort(mm72_t *a, unsigned int l, unsigned int r);
+void final_merge(mm72_t *a, unsigned int n, unsigned int l, unsigned int r);
 void merge(mm72_t *a, unsigned int l, unsigned int m, unsigned int r);
 #endif

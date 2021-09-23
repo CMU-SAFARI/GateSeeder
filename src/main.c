@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define FILE_NAME "res/GCF_000001405.26_GRCh38_genomic.fna"
-
 int main(int argc, char *argv[]) {
     unsigned int w = 10;
     unsigned int k = 15;

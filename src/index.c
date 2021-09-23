@@ -1,8 +1,10 @@
 #include "index.h"
 #include "kvec.h"
 #include "mmpriv.h"
+#include <pthread.h>
 #include <stdlib.h>
 #define BUFFER_SIZE 4294967296
+#define NB_THREADS 6
 
 static inline unsigned char compare(mm72_t left, mm72_t right) {
     return (left.minimizer) <= (right.minimizer);
@@ -71,26 +73,37 @@ index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k,
         dna_len += chromo_len;
     }
 
-    uint32_t max_mini = 0;
-    for (unsigned int i = 0; i < p->n; i++) {
-        if (max_mini < p->a[i].minimizer) {
-            max_mini = p->a[i].minimizer;
+    printf("Info: Indexed DNA length: %u bases\n", dna_len);
+    printf("Info: Number of (minimizer, position, strand): %lu\n", p->n);
+    free(dna_buffer);
+
+    // Sort p
+    sort(p);
+    printf("Info: Array sorted\n");
+
+    // Compute the maximum minimizer after filtering
+    unsigned int n = p->n;
+    uint32_t max_minimizer = p->a[n - 1].minimizer;
+    unsigned int freq_counter = 0;
+    for (unsigned int i = p->n - 2; i >= 0; i--) {
+        if (max_minimizer == p->a[i].minimizer) {
+            freq_counter++;
+        } else {
+            if (freq_counter < filter_threshold) {
+                break;
+            }
+            max_minimizer = p->a[i].minimizer;
+            n = i + 1;
+            freq_counter = 0;
         }
     }
 
-    printf("Info: Indexed DNA length: %u bases\n", dna_len);
-    printf("Info: Number of (minimizer, position, strand): %lu\n", p->n);
-    printf("Info: Maximum minimizer: %u\n", max_mini);
-    free(dna_buffer);
-
-    merge_sort(p->a, 0, p->n - 1);
-
-    printf("Info: Array sorted\n");
+    printf("Info: Maximum minimizer (after filtering): %u\n", max_minimizer);
 
     // Write the data in the struct & filter out the most frequent minimizers
-    uint32_t *h = (uint32_t *)malloc(sizeof(uint32_t) * (max_mini + 1));
-    uint32_t *position = (uint32_t *)malloc(sizeof(uint32_t) * p->n);
-    uint8_t *strand = (uint8_t *)malloc(sizeof(uint8_t) * p->n);
+    uint32_t *h = (uint32_t *)malloc(sizeof(uint32_t) * (max_minimizer + 1));
+    uint32_t *position = (uint32_t *)malloc(sizeof(uint32_t) * n);
+    uint8_t *strand = (uint8_t *)malloc(sizeof(uint8_t) * n);
     if (h == NULL || position == NULL || strand == NULL) {
         fputs("Memory error\n", stderr);
         exit(2);
@@ -98,12 +111,12 @@ index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k,
 
     unsigned int diff_counter = 0;
     unsigned int index = p->a[0].minimizer;
-    unsigned int freq_counter = 0;
+    freq_counter = 0;
     unsigned int filter_counter = 0;
     unsigned int pos = 0;
     unsigned int l = 0;
 
-    for (unsigned int i = 1; i < p->n; i++) {
+    for (unsigned int i = 1; i < n; i++) {
         if (index == p->a[i].minimizer) {
             freq_counter++;
         } else {
@@ -127,7 +140,7 @@ index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k,
     }
     if (freq_counter < filter_threshold) {
         diff_counter++;
-        for (unsigned int j = pos; j < p->n; j++) {
+        for (unsigned int j = pos; j < n; j++) {
             position[l] = p->a[j].position;
             strand[l] = p->a[j].strand;
             l++;
@@ -140,7 +153,7 @@ index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k,
     printf("Info: Number of ignored minimizers: %u\n", filter_counter);
     printf("Info: Number of distinct minimizers: %u\n", diff_counter);
     index_t *idx = (index_t *)malloc(sizeof(index_t));
-    idx->n = max_mini + 1;
+    idx->n = max_minimizer + 1;
     idx->m = l;
     float strand_size = (float)idx->m / (1 << 30);
     float position_size = strand_size * 4;
@@ -170,12 +183,56 @@ index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k,
     return idx;
 }
 
+void sort(mm72_v *p) {
+    pthread_t threads[NB_THREADS];
+    thread_param_t params[NB_THREADS];
+    for (unsigned int i = 0; i < NB_THREADS; i++) {
+        params[i].p = p;
+        params[i].i = i;
+        pthread_create(&threads[i], NULL, thread_merge_sort,
+                       (void *)&params[i]);
+    }
+
+    for (unsigned int i = 0; i < NB_THREADS; i++) {
+        pthread_join(threads[i], NULL);
+    }
+    final_merge(p->a, p->n, 0, NB_THREADS);
+}
+
+void *thread_merge_sort(void *arg) {
+    thread_param_t *param = (thread_param_t *)arg;
+    unsigned int l = param->i * param->p->n / NB_THREADS;
+    unsigned int r = (param->i + 1) * param->p->n / NB_THREADS - 1;
+    if (l < r) {
+        unsigned int m = l + (r - l) / 2;
+        merge_sort(param->p->a, l, m);
+        merge_sort(param->p->a, m + 1, r);
+        merge(param->p->a, l, m, r);
+    }
+    return (void *)NULL;
+}
+
 void merge_sort(mm72_t *a, unsigned int l, unsigned int r) {
     if (l < r) {
         unsigned int m = l + (r - l) / 2;
         merge_sort(a, l, m);
         merge_sort(a, m + 1, r);
         merge(a, l, m, r);
+    }
+}
+
+void final_merge(mm72_t *a, unsigned int n, unsigned int l, unsigned int r) {
+    if (r == l + 2) {
+        merge(a, l * n / NB_THREADS, (l + 1) * n / NB_THREADS - 1,
+              r * n / NB_THREADS - 1);
+    }
+
+    else if (r > l + 2) {
+        unsigned int m = (r + l) / 2;
+        final_merge(a, n, l, m);
+        final_merge(a, n, m, r);
+        merge(a, l * n / NB_THREADS, m * n / NB_THREADS - 1,
+              r * n / NB_THREADS - 1);
     }
 }
 
