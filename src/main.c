@@ -68,8 +68,10 @@ int main(int argc, char *argv[]) {
         fprintf(gnuplot, "set terminal png size 1200, 900\n");
         fprintf(gnuplot, "set logscale y\n");
         fprintf(gnuplot, "set output 'cumulative.png'\n");
-        fprintf(gnuplot, "set title 'Cumulative sum of the number of entries "
-                         "(k = 15, w = 10 and f = 500)'\n");
+        fprintf(gnuplot,
+                "set title 'Cumulative sum of the number of entries "
+                "(k = %u, w = %u, f = %u and s = %u)'\n",
+                k, w, f, s);
         fprintf(gnuplot, "set xlabel 'Minimizers'\n");
         fprintf(gnuplot,
                 "set ylabel 'Cumulative sum of the number of positions'\n");
@@ -84,8 +86,10 @@ int main(int argc, char *argv[]) {
         gnuplot = popen("gnuplot", "w");
         fprintf(gnuplot, "set terminal png size 1200, 900\n");
         fprintf(gnuplot, "set output 'cumulative1.png'\n");
-        fprintf(gnuplot, "set title 'Cumulative sum of the number of entries "
-                         "starting at 6E8 (k = 15, w = 10 and f = 500)'\n");
+        fprintf(gnuplot,
+                "set title 'Cumulative sum of the number of entries "
+                "starting at 6E8 (k = %u, w = %u, f = %u and s = %u)'\n",
+                k, w, f, s);
         fprintf(gnuplot, "set xlabel 'Minimizers'\n");
         fprintf(gnuplot,
                 "set ylabel 'Cumulative sum of the number of positions'\n");
@@ -101,8 +105,10 @@ int main(int argc, char *argv[]) {
         gnuplot = popen("gnuplot", "w");
         fprintf(gnuplot, "set terminal png size 1200, 900\n");
         fprintf(gnuplot, "set output 'cumulative2.png'\n");
-        fprintf(gnuplot, "set title 'Cumulative sum of the number of entries "
-                         "starting at 8.5E8 (k = 15, w = 10 and f = 500)'\n");
+        fprintf(gnuplot,
+                "set title 'Cumulative sum of the number of entries "
+                "starting at 8.5E8 (k = %u, w = %u, f = %u and s = %u)'\n",
+                k, w, f, s);
         fprintf(gnuplot, "set xlabel 'Minimizers'\n");
         fprintf(gnuplot,
                 "set ylabel 'Cumulative sum of the number of positions'\n");
