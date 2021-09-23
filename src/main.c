@@ -8,9 +8,10 @@ int main(int argc, char *argv[]) {
     unsigned int k = 15;
     unsigned int f = 500;
     char p = 0;
+    uint32_t s = 0;
 
     int option;
-    while ((option = getopt(argc, argv, ":w:k:f:p")) != -1) {
+    while ((option = getopt(argc, argv, ":w:k:f:ps:")) != -1) {
         switch (option) {
         case 'w':
             w = atoi(optarg);
@@ -20,6 +21,9 @@ int main(int argc, char *argv[]) {
             break;
         case 'f':
             f = atoi(optarg);
+            break;
+        case 's':
+            s = atoi(optarg);
             break;
         case 'p':
             p = 1;
@@ -51,7 +55,7 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    index_t *idx = create_index(in_fp, w, k, f);
+    index_t *idx = create_index(in_fp, w, k, f, s);
     fwrite(&(idx->n), sizeof(idx->n), 1, out_fp);
     fwrite(idx->h, sizeof(idx->h[0]), idx->n, out_fp);
     fwrite(idx->position, sizeof(idx->position[0]), idx->m, out_fp);
@@ -110,7 +114,7 @@ int main(int argc, char *argv[]) {
         fflush(gnuplot);
         pclose(gnuplot);
 
-        puts("Info: cumulative.png & distribution.png written");
+        puts("Info: cumulative.png written");
     }
     return 0;
 }

@@ -1,6 +1,7 @@
 #include "index.h"
 #include "kvec.h"
 #include "mmpriv.h"
+#include <limits.h>
 #include <pthread.h>
 #include <stdlib.h>
 #define BUFFER_SIZE 4294967296
@@ -11,8 +12,10 @@ static inline unsigned char compare(mm72_t left, mm72_t right) {
 }
 
 index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k,
-                      const unsigned int filter_threshold) {
-    printf("Info: w = %u, k = %u & f = %u\n", w, k, filter_threshold);
+                      const unsigned int filter_threshold,
+                      const unsigned int shift) {
+    printf("Info: w = %u, k = %u, f = %u & shift = %u\n", w, k,
+           filter_threshold, shift);
 
     char *read_buffer = (char *)malloc(sizeof(char) * BUFFER_SIZE);
     if (read_buffer == NULL) {
@@ -43,7 +46,7 @@ index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k,
 
         if (c == '>') {
             if (chromo_len > 0) {
-                mm_sketch(0, dna_buffer, chromo_len, w, k, 0, 0, p);
+                mm_sketch(0, dna_buffer, chromo_len, w, k, shift, 0, p);
                 dna_len += chromo_len;
                 chromo_len = 0;
             }
@@ -69,7 +72,7 @@ index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k,
     free(read_buffer);
     fclose(in_fp);
     if (chromo_len > 0) {
-        mm_sketch(0, dna_buffer, chromo_len, w, k, 0, 0, p);
+        mm_sketch(0, dna_buffer, chromo_len, w, k, shift, 0, p);
         dna_len += chromo_len;
     }
 
@@ -85,7 +88,7 @@ index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k,
     unsigned int n = p->n;
     uint32_t max_minimizer = p->a[n - 1].minimizer;
     unsigned int freq_counter = 0;
-    for (unsigned int i = p->n - 2; i >= 0; i--) {
+    for (unsigned int i = p->n - 2; i != UINT_MAX; i--) {
         if (max_minimizer == p->a[i].minimizer) {
             freq_counter++;
         } else {
