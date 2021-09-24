@@ -2,6 +2,7 @@
 #include "kvec.h"
 #include "mmpriv.h"
 #include <limits.h>
+#include <math.h>
 #include <pthread.h>
 #include <stdlib.h>
 #define BUFFER_SIZE 4294967296
@@ -13,9 +14,9 @@ static inline unsigned char compare(mm72_t left, mm72_t right) {
 
 index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k,
                       const unsigned int filter_threshold,
-                      const unsigned int shift) {
-    printf("Info: w = %u, k = %u, f = %u & shift = %u\n", w, k,
-           filter_threshold, shift);
+                      const unsigned int b) {
+    printf("Info: w = %u, k = %u, f = %u & b = %u\n", w, k, filter_threshold,
+           b);
 
     char *read_buffer = (char *)malloc(sizeof(char) * BUFFER_SIZE);
     if (read_buffer == NULL) {
@@ -46,7 +47,7 @@ index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k,
 
         if (c == '>') {
             if (chromo_len > 0) {
-                mm_sketch(0, dna_buffer, chromo_len, w, k, shift, 0, p);
+                mm_sketch(0, dna_buffer, chromo_len, w, k, b, 0, p);
                 dna_len += chromo_len;
                 chromo_len = 0;
             }
@@ -72,7 +73,7 @@ index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k,
     free(read_buffer);
     fclose(in_fp);
     if (chromo_len > 0) {
-        mm_sketch(0, dna_buffer, chromo_len, w, k, shift, 0, p);
+        mm_sketch(0, dna_buffer, chromo_len, w, k, b, 0, p);
         dna_len += chromo_len;
     }
 
@@ -160,20 +161,34 @@ index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k,
     idx->m = l;
     float strand_size = (float)idx->m / (1 << 30);
     float position_size = strand_size * 4;
-    float hash_size = (float)(idx->n) / (1 << 28);
+    float hash_size = (float)idx->n / (1 << 28);
+    float average = (float)idx->m / idx->n;
+
     printf("Info: Size of the position array: %fGB\n", position_size);
     printf("Info: Size of the strand array: %fGB\n", strand_size);
-    printf("Info: Size of the minimizer array: %fGB\n", hash_size);
+    printf("Info: Size of the key array: %fGB\n", hash_size);
     printf("Info: Total size: %fGB\n", position_size + strand_size + hash_size);
+    printf("Info: Average locations per minimizers: %f\n", average);
+
     unsigned int empty_counter = 0;
     unsigned int j = 0;
+    unsigned long sd_counter = (h[0] - average) * (h[0] - average);
     for (unsigned int i = 0; i < idx->n; i++) {
+        if (i > 0) {
+            sd_counter +=
+                (h[i] - h[i - 1] - average) * (h[i] - h[i - 1] - average);
+        }
         if (h[i] == j) {
             empty_counter++;
         } else {
             j = h[i];
         }
     }
+
+    float sd = sqrtf((float)sd_counter / idx->n);
+    printf("Info: Standard deviation of the number of locations per "
+           "minimizers: %f\n",
+           sd);
     printf("Info: Number of empty entries in the hashtable: %u (%f%%)\n",
            empty_counter, (float)empty_counter / idx->n * 100);
     if (idx == NULL) {

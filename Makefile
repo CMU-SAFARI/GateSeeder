@@ -3,7 +3,7 @@ CC		:= gcc
 
 DEPFLAGS	= -MD -MP
 CFLAGS		= -g -O3 $(DEPFLAGS) -Wall -Werror
-LDLIBS		= -pthread
+LDLIBS		= -pthread -lm
 VPATH		= $(SRC_DIR)
 EXE		= main
 
