@@ -28,9 +28,15 @@ typedef struct {
     unsigned int i;
 } thread_param_t;
 
-index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k,
+index_t *create_index(FILE *fp, const unsigned int w, const unsigned int k,
                       const unsigned int filter_threshold,
                       const unsigned int b);
+mm72_v *create_raw_index(FILE *fp, const unsigned int w, const unsigned int k,
+                         const unsigned int filter_threshold,
+                         const unsigned int b);
+
+void parse_sketch(FILE *fp, const unsigned int w, const unsigned int k,
+                  const unsigned int b, mm72_v *p);
 void sort(mm72_v *p);
 void *thread_merge_sort(void *arg);
 void merge_sort(mm72_t *a, unsigned int l, unsigned int r);

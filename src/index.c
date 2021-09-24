@@ -12,74 +12,13 @@ static inline unsigned char compare(mm72_t left, mm72_t right) {
     return (left.minimizer) <= (right.minimizer);
 }
 
-index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k,
+index_t *create_index(FILE *fp, const unsigned int w, const unsigned int k,
                       const unsigned int filter_threshold,
                       const unsigned int b) {
-    printf("Info: w = %u, k = %u, f = %u & b = %u\n", w, k, filter_threshold,
-           b);
-
-    char *read_buffer = (char *)malloc(sizeof(char) * BUFFER_SIZE);
-    if (read_buffer == NULL) {
-        fputs("Memory error\n", stderr);
-        exit(2);
-    }
-
-    char *dna_buffer = (char *)malloc(sizeof(char) * BUFFER_SIZE);
-    if (dna_buffer == NULL) {
-        fputs("Memory error\n", stderr);
-        exit(2);
-    }
-
-    fread(read_buffer, sizeof(char), BUFFER_SIZE, in_fp);
-    if (!feof(in_fp)) {
-        fputs("Reading error: buffer too small\n", stderr);
-        exit(3);
-    }
-
-    unsigned int i = 0;
-    unsigned int dna_len = 0;
-    unsigned int chromo_len = 0;
-
     mm72_v *p = (mm72_v *)calloc(1, sizeof(mm72_v));
 
-    while (1) {
-        char c = read_buffer[i];
-
-        if (c == '>') {
-            if (chromo_len > 0) {
-                mm_sketch(0, dna_buffer, chromo_len, w, k, b, 0, p);
-                dna_len += chromo_len;
-                chromo_len = 0;
-            }
-            while (c != '\n' && c != 0) {
-                i++;
-                c = read_buffer[i];
-            }
-        } else {
-            while (c != '\n' && c != 0) {
-                dna_buffer[chromo_len] = c;
-                chromo_len++;
-                i++;
-                c = read_buffer[i];
-            }
-        }
-
-        if (c == 0) {
-            break;
-        }
-        i++;
-    }
-
-    free(read_buffer);
-    fclose(in_fp);
-    if (chromo_len > 0) {
-        mm_sketch(0, dna_buffer, chromo_len, w, k, b, 0, p);
-        dna_len += chromo_len;
-    }
-
-    printf("Info: Indexed DNA length: %u bases\n", dna_len);
-    printf("Info: Number of (minimizer, position, strand): %lu\n", p->n);
-    free(dna_buffer);
+    // Parse & sketch
+    parse_sketch(fp, w, k, b, p);
 
     // Sort p
     sort(p);
@@ -199,6 +138,84 @@ index_t *create_index(FILE *in_fp, const unsigned int w, const unsigned int k,
     idx->position = position;
     idx->strand = strand;
     return idx;
+}
+
+mm72_v *create_raw_index(FILE *fp, const unsigned int w, const unsigned int k,
+                         const unsigned int filter_threshold,
+                         const unsigned int b) {
+    mm72_v *p = (mm72_v *)calloc(1, sizeof(mm72_v));
+
+    // Parse & sketch
+    parse_sketch(fp, w, k, b, p);
+
+    // Sort p
+    sort(p);
+    printf("Info: Array sorted\n");
+    return p;
+}
+
+void parse_sketch(FILE *fp, const unsigned int w, const unsigned int k,
+                  const unsigned int b, mm72_v *p) {
+    char *read_buffer = (char *)malloc(sizeof(char) * BUFFER_SIZE);
+    if (read_buffer == NULL) {
+        fputs("Memory error\n", stderr);
+        exit(2);
+    }
+
+    char *dna_buffer = (char *)malloc(sizeof(char) * BUFFER_SIZE);
+    if (dna_buffer == NULL) {
+        fputs("Memory error\n", stderr);
+        exit(2);
+    }
+
+    fread(read_buffer, sizeof(char), BUFFER_SIZE, fp);
+    if (!feof(fp)) {
+        fputs("Reading error: buffer too small\n", stderr);
+        exit(3);
+    }
+
+    unsigned int i = 0;
+    unsigned int dna_len = 0;
+    unsigned int chromo_len = 0;
+
+    while (1) {
+        char c = read_buffer[i];
+
+        if (c == '>') {
+            if (chromo_len > 0) {
+                mm_sketch(0, dna_buffer, chromo_len, w, k, b, 0, p);
+                dna_len += chromo_len;
+                chromo_len = 0;
+            }
+            while (c != '\n' && c != 0) {
+                i++;
+                c = read_buffer[i];
+            }
+        } else {
+            while (c != '\n' && c != 0) {
+                dna_buffer[chromo_len] = c;
+                chromo_len++;
+                i++;
+                c = read_buffer[i];
+            }
+        }
+
+        if (c == 0) {
+            break;
+        }
+        i++;
+    }
+
+    free(read_buffer);
+    fclose(fp);
+    if (chromo_len > 0) {
+        mm_sketch(0, dna_buffer, chromo_len, w, k, b, 0, p);
+        dna_len += chromo_len;
+    }
+
+    printf("Info: Indexed DNA length: %u bases\n", dna_len);
+    printf("Info: Number of (minimizer, position, strand): %lu\n", p->n);
+    free(dna_buffer);
 }
 
 void sort(mm72_v *p) {

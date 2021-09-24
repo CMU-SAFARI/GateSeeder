@@ -8,10 +8,11 @@ int main(int argc, char *argv[]) {
     unsigned int k = 18;
     unsigned int f = 500;
     char p = 0;
-    uint32_t b = 28;
+    unsigned int b = 28;
+    char r = 0;
 
     int option;
-    while ((option = getopt(argc, argv, ":w:k:f:pb:")) != -1) {
+    while ((option = getopt(argc, argv, ":w:k:f:pb:r")) != -1) {
         switch (option) {
         case 'w':
             w = atoi(optarg);
@@ -27,6 +28,9 @@ int main(int argc, char *argv[]) {
             break;
         case 'p':
             p = 1;
+            break;
+        case 'r':
+            r = 1;
             break;
         case ':':
             fprintf(stderr, "Error: '%c' requires a value\n", optopt);
@@ -55,74 +59,42 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    index_t *idx = create_index(in_fp, w, k, f, b);
-    fwrite(&(idx->n), sizeof(idx->n), 1, out_fp);
-    fwrite(idx->h, sizeof(idx->h[0]), idx->n, out_fp);
-    fwrite(idx->position, sizeof(idx->position[0]), idx->m, out_fp);
-    fwrite(idx->strand, sizeof(idx->strand[0]), idx->m, out_fp);
-    fclose(out_fp);
-    printf("Info: Binary file `%s` written\n", argv[optind + 1]);
+    printf("Info: w = %u, k = %u, f = %u & b = %u\n", w, k, f, b);
+    if (r) {
+        puts("Info: Output format: sorted array of (minimizer, position, "
+             "strand)\n");
+        // mm72_v *idx = create_raw_index(in_fp, w, k, f, b);
+    } else {
+        puts("Info: Output format: minimizer array, position array, strand "
+             "array");
+        index_t *idx = create_index(in_fp, w, k, f, b);
+        fwrite(&(idx->n), sizeof(idx->n), 1, out_fp);
+        fwrite(idx->h, sizeof(idx->h[0]), idx->n, out_fp);
+        fwrite(idx->position, sizeof(idx->position[0]), idx->m, out_fp);
+        fwrite(idx->strand, sizeof(idx->strand[0]), idx->m, out_fp);
+        fclose(out_fp);
+        printf("Info: Binary file `%s` written\n", argv[optind + 1]);
 
-    if (p) {
-        FILE *gnuplot = popen("gnuplot", "w");
-        fprintf(gnuplot, "set terminal png size 1200, 900\n");
-        // fprintf(gnuplot, "set logscale y\n");
-        fprintf(gnuplot, "set output 'cumulative.png'\n");
-        fprintf(gnuplot,
-                "set title 'Cumulative sum of the number of entries "
-                "(k = %u, w = %u, f = %u and b = %u)'\n",
-                k, w, f, b);
-        fprintf(gnuplot, "set xlabel 'Minimizers'\n");
-        fprintf(gnuplot,
-                "set ylabel 'Cumulative sum of the number of positions'\n");
-        fprintf(gnuplot, "plot '-' with lines lw 3 notitle\n");
-        for (unsigned int i = 0; i < idx->n; i += idx->n / 1000) {
-            fprintf(gnuplot, "%u %u\n", i, idx->h[i]);
+        if (p) {
+            FILE *gnuplot = popen("gnuplot", "w");
+            fprintf(gnuplot, "set terminal png size 1200, 900\n");
+            // fprintf(gnuplot, "set logscale y\n");
+            fprintf(gnuplot, "set output 'cumulative.png'\n");
+            fprintf(gnuplot,
+                    "set title 'Cumulative sum of the number of entries "
+                    "(k = %u, w = %u, f = %u and b = %u)'\n",
+                    k, w, f, b);
+            fprintf(gnuplot, "set xlabel 'Minimizers'\n");
+            fprintf(gnuplot,
+                    "set ylabel 'Cumulative sum of the number of positions'\n");
+            fprintf(gnuplot, "plot '-' with lines lw 3 notitle\n");
+            for (unsigned int i = 0; i < idx->n; i += idx->n / 1000) {
+                fprintf(gnuplot, "%u %u\n", i, idx->h[i]);
+            }
+            fprintf(gnuplot, "e\n");
+            fflush(gnuplot);
+            pclose(gnuplot);
         }
-        fprintf(gnuplot, "e\n");
-        fflush(gnuplot);
-        pclose(gnuplot);
-
-        /*
-        gnuplot = popen("gnuplot", "w");
-        fprintf(gnuplot, "set terminal png size 1200, 900\n");
-        fprintf(gnuplot, "set output 'cumulative1.png'\n");
-        fprintf(gnuplot,
-                "set title 'Cumulative sum of the number of entries "
-                "starting at 6E8 (k = %u, w = %u, f = %u and b = %u)'\n",
-                k, w, f, b);
-        fprintf(gnuplot, "set xlabel 'Minimizers'\n");
-        fprintf(gnuplot,
-                "set ylabel 'Cumulative sum of the number of positions'\n");
-        fprintf(gnuplot, "plot '-' with lines lw 3 notitle\n");
-        unsigned int i;
-        for (i = 600000000; i < idx->n; i += idx->n / 10000) {
-            fprintf(gnuplot, "%u %u\n", i, idx->h[i] - idx->h[600000000]);
-        }
-        fprintf(gnuplot, "e\n");
-        fflush(gnuplot);
-        pclose(gnuplot);
-
-        gnuplot = popen("gnuplot", "w");
-        fprintf(gnuplot, "set terminal png size 1200, 900\n");
-        fprintf(gnuplot, "set output 'cumulative2.png'\n");
-        fprintf(gnuplot,
-                "set title 'Cumulative sum of the number of entries "
-                "starting at 8.5E8 (k = %u, w = %u, f = %u and b = %u)'\n",
-                k, w, f, b);
-        fprintf(gnuplot, "set xlabel 'Minimizers'\n");
-        fprintf(gnuplot,
-                "set ylabel 'Cumulative sum of the number of positions'\n");
-        fprintf(gnuplot, "plot '-' with lines lw 3 notitle\n");
-        for (i = 850000000; i < idx->n; i += idx->n / 10000) {
-            fprintf(gnuplot, "%u %u\n", i, idx->h[i] - idx->h[850000000]);
-        }
-        fprintf(gnuplot, "e\n");
-        fflush(gnuplot);
-        pclose(gnuplot);
-
-        puts("Info: cumulative.png written");
-        */
     }
     return 0;
 }
