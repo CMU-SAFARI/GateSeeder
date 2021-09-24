@@ -151,6 +151,7 @@ mm72_v *create_raw_index(FILE *fp, const unsigned int w, const unsigned int k,
     // Sort p
     sort(p);
     printf("Info: Array sorted\n");
+    printf("Info: Total size: %fGB\n", (float)p->n * 9 / (1 << 30));
     return p;
 }
 

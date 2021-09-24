@@ -62,8 +62,29 @@ int main(int argc, char *argv[]) {
     printf("Info: w = %u, k = %u, f = %u & b = %u\n", w, k, f, b);
     if (r) {
         puts("Info: Output format: sorted array of (minimizer, position, "
-             "strand)\n");
-        // mm72_v *idx = create_raw_index(in_fp, w, k, f, b);
+             "strand)");
+        mm72_v *idx = create_raw_index(in_fp, w, k, f, b);
+        uint8_t *a = (uint8_t *)malloc(sizeof(uint8_t) * idx->n * 9);
+        if (a == NULL) {
+            fputs("Memory error\n", stderr);
+            exit(2);
+        }
+        uint32_t mask = (1 << 8) - 1;
+        for (size_t i = 0; i < idx->n; i++) {
+            a[9 * i] = (uint8_t)idx->a[i].minimizer & mask;
+            a[9 * i + 1] = (uint8_t)(idx->a[i].minimizer >> 8) & mask;
+            a[9 * i + 2] = (uint8_t)(idx->a[i].minimizer >> 16) & mask;
+            a[9 * i + 3] = (uint8_t)(idx->a[i].minimizer >> 24) & mask;
+            a[9 * i + 4] = (uint8_t)idx->a[i].position & mask;
+            a[9 * i + 5] = (uint8_t)(idx->a[i].position >> 8) & mask;
+            a[9 * i + 6] = (uint8_t)(idx->a[i].position >> 16) & mask;
+            a[9 * i + 7] = (uint8_t)(idx->a[i].position >> 24) & mask;
+            a[9 * i + 8] = (uint8_t)idx->a[i].strand;
+        }
+        fwrite(&(idx->n), sizeof(idx->n), 1, out_fp);
+        fwrite(a, sizeof(uint8_t), idx->n * 9, out_fp);
+        fclose(out_fp);
+        printf("Info: Binary file `%s` written\n", argv[optind + 1]);
     } else {
         puts("Info: Output format: minimizer array, position array, strand "
              "array");

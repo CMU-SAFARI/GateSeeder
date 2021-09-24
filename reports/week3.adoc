@@ -3,8 +3,14 @@
 == Achievements
 
 * Reduction of the size of the minimizer array until the biggest *non ignored* minimizer.
-* Speed of program improved using multiple threads
-* Add a mask to reduce the number of minimizers in the hash-table
-* Log the average & the standard deviation of locations per minimizers
+* Speed of program improved using multiple threads.
+* Add a mask to reduce the number of minimizers in the hash-table.
+* Log the average & the standard deviation of locations per minimizers.
+* sorted (minimizer, position, strand) array can be used as output format.
 
 === Results
+
+
+=== Questions
+
+* (minimizer, position, strand) array format is 72bits aligned
