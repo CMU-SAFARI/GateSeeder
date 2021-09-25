@@ -39,7 +39,7 @@ void parse_sketch(FILE *fp, const unsigned int w, const unsigned int k,
                   const unsigned int b, mm72_v *p);
 void sort(mm72_v *p);
 void *thread_merge_sort(void *arg);
-void merge_sort(mm72_t *a, unsigned int l, unsigned int r);
-void final_merge(mm72_t *a, unsigned int n, unsigned int l, unsigned int r);
-void merge(mm72_t *a, unsigned int l, unsigned int m, unsigned int r);
+void merge_sort(mm72_t *a, size_t l, size_t r);
+void final_merge(mm72_t *a, size_t n, size_t l, size_t r);
+void merge(mm72_t *a, size_t l, size_t m, size_t r);
 #endif

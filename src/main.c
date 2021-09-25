@@ -25,6 +25,10 @@ int main(int argc, char *argv[]) {
             break;
         case 'b':
             b = atoi(optarg);
+            if (b > 32) {
+                fputs("Error: 'b' needs to be smaller than 32\n", stderr);
+                exit(4);
+            }
             break;
         case 'p':
             p = 1;
@@ -109,12 +113,13 @@ int main(int argc, char *argv[]) {
             fprintf(gnuplot,
                     "set ylabel 'Cumulative sum of the number of positions'\n");
             fprintf(gnuplot, "plot '-' with lines lw 3 notitle\n");
-            for (unsigned int i = 0; i < idx->n; i += idx->n / 1000) {
+            for (uint32_t i = 0; i < idx->n; i += idx->n / 1000) {
                 fprintf(gnuplot, "%u %u\n", i, idx->h[i]);
             }
             fprintf(gnuplot, "e\n");
             fflush(gnuplot);
             pclose(gnuplot);
+            puts("Info: cumulative.png written");
         }
     }
     return 0;

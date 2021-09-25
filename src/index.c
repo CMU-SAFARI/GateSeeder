@@ -25,10 +25,10 @@ index_t *create_index(FILE *fp, const unsigned int w, const unsigned int k,
     printf("Info: Array sorted\n");
 
     // Compute the maximum minimizer after filtering
-    unsigned int n = p->n;
+    size_t n = p->n;
     uint32_t max_minimizer = p->a[n - 1].minimizer;
     unsigned int freq_counter = 0;
-    for (unsigned int i = p->n - 2; i != UINT_MAX; i--) {
+    for (size_t i = p->n - 2; i != UINT_MAX; i--) {
         if (max_minimizer == p->a[i].minimizer) {
             freq_counter++;
         } else {
@@ -53,19 +53,19 @@ index_t *create_index(FILE *fp, const unsigned int w, const unsigned int k,
     }
 
     unsigned int diff_counter = 0;
-    unsigned int index = p->a[0].minimizer;
+    uint32_t index = p->a[0].minimizer;
     freq_counter = 0;
     unsigned int filter_counter = 0;
-    unsigned int pos = 0;
-    unsigned int l = 0;
+    size_t pos = 0;
+    uint32_t l = 0;
 
-    for (unsigned int i = 1; i < n; i++) {
+    for (size_t i = 1; i < n; i++) {
         if (index == p->a[i].minimizer) {
             freq_counter++;
         } else {
             if (freq_counter < filter_threshold) {
                 diff_counter++;
-                for (unsigned int j = pos; j < i; j++) {
+                for (size_t j = pos; j < i; j++) {
                     position[l] = p->a[j].position;
                     strand[l] = p->a[j].strand;
                     l++;
@@ -83,7 +83,7 @@ index_t *create_index(FILE *fp, const unsigned int w, const unsigned int k,
     }
     if (freq_counter < filter_threshold) {
         diff_counter++;
-        for (unsigned int j = pos; j < n; j++) {
+        for (size_t j = pos; j < n; j++) {
             position[l] = p->a[j].position;
             strand[l] = p->a[j].strand;
             l++;
@@ -110,9 +110,9 @@ index_t *create_index(FILE *fp, const unsigned int w, const unsigned int k,
     printf("Info: Average locations per minimizers: %f\n", average);
 
     unsigned int empty_counter = 0;
-    unsigned int j = 0;
+    uint32_t j = 0;
     unsigned long sd_counter = (h[0] - average) * (h[0] - average);
-    for (unsigned int i = 0; i < idx->n; i++) {
+    for (size_t i = 0; i < idx->n; i++) {
         if (i > 0) {
             sd_counter +=
                 (h[i] - h[i - 1] - average) * (h[i] - h[i - 1] - average);
@@ -175,9 +175,9 @@ void parse_sketch(FILE *fp, const unsigned int w, const unsigned int k,
         exit(3);
     }
 
-    unsigned int i = 0;
-    unsigned int dna_len = 0;
-    unsigned int chromo_len = 0;
+    size_t i = 0;
+    size_t dna_len = 0;
+    size_t chromo_len = 0;
 
     while (1) {
         char c = read_buffer[i];
@@ -214,7 +214,7 @@ void parse_sketch(FILE *fp, const unsigned int w, const unsigned int k,
         dna_len += chromo_len;
     }
 
-    printf("Info: Indexed DNA length: %u bases\n", dna_len);
+    printf("Info: Indexed DNA length: %lu bases\n", dna_len);
     printf("Info: Number of (minimizer, position, strand): %lu\n", p->n);
     free(dna_buffer);
 }
@@ -222,14 +222,14 @@ void parse_sketch(FILE *fp, const unsigned int w, const unsigned int k,
 void sort(mm72_v *p) {
     pthread_t threads[NB_THREADS];
     thread_param_t params[NB_THREADS];
-    for (unsigned int i = 0; i < NB_THREADS; i++) {
+    for (size_t i = 0; i < NB_THREADS; i++) {
         params[i].p = p;
         params[i].i = i;
         pthread_create(&threads[i], NULL, thread_merge_sort,
                        (void *)&params[i]);
     }
 
-    for (unsigned int i = 0; i < NB_THREADS; i++) {
+    for (size_t i = 0; i < NB_THREADS; i++) {
         pthread_join(threads[i], NULL);
     }
     final_merge(p->a, p->n, 0, NB_THREADS);
@@ -237,10 +237,10 @@ void sort(mm72_v *p) {
 
 void *thread_merge_sort(void *arg) {
     thread_param_t *param = (thread_param_t *)arg;
-    unsigned int l = param->i * param->p->n / NB_THREADS;
-    unsigned int r = (param->i + 1) * param->p->n / NB_THREADS - 1;
+    size_t l = param->i * param->p->n / NB_THREADS;
+    size_t r = (param->i + 1) * param->p->n / NB_THREADS - 1;
     if (l < r) {
-        unsigned int m = l + (r - l) / 2;
+        size_t m = l + (r - l) / 2;
         merge_sort(param->p->a, l, m);
         merge_sort(param->p->a, m + 1, r);
         merge(param->p->a, l, m, r);
@@ -248,23 +248,23 @@ void *thread_merge_sort(void *arg) {
     return (void *)NULL;
 }
 
-void merge_sort(mm72_t *a, unsigned int l, unsigned int r) {
+void merge_sort(mm72_t *a, size_t l, size_t r) {
     if (l < r) {
-        unsigned int m = l + (r - l) / 2;
+        size_t m = l + (r - l) / 2;
         merge_sort(a, l, m);
         merge_sort(a, m + 1, r);
         merge(a, l, m, r);
     }
 }
 
-void final_merge(mm72_t *a, unsigned int n, unsigned int l, unsigned int r) {
+void final_merge(mm72_t *a, size_t n, size_t l, size_t r) {
     if (r == l + 2) {
         merge(a, l * n / NB_THREADS, (l + 1) * n / NB_THREADS - 1,
               r * n / NB_THREADS - 1);
     }
 
     else if (r > l + 2) {
-        unsigned int m = (r + l) / 2;
+        size_t m = (r + l) / 2;
         final_merge(a, n, l, m);
         final_merge(a, n, m, r);
         merge(a, l * n / NB_THREADS, m * n / NB_THREADS - 1,
@@ -272,10 +272,10 @@ void final_merge(mm72_t *a, unsigned int n, unsigned int l, unsigned int r) {
     }
 }
 
-void merge(mm72_t *a, unsigned int l, unsigned int m, unsigned int r) {
-    unsigned int i, j;
-    unsigned int n1 = m - l + 1;
-    unsigned int n2 = r - m;
+void merge(mm72_t *a, size_t l, size_t m, size_t r) {
+    size_t i, j;
+    size_t n1 = m - l + 1;
+    size_t n2 = r - m;
 
     mm72_t *L = (mm72_t *)malloc(n1 * sizeof(mm72_t));
     mm72_t *R = (mm72_t *)malloc(n2 * sizeof(mm72_t));
@@ -293,7 +293,7 @@ void merge(mm72_t *a, unsigned int l, unsigned int m, unsigned int r) {
 
     i = 0;
     j = 0;
-    unsigned int k = l;
+    size_t k = l;
 
     while (i < n1 && j < n2) {
         if (compare(L[i], R[j])) {
