@@ -19,6 +19,7 @@ cd genome_indexing && make
 The default values for `k`, `w`, `f` and `b` are 15, 10, 500 and 28 respectively.
 
 Two output binary formats can be generated:
+
 * The default structure consist of 3 arrays. In the first array, each entry corresponds to a minimizer and contains an index of the two other arrays. The two arrays contain the sets of locations & strands corresponding to a given minimizer.
 * A sorted array of the following triplet (minimizer, position, strand). To output this format you have to use the `-r` option.
 
