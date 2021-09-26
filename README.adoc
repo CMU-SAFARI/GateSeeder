@@ -13,14 +13,18 @@ cd genome_indexing && make
 
 [source, shell]
 ----
-./main -k <k-mer length> -w <window size> -f <frequency threshold> <Genome reference filename (.fna)> <Output binary file>
+./main -k <k-mer length> -w <window size> -f <frequency threshold> -b <size of the mask> <Genome reference filename (.fna)> <Output binary file>
 ----
 
-The default values for `k`, `w` and `f` are 15, 10 and 500, respectively.
+The default values for `k`, `w`, `f` and `b` are 15, 10, 500 and 28 respectively.
 
-== Generated Hash table
+Two output binary formats can be generated:
+* The default structure consist of 3 arrays. In the first array, each entry corresponds to a minimizer and contains an index of the two other arrays. The two arrays contain the sets of locations & strands corresponding to a given minimizer.
+* A sorted array of the following triplet (minimizer, position, strand). To output this format you have to use the `-r` option.
 
+.A representation of the default data structure
 image::img/schematic.png[schematic]
+
 == Results
 
 In all the following results link:https://www.ncbi.nlm.nih.gov/assembly/GCF_000001405.39[GRCh38.p13] (3,209,286,105 bases) is used as the genome reference.
