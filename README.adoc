@@ -1,0 +1,35 @@
+= Genome indexing
+
+== Installation
+
+Clone the repository & build the program:
+[source, shell]
+----
+git clone git@github.com:jeudine/genome_indexing.git
+cd genome_indexing && make
+----
+
+== Usage
+
+[source, shell]
+----
+./main -k <k-mer length> -w <window size> -f <frequency threshold> -b <size of the mask> <Genome reference filename (.fna)> <Output binary file>
+----
+
+The default values for `k`, `w`, `f` and `b` are 15, 10, 500 and 28 respectively.
+
+Two output binary formats can be generated:
+
+* The default structure consists of 3 arrays. In the first array, each entry corresponds to a minimizer and contains an index of the two other arrays. The two arrays contain the sets of locations & strands corresponding to a given minimizer.
+* A sorted array of the following triplet (minimizer, position, strand). Each element is encoded on 72bits. To output this format you have to use the `-r` option.
+
+.A representation of the default data structure
+image::img/schematic.png[schematic]
+
+== Reports
+
+In all the following results link:https://www.ncbi.nlm.nih.gov/assembly/GCF_000001405.39[GRCh38.p13] (3,209,286,105 bases) is used as the genome reference.
+
+* *https://github.com/jeudine/genome_indexing/blob/main/reports/week3.adoc[week3]*
+* *https://github.com/jeudine/genome_indexing/blob/main/reports/week2.adoc[week2]*
+* *https://github.com/jeudine/genome_indexing/blob/main/reports/week1.adoc[week1]*
