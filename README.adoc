@@ -1,4 +1,6 @@
-= Genome indexing
+= FPGA_Genome_Indexing
+
+FPGA Genome Indexing &amp; Seeding (Julien Eudine)
 
 == Installation
 
@@ -30,6 +32,6 @@ image::img/schematic.png[schematic]
 
 In all the following results link:https://www.ncbi.nlm.nih.gov/assembly/GCF_000001405.39[GRCh38.p13] (3,209,286,105 bases) is used as the genome reference.
 
-* *https://github.com/jeudine/genome_indexing/blob/main/reports/week3.adoc[week3]*
-* *https://github.com/jeudine/genome_indexing/blob/main/reports/week2.adoc[week2]*
-* *https://github.com/jeudine/genome_indexing/blob/main/reports/week1.adoc[week1]*
+* *https://github.com/mealser/FPGA_Genome_Indexing/blob/main/reports/week3.adoc[week3]*
+* *https://github.com/mealser/FPGA_Genome_Indexing/blob/main/reports/week2.adoc[week2]*
+* *https://github.com/mealser/FPGA_Genome_Indexing/blob/main/reports/week1.adoc[week1]*
