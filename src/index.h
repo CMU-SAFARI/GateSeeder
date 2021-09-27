@@ -1,7 +1,6 @@
 #ifndef INDEX_H
 #define INDEX_H
 
-#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 
