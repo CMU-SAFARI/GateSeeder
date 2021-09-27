@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
     char r = 0;
 
     int option;
-    while ((option = getopt(argc, argv, ":w:k:f:pb:r")) != -1) {
+    while ((option = getopt(argc, argv, ":w:k:f:pb:ri:")) != -1) {
         switch (option) {
         case 'w':
             w = atoi(optarg);
@@ -36,6 +36,15 @@ int main(int argc, char *argv[]) {
         case 'r':
             r = 1;
             break;
+        case 'i': {
+            FILE *bin_fp = fopen(optarg, "rb");
+            if (bin_fp == NULL) {
+                fprintf(stderr, "Error: cannot open `%s`\n", optarg);
+                exit(1);
+            }
+            printf("Info: Reading binary file: %s\n", optarg);
+            read_index(bin_fp);
+        } break;
         case ':':
             fprintf(stderr, "Error: '%c' requires a value\n", optopt);
             exit(3);
@@ -65,7 +74,7 @@ int main(int argc, char *argv[]) {
 
     printf("Info: w = %u, k = %u, f = %u & b = %u\n", w, k, f, b);
     if (r) {
-        puts("Info: Output format: sorted array of (minimizer, position, "
+        puts("Info: Output format: sorted array of (minimizer, location, "
              "strand)");
         mm72_v *idx = create_raw_index(in_fp, w, k, f, b);
         uint8_t *a = (uint8_t *)malloc(sizeof(uint8_t) * idx->n * 9);
@@ -79,10 +88,10 @@ int main(int argc, char *argv[]) {
             a[9 * i + 1] = (uint8_t)(idx->a[i].minimizer >> 8) & mask;
             a[9 * i + 2] = (uint8_t)(idx->a[i].minimizer >> 16) & mask;
             a[9 * i + 3] = (uint8_t)(idx->a[i].minimizer >> 24) & mask;
-            a[9 * i + 4] = (uint8_t)idx->a[i].position & mask;
-            a[9 * i + 5] = (uint8_t)(idx->a[i].position >> 8) & mask;
-            a[9 * i + 6] = (uint8_t)(idx->a[i].position >> 16) & mask;
-            a[9 * i + 7] = (uint8_t)(idx->a[i].position >> 24) & mask;
+            a[9 * i + 4] = (uint8_t)idx->a[i].location & mask;
+            a[9 * i + 5] = (uint8_t)(idx->a[i].location >> 8) & mask;
+            a[9 * i + 6] = (uint8_t)(idx->a[i].location >> 16) & mask;
+            a[9 * i + 7] = (uint8_t)(idx->a[i].location >> 24) & mask;
             a[9 * i + 8] = (uint8_t)idx->a[i].strand;
         }
         fwrite(&(idx->n), sizeof(idx->n), 1, out_fp);
@@ -90,12 +99,12 @@ int main(int argc, char *argv[]) {
         fclose(out_fp);
         printf("Info: Binary file `%s` written\n", argv[optind + 1]);
     } else {
-        puts("Info: Output format: minimizer array, position array, strand "
+        puts("Info: Output format: minimizer array, location array, strand "
              "array");
         index_t *idx = create_index(in_fp, w, k, f, b);
         fwrite(&(idx->n), sizeof(idx->n), 1, out_fp);
         fwrite(idx->h, sizeof(idx->h[0]), idx->n, out_fp);
-        fwrite(idx->position, sizeof(idx->position[0]), idx->m, out_fp);
+        fwrite(idx->location, sizeof(idx->location[0]), idx->m, out_fp);
         fwrite(idx->strand, sizeof(idx->strand[0]), idx->m, out_fp);
         fclose(out_fp);
         printf("Info: Binary file `%s` written\n", argv[optind + 1]);
@@ -111,7 +120,7 @@ int main(int argc, char *argv[]) {
                     k, w, f, b);
             fprintf(gnuplot, "set xlabel 'Minimizers'\n");
             fprintf(gnuplot,
-                    "set ylabel 'Cumulative sum of the number of positions'\n");
+                    "set ylabel 'Cumulative sum of the number of locations'\n");
             fprintf(gnuplot, "plot '-' with lines lw 3 notitle\n");
             for (uint32_t i = 0; i < idx->n; i += idx->n / 1000) {
                 fprintf(gnuplot, "%u %u\n", i, idx->h[i]);

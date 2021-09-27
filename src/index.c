@@ -45,9 +45,9 @@ index_t *create_index(FILE *fp, const unsigned int w, const unsigned int k,
 
     // Write the data in the struct & filter out the most frequent minimizers
     uint32_t *h = (uint32_t *)malloc(sizeof(uint32_t) * (max_minimizer + 1));
-    uint32_t *position = (uint32_t *)malloc(sizeof(uint32_t) * n);
+    uint32_t *location = (uint32_t *)malloc(sizeof(uint32_t) * n);
     uint8_t *strand = (uint8_t *)malloc(sizeof(uint8_t) * n);
-    if (h == NULL || position == NULL || strand == NULL) {
+    if (h == NULL || location == NULL || strand == NULL) {
         fputs("Memory error\n", stderr);
         exit(2);
     }
@@ -66,7 +66,7 @@ index_t *create_index(FILE *fp, const unsigned int w, const unsigned int k,
             if (freq_counter < filter_threshold) {
                 diff_counter++;
                 for (size_t j = pos; j < i; j++) {
-                    position[l] = p->a[j].position;
+                    location[l] = p->a[j].location;
                     strand[l] = p->a[j].strand;
                     l++;
                 }
@@ -84,7 +84,7 @@ index_t *create_index(FILE *fp, const unsigned int w, const unsigned int k,
     if (freq_counter < filter_threshold) {
         diff_counter++;
         for (size_t j = pos; j < n; j++) {
-            position[l] = p->a[j].position;
+            location[l] = p->a[j].location;
             strand[l] = p->a[j].strand;
             l++;
         }
@@ -99,14 +99,14 @@ index_t *create_index(FILE *fp, const unsigned int w, const unsigned int k,
     idx->n = max_minimizer + 1;
     idx->m = l;
     float strand_size = (float)idx->m / (1 << 30);
-    float position_size = strand_size * 4;
+    float location_size = strand_size * 4;
     float hash_size = (float)idx->n / (1 << 28);
     float average = (float)idx->m / idx->n;
 
-    printf("Info: Size of the position array: %fGB\n", position_size);
+    printf("Info: Size of the location array: %fGB\n", location_size);
     printf("Info: Size of the strand array: %fGB\n", strand_size);
     printf("Info: Size of the key array: %fGB\n", hash_size);
-    printf("Info: Total size: %fGB\n", position_size + strand_size + hash_size);
+    printf("Info: Total size: %fGB\n", location_size + strand_size + hash_size);
     printf("Info: Average locations per minimizers: %f\n", average);
 
     unsigned int empty_counter = 0;
@@ -135,7 +135,7 @@ index_t *create_index(FILE *fp, const unsigned int w, const unsigned int k,
         exit(2);
     }
     idx->h = h;
-    idx->position = position;
+    idx->location = location;
     idx->strand = strand;
     return idx;
 }
@@ -155,6 +155,57 @@ mm72_v *create_raw_index(FILE *fp, const unsigned int w, const unsigned int k,
     return p;
 }
 
+index_t *read_index(FILE *fp) {
+    /*
+    char *read_buffer = (char *)malloc(sizeof(char) * BUFFER_SIZE);
+    if (read_buffer == NULL) {
+        fputs("Memory error\n", stderr);
+        exit(2);
+    }
+    */
+    index_t *idx = (index_t *)malloc(sizeof(index_t));
+    if (idx == NULL) {
+        fputs("Memory error\n", stderr);
+        exit(2);
+    }
+    fread(&idx->n, sizeof(uint32_t), 1, fp);
+    printf("Info: Number of minimizers: %u\n", idx->n);
+
+    idx->h = (uint32_t *)malloc(sizeof(uint32_t) * idx->n);
+    if (idx->h == NULL) {
+        fputs("Memory error\n", stderr);
+        exit(2);
+    }
+    fread(idx->h, sizeof(uint32_t), idx->n, fp);
+    idx->m = idx->h[idx->n - 1];
+    printf("Info: Size of the location & strand arrays: %u\n", idx->m);
+
+    idx->location = (uint32_t *)malloc(sizeof(uint32_t) * idx->m);
+    if (idx->location == NULL) {
+        fputs("Memory error\n", stderr);
+        exit(2);
+    }
+    fread(idx->location, sizeof(uint32_t), idx->m, fp);
+
+    idx->strand = (uint8_t *)malloc(sizeof(uint8_t) * idx->m);
+    if (idx->strand == NULL) {
+        fputs("Memory error\n", stderr);
+        exit(2);
+    }
+    fread(idx->strand, sizeof(uint8_t), idx->m, fp);
+
+    // Check if we reached the EOF
+    uint8_t eof;
+    fread(&eof, sizeof(uint8_t), 1, fp);
+    if (!feof(fp)) {
+        fputs("Reading error: wrong file format\n", stderr);
+        fclose(fp);
+        exit(3);
+    }
+
+    fclose(fp);
+    return idx;
+}
 void parse_sketch(FILE *fp, const unsigned int w, const unsigned int k,
                   const unsigned int b, mm72_v *p) {
     char *read_buffer = (char *)malloc(sizeof(char) * BUFFER_SIZE);
@@ -172,6 +223,7 @@ void parse_sketch(FILE *fp, const unsigned int w, const unsigned int k,
     fread(read_buffer, sizeof(char), BUFFER_SIZE, fp);
     if (!feof(fp)) {
         fputs("Reading error: buffer too small\n", stderr);
+        fclose(fp);
         exit(3);
     }
 
@@ -215,7 +267,7 @@ void parse_sketch(FILE *fp, const unsigned int w, const unsigned int k,
     }
 
     printf("Info: Indexed DNA length: %lu bases\n", dna_len);
-    printf("Info: Number of (minimizer, position, strand): %lu\n", p->n);
+    printf("Info: Number of (minimizer, location, strand): %lu\n", p->n);
     free(dna_buffer);
 }
 

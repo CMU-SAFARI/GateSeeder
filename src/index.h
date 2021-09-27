@@ -6,15 +6,15 @@
 #include <stdio.h>
 
 typedef struct {
-    uint32_t n, m;      // size of h & position (or strand)
+    uint32_t n, m;      // size of h & location (or strand)
     uint32_t *h;        // hash table
-    uint32_t *position; // position array
+    uint32_t *location; // location array
     uint8_t *strand;    // strand array
 } index_t;
 
 typedef struct {
     uint32_t minimizer;
-    uint32_t position;
+    uint32_t location;
     uint8_t strand;
 } mm72_t;
 
@@ -34,7 +34,7 @@ index_t *create_index(FILE *fp, const unsigned int w, const unsigned int k,
 mm72_v *create_raw_index(FILE *fp, const unsigned int w, const unsigned int k,
                          const unsigned int filter_threshold,
                          const unsigned int b);
-
+index_t *read_index(FILE *fp);
 void parse_sketch(FILE *fp, const unsigned int w, const unsigned int k,
                   const unsigned int b, mm72_v *p);
 void sort(mm72_v *p);
