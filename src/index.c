@@ -118,8 +118,8 @@ index_t *create_index(FILE *fp, const unsigned int w, const unsigned int k,
     unsigned long sd_counter = (idx->h[0] - average) * (idx->h[0] - average);
     for (size_t i = 0; i < idx->n; i++) {
         if (i > 0) {
-            sd_counter +=
-                (idx->h[i] - idx->h[i - 1] - average) * (idx->h[i] - idx->h[i - 1] - average);
+            sd_counter += (idx->h[i] - idx->h[i - 1] - average) *
+                          (idx->h[i] - idx->h[i - 1] - average);
         }
         if (idx->h[i] == j) {
             empty_counter++;
@@ -132,7 +132,7 @@ index_t *create_index(FILE *fp, const unsigned int w, const unsigned int k,
     printf("Info: Standard deviation of the number of locations per "
            "minimizers: %f\n",
            sd);
-    printf("Info: Number of empty entries in the hashtable: %u (%f%%)\n",
+    printf("Info: Number of empty entries in the hash-table: %u (%f%%)\n",
            empty_counter, (float)empty_counter / idx->n * 100);
     return idx;
 }

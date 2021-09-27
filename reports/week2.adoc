@@ -31,9 +31,9 @@ Info: Number of empty entries in the hashtable: 972549452 (90.661865%)
 
 *As we can notice, the index-map is sparse (`90.66%` of empty entries) but use a lot of memory (`3.996200GB`). Let us take a look at the distribution depending on the minimizers.*
 
-image::../img/cumulative.png[../img/cumulative]
-image::../img/cumulative1.png[../img/cumulative1]
-image::../img/cumulative2.png[../img/cumulative2]
+image::../img/week2/cumulative.png[../img/week2/cumulative]
+image::../img/week2/cumulative1.png[../img/week2/cumulative1]
+image::../img/week2/cumulative2.png[../img/week2/cumulative2]
 
 == Questions
 

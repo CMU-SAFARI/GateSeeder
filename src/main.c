@@ -57,18 +57,24 @@ int main(int argc, char *argv[]) {
     }
 
     if (idx) {
-        if (optind + 1 >= argc) {
+        if (optind >= argc) {
             fputs("Error: expected reads file\n", stderr);
             exit(3);
         }
 
-        //TODO
+        FILE *read_fp = fopen(argv[optind], "r");
+        if (read_fp == NULL) {
+            fprintf(stderr, "Error: cannot open `%s`\n", argv[optind]);
+            exit(1);
+        }
+
+        query(idx, read_fp);
     } else {
 
         if (optind + 1 >= argc) {
             fputs("Error: expected genome reference file name & output file "
-                    "name\n",
-                    stderr);
+                  "name\n",
+                  stderr);
             exit(3);
         }
 
@@ -87,7 +93,7 @@ int main(int argc, char *argv[]) {
         printf("Info: w = %u, k = %u, f = %u & b = %u\n", w, k, f, b);
         if (r) {
             puts("Info: Output format: sorted array of (minimizer, location, "
-                    "strand)");
+                 "strand)");
             mm72_v *idx = create_raw_index(in_fp, w, k, f, b);
             uint8_t *a = (uint8_t *)malloc(sizeof(uint8_t) * idx->n * 9);
             if (a == NULL) {
@@ -112,7 +118,7 @@ int main(int argc, char *argv[]) {
             printf("Info: Binary file `%s` written\n", argv[optind + 1]);
         } else {
             puts("Info: Output format: minimizer array, location array, strand "
-                    "array");
+                 "array");
             index_t *idx = create_index(in_fp, w, k, f, b);
             fwrite(&(idx->n), sizeof(idx->n), 1, out_fp);
             fwrite(idx->h, sizeof(idx->h[0]), idx->n, out_fp);
@@ -132,8 +138,8 @@ int main(int argc, char *argv[]) {
                         k, w, f, b);
                 fprintf(gnuplot, "set xlabel 'Minimizers'\n");
                 fprintf(
-                        gnuplot,
-                        "set ylabel 'Cumulative sum of the number of locations'\n");
+                    gnuplot,
+                    "set ylabel 'Cumulative sum of the number of locations'\n");
                 fprintf(gnuplot, "plot '-' with lines lw 3 notitle\n");
                 for (uint32_t i = 0; i < idx->n; i += idx->n / 1000) {
                     fprintf(gnuplot, "%u %u\n", i, idx->h[i]);
