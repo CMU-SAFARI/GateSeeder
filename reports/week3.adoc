@@ -8,9 +8,9 @@
 * Log the average & the standard deviation of locations per minimizers.
 * sorted (minimizer, position, strand) array can be used as output format.
 
-=== Results
+== Results
 
 
-=== Questions
+== Questions
 
 * (minimizer, position, strand) array format is 72bits aligned
