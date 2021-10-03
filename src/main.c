@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
                 exit(1);
             }
             idx = read_index(bin_fp);
-            printf("Info: binary file: %s read\n", optarg);
+            printf("Info: Binary file: %s read\n", optarg);
         } break;
         case ':':
             fprintf(stderr, "Error: '%c' requires a value\n", optopt);
@@ -68,7 +68,9 @@ int main(int argc, char *argv[]) {
             exit(1);
         }
 
-        query(idx, read_fp);
+        read_v *reads = parse_fastq(read_fp);
+        printf("Info: Reads file: %s read\n", argv[optind]);
+        get_locations(idx, reads->a[0], READ_LENGTH);
     } else {
 
         if (optind + 1 >= argc) {

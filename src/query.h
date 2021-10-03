@@ -4,13 +4,21 @@
 #include "index.h"
 #include <stdint.h>
 #include <stdio.h>
+#define READ_LENGTH 100
 
 typedef struct {
-    uint32_t n;
+    size_t n;
     uint32_t *location;
 } location_v;
 
-void query(index_t *idx, FILE *fp);
+typedef struct {
+    size_t n;
+    char **a;
+} read_v;
+
+read_v *parse_fastq(FILE *fp);
+
+// Return the possible locations on the reference genome
 location_v *get_locations(index_t *idx, char *read, size_t length);
 
 #endif
