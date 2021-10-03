@@ -70,7 +70,9 @@ int main(int argc, char *argv[]) {
 
         read_v *reads = parse_fastq(read_fp);
         printf("Info: Reads file: %s read\n", argv[optind]);
-        get_locations(idx, reads->a[0], READ_LENGTH);
+        location_v *locs =
+            get_locations(idx, reads->a[23], READ_LENGTH, w, k, b);
+        printf("%lu\n", locs->n);
     } else {
 
         if (optind + 1 >= argc) {
