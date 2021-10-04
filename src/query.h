@@ -13,6 +13,11 @@ typedef struct {
 
 typedef struct {
     size_t n;
+    location_v *a;
+} res_v;
+
+typedef struct {
+    size_t n;
     char **a;
 } read_v;
 

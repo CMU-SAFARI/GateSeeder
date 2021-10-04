@@ -12,3 +12,4 @@
 == Questions
 
 * Skip the strand (reduce the number of memory accesses)?
+* If no locations available?

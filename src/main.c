@@ -90,19 +90,20 @@ int main(int argc, char *argv[]) {
             exit(2);
         }
 
-        for (size_t i = 0; i < reads.n; i++) {
-            get_locations(idx, reads.a[i], READ_LENGTH, w, k, b, &locs[i]);
-            for (size_t j = 0; j < locs[i].n; j++) {
-                if (j) {
-                    printf("\t");
+        if (target.n) {
+        } else {
+            for (size_t i = 0; i < reads.n; i++) {
+                get_locations(idx, reads.a[i], READ_LENGTH, w, k, b, &locs[i]);
+                for (size_t j = 0; j < locs[i].n; j++) {
+                    if (j) {
+                        printf("\t");
+                    }
+                    printf("%u", locs[i].a[j]);
                 }
-                printf("%u", locs[i].a[j]);
+                puts("");
             }
-            puts("");
         }
 
-        if (target.n) {
-        }
     } else {
 
         if (optind + 1 >= argc) {
