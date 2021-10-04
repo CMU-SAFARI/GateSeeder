@@ -24,29 +24,10 @@ void create_index(FILE *fp, const unsigned int w, const unsigned int k,
     sort(p);
     printf("Info: Array sorted\n");
 
-    // Compute the maximum minimizer after filtering
-    size_t n = p->n;
-    uint32_t max_minimizer = p->a[n - 1].minimizer;
-    unsigned int freq_counter = 0;
-    for (size_t i = p->n - 2; i != UINT_MAX; i--) {
-        if (max_minimizer == p->a[i].minimizer) {
-            freq_counter++;
-        } else {
-            if (freq_counter < filter_threshold) {
-                break;
-            }
-            max_minimizer = p->a[i].minimizer;
-            n = i + 1;
-            freq_counter = 0;
-        }
-    }
-
-    printf("Info: Maximum minimizer (after filtering): %u\n", max_minimizer);
-
     // Write the data in the struct & filter out the most frequent minimizers
-    idx->h = (uint32_t *)malloc(sizeof(uint32_t) * (max_minimizer + 1));
-    idx->location = (uint32_t *)malloc(sizeof(uint32_t) * n);
-    idx->strand = (uint8_t *)malloc(sizeof(uint8_t) * n);
+    idx->h = (uint32_t *)malloc(sizeof(uint32_t) * (1 << b));
+    idx->location = (uint32_t *)malloc(sizeof(uint32_t) * p->n);
+    idx->strand = (uint8_t *)malloc(sizeof(uint8_t) * p->n);
     if (idx->h == NULL || idx->location == NULL || idx->strand == NULL) {
         fputs("Memory error\n", stderr);
         exit(2);
@@ -54,12 +35,16 @@ void create_index(FILE *fp, const unsigned int w, const unsigned int k,
 
     unsigned int diff_counter = 0;
     uint32_t index = p->a[0].minimizer;
-    freq_counter = 0;
+    unsigned int freq_counter = 0;
     unsigned int filter_counter = 0;
     size_t pos = 0;
     uint32_t l = 0;
 
-    for (size_t i = 1; i < n; i++) {
+    for (size_t i = 0; i < index; i++) {
+        idx->h[i] = 0;
+    }
+
+    for (size_t i = 1; i < p->n; i++) {
         if (index == p->a[i].minimizer) {
             freq_counter++;
         } else {
@@ -83,7 +68,7 @@ void create_index(FILE *fp, const unsigned int w, const unsigned int k,
     }
     if (freq_counter < filter_threshold) {
         diff_counter++;
-        for (size_t j = pos; j < n; j++) {
+        for (size_t j = pos; j < p->n; j++) {
             idx->location[l] = p->a[j].location;
             idx->strand[l] = p->a[j].strand;
             l++;
@@ -91,11 +76,15 @@ void create_index(FILE *fp, const unsigned int w, const unsigned int k,
     } else {
         filter_counter++;
     }
-    idx->h[index] = l;
+
+    for (size_t i = index; i < (1 << b); i++) {
+        idx->h[i] = l;
+    }
+
     kv_destroy(*p);
     printf("Info: Number of ignored minimizers: %u\n", filter_counter);
     printf("Info: Number of distinct minimizers: %u\n", diff_counter);
-    idx->n = max_minimizer + 1;
+    idx->n = 1 << b;
     idx->m = l;
     float strand_size = (float)idx->m / (1 << 30);
     float location_size = strand_size * 4;

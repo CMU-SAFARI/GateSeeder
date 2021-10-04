@@ -6,11 +6,11 @@
 #include <unistd.h>
 
 int main(int argc, char *argv[]) {
-    unsigned int w = 12;
+    unsigned int w = 10;
     unsigned int k = 18;
     unsigned int f = 500;
     unsigned char p = 0;
-    unsigned int b = 26;
+    unsigned int b = 28;
     unsigned char r = 0;
     index_t idx = {.n = 0, .m = 0, .h = NULL, .location = NULL, .strand = NULL};
     target_v target = {.n = 0, .a = NULL};

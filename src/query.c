@@ -80,18 +80,35 @@ void get_locations(index_t idx, char *read, const size_t len,
     mm_sketch(0, read, READ_LENGTH, w, k, b, 0, &p);
 
     buffer_t buffer[LOCATION_BUFFER_SIZE];
+
+    uint32_t minimizers[LOCATION_BUFFER_SIZE];
+    size_t dist = 0;
+    unsigned char dist_flag = 1;
+
     size_t n = 0;
     uint32_t min, max;
     uint32_t minimizer;
     for (size_t i = 0; i < p.n; i++) {
         minimizer = p.a[i].minimizer;
-        min = (minimizer == 0) ? 0 : idx.h[minimizer - 1];
-        max = idx.h[minimizer];
+        for (size_t k = 0; k < dist; k++) {
+            if (minimizer == minimizers[k]) {
+                dist_flag = 0;
+                break;
+            }
+        }
+        if (dist_flag) {
+            minimizers[dist] = minimizer;
+            dist++;
+            min = (minimizer == 0) ? 0 : idx.h[minimizer - 1];
+            max = idx.h[minimizer];
 
-        for (uint32_t j = min; j < max; j++) {
-            buffer[n] = (buffer_t){.location = idx.location[j],
-                                   .strand = idx.strand[j] ^ p.a[i].strand};
-            n++;
+            for (uint32_t j = min; j < max; j++) {
+                buffer[n] = (buffer_t){.location = idx.location[j],
+                                       .strand = idx.strand[j] ^ p.a[i].strand};
+                n++;
+            }
+        } else {
+            dist_flag = 1;
         }
     }
     kv_destroy(p);
@@ -100,7 +117,7 @@ void get_locations(index_t idx, char *read, const size_t len,
 
     uint32_t loc_buffer[LOCATION_BUFFER_SIZE];
     locs->n = 0;
-    size_t loc_counter = 1;
+    unsigned char loc_counter = 1;
     size_t init_loc_idx = 0;
     while (init_loc_idx < n - MINIMIZER_THRESHOLD + 1 &&
            loc_counter + init_loc_idx < n) {
