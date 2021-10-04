@@ -1,3 +1,4 @@
+#include "compare.h"
 #include "index.h"
 #include "query.h"
 #include <stdio.h>
@@ -5,16 +6,17 @@
 #include <unistd.h>
 
 int main(int argc, char *argv[]) {
-    unsigned int w = 10;
+    unsigned int w = 12;
     unsigned int k = 18;
     unsigned int f = 500;
     unsigned char p = 0;
-    unsigned int b = 28;
+    unsigned int b = 26;
     unsigned char r = 0;
-    index_t *idx = NULL;
+    index_t idx = {.n = 0, .m = 0, .h = NULL, .location = NULL, .strand = NULL};
+    target_v target = {.n = 0, .a = NULL};
 
     int option;
-    while ((option = getopt(argc, argv, ":w:k:f:pb:ri:")) != -1) {
+    while ((option = getopt(argc, argv, ":w:k:f:pb:ri:c:")) != -1) {
         switch (option) {
         case 'w':
             w = atoi(optarg);
@@ -44,8 +46,18 @@ int main(int argc, char *argv[]) {
                 fprintf(stderr, "Error: cannot open `%s`\n", optarg);
                 exit(1);
             }
-            idx = read_index(bin_fp);
-            printf("Info: Binary file: %s read\n", optarg);
+            read_index(bin_fp, &idx);
+            // printf("Info: Binary file: %s read\n", optarg);
+        } break;
+        case 'c': {
+            FILE *paf_fp = fopen(optarg, "r");
+            if (paf_fp == NULL) {
+                fprintf(stderr, "Error: cannot open `%s`\n", optarg);
+                exit(1);
+            }
+            parse_paf(paf_fp, &target);
+            printf("Info: Target file: %s read\n", optarg);
+
         } break;
         case ':':
             fprintf(stderr, "Error: '%c' requires a value\n", optopt);
@@ -56,7 +68,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (idx) {
+    if (idx.n) {
         if (optind >= argc) {
             fputs("Error: expected reads file\n", stderr);
             exit(3);
@@ -68,11 +80,29 @@ int main(int argc, char *argv[]) {
             exit(1);
         }
 
-        read_v *reads = parse_fastq(read_fp);
-        printf("Info: Reads file: %s read\n", argv[optind]);
-        location_v *locs =
-            get_locations(idx, reads->a[23], READ_LENGTH, w, k, b);
-        printf("%lu\n", locs->n);
+        read_v reads;
+        parse_fastq(read_fp, &reads);
+        // printf("Info: Reads file: %s read\n", argv[optind]);
+
+        location_v *locs = (location_v *)malloc(sizeof(location_v) * reads.n);
+        if (locs == NULL) {
+            fputs("Memory error\n", stderr);
+            exit(2);
+        }
+
+        for (size_t i = 0; i < reads.n; i++) {
+            get_locations(idx, reads.a[i], READ_LENGTH, w, k, b, &locs[i]);
+            for (size_t j = 0; j < locs[i].n; j++) {
+                if (j) {
+                    printf("\t");
+                }
+                printf("%u", locs[i].a[j]);
+            }
+            puts("");
+        }
+
+        if (target.n) {
+        }
     } else {
 
         if (optind + 1 >= argc) {
@@ -98,36 +128,37 @@ int main(int argc, char *argv[]) {
         if (r) {
             puts("Info: Output format: sorted array of (minimizer, location, "
                  "strand)");
-            mm72_v *idx = create_raw_index(in_fp, w, k, f, b);
-            uint8_t *a = (uint8_t *)malloc(sizeof(uint8_t) * idx->n * 9);
+            mm72_v r_idx;
+            create_raw_index(in_fp, w, k, f, b, &r_idx);
+            uint8_t *a = (uint8_t *)malloc(sizeof(uint8_t) * r_idx.n * 9);
             if (a == NULL) {
                 fputs("Memory error\n", stderr);
                 exit(2);
             }
             uint32_t mask = (1 << 8) - 1;
-            for (size_t i = 0; i < idx->n; i++) {
-                a[9 * i] = (uint8_t)idx->a[i].minimizer & mask;
-                a[9 * i + 1] = (uint8_t)(idx->a[i].minimizer >> 8) & mask;
-                a[9 * i + 2] = (uint8_t)(idx->a[i].minimizer >> 16) & mask;
-                a[9 * i + 3] = (uint8_t)(idx->a[i].minimizer >> 24) & mask;
-                a[9 * i + 4] = (uint8_t)idx->a[i].location & mask;
-                a[9 * i + 5] = (uint8_t)(idx->a[i].location >> 8) & mask;
-                a[9 * i + 6] = (uint8_t)(idx->a[i].location >> 16) & mask;
-                a[9 * i + 7] = (uint8_t)(idx->a[i].location >> 24) & mask;
-                a[9 * i + 8] = (uint8_t)idx->a[i].strand;
+            for (size_t i = 0; i < r_idx.n; i++) {
+                a[9 * i] = (uint8_t)r_idx.a[i].minimizer & mask;
+                a[9 * i + 1] = (uint8_t)(r_idx.a[i].minimizer >> 8) & mask;
+                a[9 * i + 2] = (uint8_t)(r_idx.a[i].minimizer >> 16) & mask;
+                a[9 * i + 3] = (uint8_t)(r_idx.a[i].minimizer >> 24) & mask;
+                a[9 * i + 4] = (uint8_t)r_idx.a[i].location & mask;
+                a[9 * i + 5] = (uint8_t)(r_idx.a[i].location >> 8) & mask;
+                a[9 * i + 6] = (uint8_t)(r_idx.a[i].location >> 16) & mask;
+                a[9 * i + 7] = (uint8_t)(r_idx.a[i].location >> 24) & mask;
+                a[9 * i + 8] = (uint8_t)r_idx.a[i].strand;
             }
-            fwrite(&(idx->n), sizeof(idx->n), 1, out_fp);
-            fwrite(a, sizeof(uint8_t), idx->n * 9, out_fp);
+            fwrite(&(r_idx.n), sizeof(r_idx.n), 1, out_fp);
+            fwrite(a, sizeof(uint8_t), r_idx.n * 9, out_fp);
             fclose(out_fp);
             printf("Info: Binary file `%s` written\n", argv[optind + 1]);
         } else {
             puts("Info: Output format: minimizer array, location array, strand "
                  "array");
-            index_t *idx = create_index(in_fp, w, k, f, b);
-            fwrite(&(idx->n), sizeof(idx->n), 1, out_fp);
-            fwrite(idx->h, sizeof(idx->h[0]), idx->n, out_fp);
-            fwrite(idx->location, sizeof(idx->location[0]), idx->m, out_fp);
-            fwrite(idx->strand, sizeof(idx->strand[0]), idx->m, out_fp);
+            create_index(in_fp, w, k, f, b, &idx);
+            fwrite(&(idx.n), sizeof(idx.n), 1, out_fp);
+            fwrite(idx.h, sizeof(idx.h[0]), idx.n, out_fp);
+            fwrite(idx.location, sizeof(idx.location[0]), idx.m, out_fp);
+            fwrite(idx.strand, sizeof(idx.strand[0]), idx.m, out_fp);
             fclose(out_fp);
             printf("Info: Binary file `%s` written\n", argv[optind + 1]);
 
@@ -145,8 +176,8 @@ int main(int argc, char *argv[]) {
                     gnuplot,
                     "set ylabel 'Cumulative sum of the number of locations'\n");
                 fprintf(gnuplot, "plot '-' with lines lw 3 notitle\n");
-                for (uint32_t i = 0; i < idx->n; i += idx->n / 1000) {
-                    fprintf(gnuplot, "%u %u\n", i, idx->h[i]);
+                for (uint32_t i = 0; i < idx.n; i += idx.n / 1000) {
+                    fprintf(gnuplot, "%u %u\n", i, idx.h[i]);
                 }
                 fprintf(gnuplot, "e\n");
                 fflush(gnuplot);

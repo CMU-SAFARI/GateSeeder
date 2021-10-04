@@ -21,11 +21,11 @@ typedef struct {
     uint8_t strand;
 } buffer_t;
 
-read_v *parse_fastq(FILE *fp);
+void parse_fastq(FILE *fp, read_v *reads);
 
 // Return the possible locations on the reference genome
-location_v *get_locations(index_t *idx, char *read, const size_t len,
-                          const unsigned int w, const unsigned int k,
-                          const unsigned int b);
+void get_locations(index_t idx, char *read, const size_t len,
+                   const unsigned int w, const unsigned int k,
+                   const unsigned int b, location_v *locs);
 
 #endif

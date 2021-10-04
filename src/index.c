@@ -12,9 +12,9 @@ static inline unsigned char compare(mm72_t left, mm72_t right) {
     return (left.minimizer) <= (right.minimizer);
 }
 
-index_t *create_index(FILE *fp, const unsigned int w, const unsigned int k,
-                      const unsigned int filter_threshold,
-                      const unsigned int b) {
+void create_index(FILE *fp, const unsigned int w, const unsigned int k,
+                  const unsigned int filter_threshold, const unsigned int b,
+                  index_t *idx) {
     mm72_v *p = (mm72_v *)calloc(1, sizeof(mm72_v));
 
     // Parse & sketch
@@ -44,11 +44,6 @@ index_t *create_index(FILE *fp, const unsigned int w, const unsigned int k,
     printf("Info: Maximum minimizer (after filtering): %u\n", max_minimizer);
 
     // Write the data in the struct & filter out the most frequent minimizers
-    index_t *idx = (index_t *)malloc(sizeof(index_t));
-    if (idx == NULL) {
-        fputs("Memory error\n", stderr);
-        exit(2);
-    }
     idx->h = (uint32_t *)malloc(sizeof(uint32_t) * (max_minimizer + 1));
     idx->location = (uint32_t *)malloc(sizeof(uint32_t) * n);
     idx->strand = (uint8_t *)malloc(sizeof(uint8_t) * n);
@@ -134,14 +129,14 @@ index_t *create_index(FILE *fp, const unsigned int w, const unsigned int k,
            sd);
     printf("Info: Number of empty entries in the hash-table: %u (%f%%)\n",
            empty_counter, (float)empty_counter / idx->n * 100);
-    return idx;
+    return;
 }
 
-mm72_v *create_raw_index(FILE *fp, const unsigned int w, const unsigned int k,
-                         const unsigned int filter_threshold,
-                         const unsigned int b) {
-    mm72_v *p = (mm72_v *)calloc(1, sizeof(mm72_v));
-
+void create_raw_index(FILE *fp, const unsigned int w, const unsigned int k,
+                      const unsigned int filter_threshold, const unsigned int b,
+                      mm72_v *p) {
+    p->n = 0;
+    p->m = 0;
     // Parse & sketch
     parse_sketch(fp, w, k, b, p);
 
@@ -149,24 +144,12 @@ mm72_v *create_raw_index(FILE *fp, const unsigned int w, const unsigned int k,
     sort(p);
     printf("Info: Array sorted\n");
     printf("Info: Total size: %fGB\n", (float)p->n * 9 / (1 << 30));
-    return p;
+    return;
 }
 
-index_t *read_index(FILE *fp) {
-    /*
-    char *read_buffer = (char *)malloc(sizeof(char) * BUFFER_SIZE);
-    if (read_buffer == NULL) {
-        fputs("Memory error\n", stderr);
-        exit(2);
-    }
-    */
-    index_t *idx = (index_t *)malloc(sizeof(index_t));
-    if (idx == NULL) {
-        fputs("Memory error\n", stderr);
-        exit(2);
-    }
+void read_index(FILE *fp, index_t *idx) {
     fread(&idx->n, sizeof(uint32_t), 1, fp);
-    printf("Info: Number of minimizers: %u\n", idx->n);
+    // printf("Info: Number of minimizers: %u\n", idx->n);
 
     idx->h = (uint32_t *)malloc(sizeof(uint32_t) * idx->n);
     if (idx->h == NULL) {
@@ -175,7 +158,7 @@ index_t *read_index(FILE *fp) {
     }
     fread(idx->h, sizeof(uint32_t), idx->n, fp);
     idx->m = idx->h[idx->n - 1];
-    printf("Info: Size of the location & strand arrays: %u\n", idx->m);
+    // printf("Info: Size of the location & strand arrays: %u\n", idx->m);
 
     idx->location = (uint32_t *)malloc(sizeof(uint32_t) * idx->m);
     if (idx->location == NULL) {
@@ -201,8 +184,9 @@ index_t *read_index(FILE *fp) {
     }
 
     fclose(fp);
-    return idx;
+    return;
 }
+
 void parse_sketch(FILE *fp, const unsigned int w, const unsigned int k,
                   const unsigned int b, mm72_v *p) {
     char *read_buffer = (char *)malloc(sizeof(char) * BUFFER_SIZE);

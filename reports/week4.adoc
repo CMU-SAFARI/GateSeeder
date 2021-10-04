@@ -1,0 +1,14 @@
+= Week 4
+
+== TO DO
+
+* Implementation of the sensitivity test
+* Execute the sensitivity test on reads extracted from the reference genome
+* Execute the sensitivity test on *modified* (using pbsim) reads extracted from the reference genome.
+* Execute the sensitivity test on read samples and compare the result with _minimap2_
+* Find the optimal size for the buffers
+
+
+== Questions
+
+* Skip the strand (reduce the number of memory accesses)?

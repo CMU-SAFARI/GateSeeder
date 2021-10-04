@@ -27,13 +27,13 @@ typedef struct {
     unsigned int i;
 } thread_param_t;
 
-index_t *create_index(FILE *fp, const unsigned int w, const unsigned int k,
-                      const unsigned int filter_threshold,
-                      const unsigned int b);
-mm72_v *create_raw_index(FILE *fp, const unsigned int w, const unsigned int k,
-                         const unsigned int filter_threshold,
-                         const unsigned int b);
-index_t *read_index(FILE *fp);
+void create_index(FILE *fp, const unsigned int w, const unsigned int k,
+                  const unsigned int filter_threshold, const unsigned int b,
+                  index_t *idx);
+void create_raw_index(FILE *fp, const unsigned int w, const unsigned int k,
+                      const unsigned int filter_threshold, const unsigned int b,
+                      mm72_v *idx);
+void read_index(FILE *fp, index_t *idx);
 void parse_sketch(FILE *fp, const unsigned int w, const unsigned int k,
                   const unsigned int b, mm72_v *p);
 void sort(mm72_v *p);
