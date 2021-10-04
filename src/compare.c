@@ -1,4 +1,5 @@
 #include "compare.h"
+#include "query.h"
 #include <stdlib.h>
 #include <string.h>
 #define BUFFER_SIZE 4294967296
@@ -129,10 +130,50 @@ void parse_paf(FILE *fp, target_v *target) {
     fclose(fp);
 }
 
-void compare(target_v tar, res_v res) {
-    /*
-       unsigned int tp_counter = 0;
-       unsigned int fp_counter = 0;
-       unsigned int tn_counter = 0;
-       */
+void compare(target_v tar, read_v reads, index_t idx, const size_t len,
+             const unsigned int w, const unsigned int k, const unsigned int b) {
+    unsigned int tp_counter = 0;
+    unsigned int fp_counter = 0;
+    unsigned int tn_counter = 0;
+    location_v locs;
+    char flag = 0;
+    char buff[50000] = {0};
+    size_t j = 0;
+    for (size_t i = 0; i < reads.n; i++) {
+        get_locations(idx, reads.a[i], len, w, k, b, &locs);
+        if (j < tar.n) {
+            if (strcmp(tar.a[j].name, reads.name[i]) == 0) {
+                for (size_t k = 0; k < locs.n; k++) {
+                    flag = 0;
+                    for (size_t l = 0; l < tar.a[j].n; l++) {
+                        if (locs.a[k] >= tar.a[j].a[l].start &&
+                            locs.a[k] <= tar.a[j].a[l].end) {
+                            tp_counter++;
+                            flag = 1;
+                            buff[l] = 1;
+                            break;
+                        }
+                    }
+                    if (!flag) {
+                        fp_counter++;
+                    }
+                }
+                for (size_t l = 0; l < tar.a[j].n; l++) {
+                    if (buff[l]) {
+                        buff[l] = 0;
+                    } else {
+                        tn_counter++;
+                    }
+                }
+                j++;
+            } else {
+                fp_counter += locs.n;
+            }
+        } else {
+            fp_counter += locs.n;
+        }
+    }
+    printf("Info: number of true positive %u\n", tp_counter);
+    printf("Info: number of false positive %u\n", fp_counter);
+    printf("Info: number of true negative %u\n", tn_counter);
 }

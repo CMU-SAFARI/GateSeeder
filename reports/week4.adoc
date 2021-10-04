@@ -8,6 +8,12 @@
 * Execute the sensitivity test on read samples and compare the result with _minimap2_
 * Find the optimal size for the buffers
 
+== Achievements
+
+* parsing FASTQ and PAF files
+* Query the hash-table and get the possible locations for a given read
+* Sensitivity test with several inputs
+* Compare the results with _minimap2_ and log interesting data
 
 == Questions
 

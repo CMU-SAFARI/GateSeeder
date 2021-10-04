@@ -22,5 +22,6 @@ typedef struct {
 } target_v;
 
 void parse_paf(FILE *fp, target_v *target);
-void compare(target_v tar, res_v res);
+void compare(target_v tar, read_v reads, index_t idx, const size_t len,
+             const unsigned int w, const unsigned int k, const unsigned int b);
 #endif

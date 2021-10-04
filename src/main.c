@@ -82,16 +82,17 @@ int main(int argc, char *argv[]) {
 
         read_v reads;
         parse_fastq(read_fp, &reads);
-        // printf("Info: Reads file: %s read\n", argv[optind]);
-
-        location_v *locs = (location_v *)malloc(sizeof(location_v) * reads.n);
-        if (locs == NULL) {
-            fputs("Memory error\n", stderr);
-            exit(2);
-        }
+        printf("Info: Reads file: %s read\n", argv[optind]);
 
         if (target.n) {
+            compare(target, reads, idx, READ_LENGTH, w, k, b);
         } else {
+            location_v *locs =
+                (location_v *)malloc(sizeof(location_v) * reads.n);
+            if (locs == NULL) {
+                fputs("Memory error\n", stderr);
+                exit(2);
+            }
             for (size_t i = 0; i < reads.n; i++) {
                 get_locations(idx, reads.a[i], READ_LENGTH, w, k, b, &locs[i]);
                 for (size_t j = 0; j < locs[i].n; j++) {

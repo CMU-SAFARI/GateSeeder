@@ -3,10 +3,11 @@
 #include "mmpriv.h"
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 #define BUFFER_SIZE 4294967296
 #define LOCATION_RANGE 200
 #define LOCATION_BUFFER_SIZE 50000
-#define MINIMIZER_THRESHOLD 6
+#define MINIMIZER_THRESHOLD 4
 
 static inline int cmp(const void *p1, const void *p2) {
     buffer_t *l1 = (buffer_t *)p1;
@@ -30,13 +31,27 @@ void parse_fastq(FILE *fp, read_v *reads) {
 
     reads->n = 0;
     reads->a = NULL;
+    reads->name = NULL;
 
     size_t i = 0;
+    char name_buffer[100] = {0};
+    unsigned char name_i = 0;
 
     for (;;) {
         char c = read_buffer[i];
 
         if (c == '@') {
+            i++;
+            c = read_buffer[i];
+            name_i = 0;
+            while (c != ' ') {
+                name_buffer[name_i] = c;
+                name_i++;
+                i++;
+                c = read_buffer[i];
+            }
+            name_buffer[name_i] = '\0';
+
             while (c != '\n') {
                 i++;
                 c = read_buffer[i];
@@ -47,8 +62,15 @@ void parse_fastq(FILE *fp, read_v *reads) {
                 fputs("Memory error\n", stderr);
                 exit(2);
             }
-            reads->a[reads->n - 1] =
-                (char *)malloc(READ_LENGTH * sizeof(char *));
+
+            reads->name =
+                (char **)realloc(reads->name, reads->n * sizeof(char *));
+            if (reads->name == NULL) {
+                fputs("Memory error\n", stderr);
+                exit(2);
+            }
+
+            reads->a[reads->n - 1] = (char *)malloc(READ_LENGTH * sizeof(char));
             if (reads->a[reads->n - 1] == NULL) {
                 fputs("Memory error\n", stderr);
                 exit(2);
@@ -57,6 +79,13 @@ void parse_fastq(FILE *fp, read_v *reads) {
                 i++;
                 reads->a[reads->n - 1][j] = read_buffer[i];
             }
+
+            reads->name[reads->n - 1] = (char *)malloc(100 * sizeof(char));
+            if (reads->name[reads->n - 1] == NULL) {
+                fputs("Memory error\n", stderr);
+                exit(2);
+            }
+            strcpy(reads->name[reads->n - 1], name_buffer);
             i++;
             assert(read_buffer[i] == '\n');
             i++;
