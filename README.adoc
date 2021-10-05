@@ -13,12 +13,14 @@ cd genome_indexing && make
 
 == Usage
 
+=== Seed extraction and indexing from the reference genome
+
 [source, shell]
 ----
 ./main -k <k-mer length> -w <window size> -f <frequency threshold> -b <size of the mask> <Genome reference filename (.fna)> <Output binary file>
 ----
 
-The default values for `k`, `w`, `f` and `b` are 15, 10, 500 and 28 respectively.
+The default values for `k`, `w`, `f` and `b` are 18, 12, 500 and 26 respectively.
 
 Two output binary formats can be generated:
 
@@ -27,6 +29,17 @@ Two output binary formats can be generated:
 
 .A representation of the default data structure
 image::img/schematic.png[schematic]
+
+=== Seed extractions, querying and filtering from reads
+
+[source, shell]
+----
+./main -k <k-mer length> -w <window size> -b <size of the mask> -m <Minimizer threshold> -l <Location range> -i <Binary reference genome index> <Reads file (.fastq)> > output
+----
+
+The default values for `k`, `w`, `b`, `m` and `l` are 18, 12, 26, 4 and 200 respectively.
+
+To compare the mapping locations with a mapping positions file, you can add the option `-c <mapping positions file (.paf)>`. This option only compares both mappings and doesn't output the mapping file.
 
 == Reports
 

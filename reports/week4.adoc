@@ -27,7 +27,7 @@ For the following results _minimap2_ is used as the baseline.
 
 ==== w = 10, k = 15, f = 500, lr = 200, mt = 3
 
-[source, shell]
+[source]
 ----
 Info: Number of true positives 4824340 (97.367569%)
 Info: Average mapping quality of the true positives 38
@@ -40,7 +40,7 @@ Info: Percentage of true locations compared to the found locations 11.319203%
 
 ==== w = 10, k = 15, f = 500, lr = 200, mt = 4
 
-[source, shell]
+[source]
 ----
 Info: Number of true positives 4757076 (96.010002%)
 Info: Average mapping quality of the true positives 38
@@ -53,7 +53,7 @@ Info: Percentage of true locations compared to the found locations 22.202497%
 
 ==== w = 10, k = 15, f = 500, lr = 200, mt = 5
 
-[source, shell]
+[source]
 ----
 Info: Number of true positives 4648649 (93.821678%)
 Info: Average mapping quality of the true positives 39
@@ -66,7 +66,7 @@ Info: Percentage of true locations compared to the found locations 33.448948%
 
 ==== w = 12, k = 18, f = 500, lr = 200, mt = 4
 
-[source, shell]
+[source]
 ----
 Info: Number of true positives 4536694 (97.139198%)
 Info: Average mapping quality of the true positives 40
@@ -79,7 +79,7 @@ Info: Percentage of true locations compared to the found locations 28.572994%
 
 ==== w = 12, k = 18, f = 500, lr = 200, mt = 5
 
-[source, shell]
+[source]
 ----
 Info: number of true positives 4436541 (94.994736%)
 Info: Average mapping quality of the true positives 40
@@ -94,5 +94,5 @@ Most of the false positives come from reads with a lot of possible locations. Ma
 
 == Questions
 
-* Skip the strand (reduce the number of memory accesses)?
+* Skip the strand (reduce the number of memory accesses)? Do we need the strand afterwords?
 * If no locations available?

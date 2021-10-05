@@ -150,7 +150,8 @@ void parse_paf(FILE *fp, target_v *target) {
 }
 
 void compare(target_v tar, read_v reads, index_t idx, const size_t len,
-             const unsigned int w, const unsigned int k, const unsigned int b) {
+             const unsigned int w, const unsigned int k, const unsigned int b,
+             const unsigned int min_t, const unsigned int loc_r) {
     unsigned int tp_counter = 0;
     unsigned int fp_counter = 0;
     unsigned int tn_counter = 0;
@@ -162,7 +163,7 @@ void compare(target_v tar, read_v reads, index_t idx, const size_t len,
     char buff[50000] = {0};
     size_t j = 0;
     for (size_t i = 0; i < reads.n; i++) {
-        get_locations(idx, reads.a[i], len, w, k, b, &locs);
+        get_locations(idx, reads.a[i], len, w, k, b, min_t, loc_r, &locs);
         if (j < tar.n) {
             if (strcmp(tar.a[j].name, reads.name[i]) == 0) {
                 loc_counter += tar.a[j].n;

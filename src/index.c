@@ -138,7 +138,7 @@ void create_raw_index(FILE *fp, const unsigned int w, const unsigned int k,
 
 void read_index(FILE *fp, index_t *idx) {
     fread(&idx->n, sizeof(uint32_t), 1, fp);
-    // printf("Info: Number of minimizers: %u\n", idx->n);
+    fprintf(stderr, "Info: Number of minimizers: %u\n", idx->n);
 
     idx->h = (uint32_t *)malloc(sizeof(uint32_t) * idx->n);
     if (idx->h == NULL) {
@@ -147,7 +147,7 @@ void read_index(FILE *fp, index_t *idx) {
     }
     fread(idx->h, sizeof(uint32_t), idx->n, fp);
     idx->m = idx->h[idx->n - 1];
-    // printf("Info: Size of the location & strand arrays: %u\n", idx->m);
+    fprintf(stderr, "Info: Size of the location & strand arrays: %u\n", idx->m);
 
     idx->location = (uint32_t *)malloc(sizeof(uint32_t) * idx->m);
     if (idx->location == NULL) {

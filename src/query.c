@@ -5,9 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #define BUFFER_SIZE 4294967296
-#define LOCATION_RANGE 200
 #define LOCATION_BUFFER_SIZE 50000
-#define MINIMIZER_THRESHOLD 4
 
 static inline int cmp(const void *p1, const void *p2) {
     buffer_t *l1 = (buffer_t *)p1;
@@ -103,7 +101,8 @@ void parse_fastq(FILE *fp, read_v *reads) {
 
 void get_locations(index_t idx, char *read, const size_t len,
                    const unsigned int w, const unsigned int k,
-                   const unsigned int b, location_v *locs) {
+                   const unsigned int b, const unsigned int min_t,
+                   const unsigned int loc_r, location_v *locs) {
     mm72_v p = {.n = 0, .m = 0, .a = NULL};
     // TODO We only need the minimizers and the strand, can be optimized
     mm_sketch(0, read, READ_LENGTH, w, k, b, 0, &p);
@@ -148,16 +147,15 @@ void get_locations(index_t idx, char *read, const size_t len,
     locs->n = 0;
     unsigned char loc_counter = 1;
     size_t init_loc_idx = 0;
-    while (init_loc_idx < n - MINIMIZER_THRESHOLD + 1 &&
-           loc_counter + init_loc_idx < n) {
+    while (init_loc_idx < n - min_t + 1 && loc_counter + init_loc_idx < n) {
         if ((buffer[init_loc_idx + loc_counter].location -
                  buffer[init_loc_idx].location <
-             LOCATION_RANGE) &&
+             loc_r) &&
             buffer[init_loc_idx + loc_counter].strand ==
                 buffer[init_loc_idx].strand) {
             loc_counter++;
         } else {
-            if (loc_counter >= MINIMIZER_THRESHOLD) {
+            if (loc_counter >= min_t) {
                 loc_buffer[locs->n] = buffer[init_loc_idx].location;
                 locs->n++;
                 init_loc_idx += loc_counter;
@@ -168,7 +166,7 @@ void get_locations(index_t idx, char *read, const size_t len,
         }
     }
 
-    if (loc_counter >= MINIMIZER_THRESHOLD) {
+    if (loc_counter >= min_t) {
         loc_buffer[locs->n] = buffer[init_loc_idx].location;
         locs->n++;
         init_loc_idx += loc_counter;

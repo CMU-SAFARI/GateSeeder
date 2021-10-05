@@ -6,17 +6,19 @@
 #include <unistd.h>
 
 int main(int argc, char *argv[]) {
-    unsigned int w = 10;
+    unsigned int w = 12;
     unsigned int k = 18;
     unsigned int f = 500;
     unsigned char p = 0;
-    unsigned int b = 28;
+    unsigned int b = 26;
     unsigned char r = 0;
+    unsigned int m = 4;
+    unsigned int l = 200;
     index_t idx = {.n = 0, .m = 0, .h = NULL, .location = NULL, .strand = NULL};
     target_v target = {.n = 0, .a = NULL};
 
     int option;
-    while ((option = getopt(argc, argv, ":w:k:f:pb:ri:c:")) != -1) {
+    while ((option = getopt(argc, argv, ":w:k:f:pb:ri:c:m:l:")) != -1) {
         switch (option) {
         case 'w':
             w = atoi(optarg);
@@ -59,6 +61,12 @@ int main(int argc, char *argv[]) {
             printf("Info: Target file: %s read\n", optarg);
 
         } break;
+        case 'm':
+            m = atoi(optarg);
+            break;
+        case 'l':
+            l = atoi(optarg);
+            break;
         case ':':
             fprintf(stderr, "Error: '%c' requires a value\n", optopt);
             exit(3);
@@ -82,10 +90,10 @@ int main(int argc, char *argv[]) {
 
         read_v reads;
         parse_fastq(read_fp, &reads);
-        printf("Info: Reads file: %s read\n", argv[optind]);
+        fprintf(stderr, "Info: Reads file: %s read\n", argv[optind]);
 
         if (target.n) {
-            compare(target, reads, idx, READ_LENGTH, w, k, b);
+            compare(target, reads, idx, READ_LENGTH, w, k, b, m, l);
         } else {
             location_v *locs =
                 (location_v *)malloc(sizeof(location_v) * reads.n);
@@ -94,7 +102,8 @@ int main(int argc, char *argv[]) {
                 exit(2);
             }
             for (size_t i = 0; i < reads.n; i++) {
-                get_locations(idx, reads.a[i], READ_LENGTH, w, k, b, &locs[i]);
+                get_locations(idx, reads.a[i], READ_LENGTH, w, k, b, m, l,
+                              &locs[i]);
                 for (size_t j = 0; j < locs[i].n; j++) {
                     if (j) {
                         printf("\t");

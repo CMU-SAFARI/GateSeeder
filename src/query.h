@@ -27,6 +27,7 @@ void parse_fastq(FILE *fp, read_v *reads);
 // Return the possible locations on the reference genome
 void get_locations(index_t idx, char *read, const size_t len,
                    const unsigned int w, const unsigned int k,
-                   const unsigned int b, location_v *locs);
+                   const unsigned int b, const unsigned int min_t,
+                   const unsigned int loc_r, location_v *locs);
 
 #endif
