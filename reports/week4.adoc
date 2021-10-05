@@ -22,6 +22,8 @@ For the following results _minimap2_ is used as the baseline.
 * *lr: location range*
 * *mt: minimizer threshold*
 * *The mapping quality is an indicator given by minimap2, it goes from 0 to 254.*
+* `true`: possible location for `minimap2`
+* `positif`: possible location for our tool
 
 === Illumina (100 bases)
 
