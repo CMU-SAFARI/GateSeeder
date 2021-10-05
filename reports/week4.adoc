@@ -126,3 +126,4 @@ Most of the false positives come from reads with a lot of possible locations. Ma
 
 * Skip the strand (reduce the number of memory accesses)? Do we need the strand afterwards?
 * If no locations are available for a certain read, should we skip this read?
+* Which sorting algorithm? A modified version of merge sort might be the best, sublists of positions already sorted.
