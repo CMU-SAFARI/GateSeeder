@@ -150,9 +150,7 @@ void get_locations(index_t idx, char *read, const size_t len,
     while (init_loc_idx < n - min_t + 1 && loc_counter + init_loc_idx < n) {
         if ((buffer[init_loc_idx + loc_counter].location -
                  buffer[init_loc_idx].location <
-             loc_r) &&
-            buffer[init_loc_idx + loc_counter].strand ==
-                buffer[init_loc_idx].strand) {
+             loc_r)) {
             loc_counter++;
         } else {
             if (loc_counter >= min_t) {

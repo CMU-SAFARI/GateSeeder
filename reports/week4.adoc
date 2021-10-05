@@ -92,6 +92,34 @@ Info: Number of found locations 10919084
 Info: Percentage of true locations compared to the found locations 40.631073%
 ----
 
+=== Without using the strand
+
+==== w = 12, k = 18, f = 500, lr = 200, mt = 4
+
+[source]
+----
+Info: Number of true positives 4533578 (97.072479%)
+Info: Average mapping quality of the true positives 40
+Info: Number of true negatives 136728 (2.927605%)
+Info: Average mapping quality of the true negatives 5
+Info: Number of false positives 11435894
+Info: Number of found locations 15969472
+Info: Percentage of true locations compared to the found locations 28.389029%
+----
+
+==== w = 12, k = 18, f = 500, lr = 200, mt = 5
+
+[source]
+----
+Info: Number of true positives 4434548 (94.952057%)
+Info: Average mapping quality of the true positives 40
+Info: Number of true negatives 235756 (5.047982%)
+Info: Average mapping quality of the true negatives 3
+Info: Number of false positives 6537473
+Info: Number of found locations 10972021
+Info: Percentage of true locations compared to the found locations 40.416874%
+----
+
 Most of the false positives come from reads with a lot of possible locations. Maybe they are ignored by _minimap2_ because there are too many possible locations.
 
 == Questions

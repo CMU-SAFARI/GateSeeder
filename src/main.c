@@ -77,6 +77,8 @@ int main(int argc, char *argv[]) {
     }
 
     if (idx.n) {
+        fprintf(stderr, "Info: k = %u, w = %u, b = %u, m = %u & l = %u\n", k, w,
+                b, m, l);
         if (optind >= argc) {
             fputs("Error: expected reads file\n", stderr);
             exit(3);
