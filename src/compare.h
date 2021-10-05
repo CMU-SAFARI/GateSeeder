@@ -8,6 +8,7 @@
 typedef struct {
     uint32_t start;
     uint32_t end;
+    unsigned char quality;
 } range_t;
 
 typedef struct {

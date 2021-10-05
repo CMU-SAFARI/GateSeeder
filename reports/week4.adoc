@@ -15,6 +15,83 @@
 * Sensitivity test with several inputs
 * Compare the results with _minimap2_ and log interesting data
 
+== Results
+
+For the following results _minimap2_ is used as the baseline.
+
+* *lr: location range*
+* *mt: minimizer threshold*
+* *The mapping quality is an indicator given by minimap2, it goes from 0 to 254.*
+
+=== Illumina (100 bases)
+
+==== w = 10, k = 15, f = 500, lr = 200, mt = 3
+
+[source, shell]
+----
+Info: Number of true positives 4824340 (97.367569%)
+Info: Average mapping quality of the true positives 38
+Info: Number of true negatives 141138 (2.848527%)
+Info: Average mapping quality of the true negatives 4
+Info: Number of false positives 37796504
+Info: Number of found locations 42620844
+Info: Percentage of true locations compared to the found locations 11.319203%
+----
+
+==== w = 10, k = 15, f = 500, lr = 200, mt = 4
+
+[source, shell]
+----
+Info: Number of true positives 4757076 (96.010002%)
+Info: Average mapping quality of the true positives 38
+Info: Number of true negatives 203859 (4.114398%)
+Info: Average mapping quality of the true negatives 3
+Info: Number of false positives 16668785
+Info: Number of found locations 21425861
+Info: Percentage of true locations compared to the found locations 22.202497%
+----
+
+==== w = 10, k = 15, f = 500, lr = 200, mt = 5
+
+[source, shell]
+----
+Info: Number of true positives 4648649 (93.821678%)
+Info: Average mapping quality of the true positives 39
+Info: Number of true negatives 309700 (6.250541%)
+Info: Average mapping quality of the true negatives 2
+Info: Number of false positives 9249095
+Info: Number of found locations 13897744
+Info: Percentage of true locations compared to the found locations 33.448948%
+----
+
+==== w = 12, k = 18, f = 500, lr = 200, mt = 4
+
+[source, shell]
+----
+Info: Number of true positives 4536694 (97.139198%)
+Info: Average mapping quality of the true positives 40
+Info: Number of true negatives 134424 (2.878272%)
+Info: Average mapping quality of the true negatives 4
+Info: Number of false positives 11340864
+Info: Number of found locations 15877558
+Info: Percentage of true locations compared to the found locations 28.572994%
+----
+
+==== w = 12, k = 18, f = 500, lr = 200, mt = 5
+
+[source, shell]
+----
+Info: number of true positives 4436541 (94.994736%)
+Info: Average mapping quality of the true positives 40
+Info: Number of true negatives 234249 (5.015714%)
+Info: Average mapping quality of the true negatives 3
+Info: Number of false positives 6482543
+Info: Number of found locations 10919084
+Info: Percentage of true locations compared to the found locations 40.631073%
+----
+
+Most of the false positives come from reads with a lot of possible locations. Maybe they are ignored by _minimap2_ because there are too many possible locations.
+
 == Questions
 
 * Skip the strand (reduce the number of memory accesses)?

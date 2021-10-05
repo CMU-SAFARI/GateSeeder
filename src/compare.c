@@ -101,6 +101,25 @@ void parse_paf(FILE *fp, target_v *target) {
         number_buffer[number_i] = '\0';
         loc_buffer.a[loc_buffer.n - 1].end = strtoul(number_buffer, NULL, 10);
 
+        for (unsigned char j = 0; j < 3; j++) {
+            while (c != '\t') {
+                i++;
+                c = read_buffer[i];
+            }
+            i++;
+            c = read_buffer[i];
+        }
+
+        number_i = 0;
+        while (c != '\t') {
+            number_buffer[number_i] = c;
+            number_i++;
+            i++;
+            c = read_buffer[i];
+        }
+        number_buffer[number_i] = '\0';
+        loc_buffer.a[loc_buffer.n - 1].quality =
+            strtoul(number_buffer, NULL, 10);
         while (c != '\n') {
             i++;
             c = read_buffer[i];
@@ -135,6 +154,9 @@ void compare(target_v tar, read_v reads, index_t idx, const size_t len,
     unsigned int tp_counter = 0;
     unsigned int fp_counter = 0;
     unsigned int tn_counter = 0;
+    unsigned int loc_counter = 0;
+    unsigned int quality_counter_tn = 0;
+    unsigned int quality_counter_tp = 0;
     location_v locs;
     char flag = 0;
     char buff[50000] = {0};
@@ -143,12 +165,14 @@ void compare(target_v tar, read_v reads, index_t idx, const size_t len,
         get_locations(idx, reads.a[i], len, w, k, b, &locs);
         if (j < tar.n) {
             if (strcmp(tar.a[j].name, reads.name[i]) == 0) {
+                loc_counter += tar.a[j].n;
                 for (size_t k = 0; k < locs.n; k++) {
                     flag = 0;
                     for (size_t l = 0; l < tar.a[j].n; l++) {
                         if (locs.a[k] >= tar.a[j].a[l].start &&
                             locs.a[k] <= tar.a[j].a[l].end) {
                             tp_counter++;
+                            quality_counter_tp += tar.a[j].a[l].quality;
                             flag = 1;
                             buff[l] = 1;
                             break;
@@ -163,6 +187,7 @@ void compare(target_v tar, read_v reads, index_t idx, const size_t len,
                         buff[l] = 0;
                     } else {
                         tn_counter++;
+                        quality_counter_tn += tar.a[j].a[l].quality;
                     }
                 }
                 j++;
@@ -173,7 +198,17 @@ void compare(target_v tar, read_v reads, index_t idx, const size_t len,
             fp_counter += locs.n;
         }
     }
-    printf("Info: number of true positive %u\n", tp_counter);
-    printf("Info: number of false positive %u\n", fp_counter);
-    printf("Info: number of true negative %u\n", tn_counter);
+    printf("Info: Number of true positives %u (%f%%)\n", tp_counter,
+           ((float)tp_counter) / loc_counter * 100);
+    printf("Info: Average mapping quality of the true positives %u\n",
+           quality_counter_tp / tp_counter);
+    printf("Info: Number of true negatives %u (%f%%)\n", tn_counter,
+           ((float)tn_counter) / loc_counter * 100);
+    printf("Info: Average mapping quality of the true negatives %u\n",
+           quality_counter_tn / tn_counter);
+    printf("Info: Number of false positives %u\n", fp_counter);
+    printf("Info: Number of found locations %u\n", fp_counter + tp_counter);
+    printf("Info: Percentage of true locations compared to the found locations "
+           "%f%%\n",
+           ((float)tp_counter) / (fp_counter + tp_counter) * 100);
 }
