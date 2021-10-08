@@ -141,36 +141,39 @@ void get_locations(index_t idx, char *read, const size_t len,
     }
     kv_destroy(p);
 
-    qsort(buffer, n, sizeof(buffer_t), cmp);
-
-    uint32_t loc_buffer[LOCATION_BUFFER_SIZE];
-    locs->n = 0;
-    unsigned char loc_counter = 1;
-    size_t init_loc_idx = 0;
-    while (init_loc_idx < n - min_t + 1 && loc_counter + init_loc_idx < n) {
-        if ((buffer[init_loc_idx + loc_counter].location -
-                 buffer[init_loc_idx].location <
-             loc_r)) {
-            loc_counter++;
-        } else {
-            if (loc_counter >= min_t) {
-                loc_buffer[locs->n] = buffer[init_loc_idx].location;
-                locs->n++;
-                init_loc_idx += loc_counter;
+    if (n >= min_t) {
+        qsort(buffer, n, sizeof(buffer_t), cmp);
+        uint32_t loc_buffer[LOCATION_BUFFER_SIZE];
+        locs->n = 0;
+        unsigned char loc_counter = 1;
+        size_t init_loc_idx = 0;
+        while (init_loc_idx < n - min_t + 1) {
+            if ((buffer[init_loc_idx + loc_counter].location -
+                     buffer[init_loc_idx].location <
+                 loc_r) &&
+                buffer[init_loc_idx + loc_counter].strand ==
+                    buffer[init_loc_idx].strand) {
+                loc_counter++;
+                if (loc_counter == min_t) {
+                    loc_buffer[locs->n] = buffer[init_loc_idx].location;
+                    locs->n++;
+                    init_loc_idx++;
+                    loc_counter = 1;
+                }
             } else {
                 init_loc_idx++;
+                loc_counter = 1;
             }
-            loc_counter = 1;
         }
-    }
 
-    if (loc_counter >= min_t) {
-        loc_buffer[locs->n] = buffer[init_loc_idx].location;
-        locs->n++;
-        init_loc_idx += loc_counter;
-    }
-    locs->a = (uint32_t *)malloc(locs->n * sizeof(uint32_t));
-    for (size_t i = 0; i < locs->n; i++) {
-        locs->a[i] = loc_buffer[i];
+        if (loc_counter >= min_t) {
+            loc_buffer[locs->n] = buffer[init_loc_idx].location;
+            locs->n++;
+            init_loc_idx += loc_counter;
+        }
+        locs->a = (uint32_t *)malloc(locs->n * sizeof(uint32_t));
+        for (size_t i = 0; i < locs->n; i++) {
+            locs->a[i] = loc_buffer[i];
+        }
     }
 }

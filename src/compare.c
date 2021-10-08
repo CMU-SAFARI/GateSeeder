@@ -176,7 +176,6 @@ void compare(target_v tar, read_v reads, index_t idx, const size_t len,
                             quality_counter_tp += tar.a[j].a[l].quality;
                             flag = 1;
                             buff[l] = 1;
-                            break;
                         }
                     }
                     if (!flag) {
@@ -189,6 +188,7 @@ void compare(target_v tar, read_v reads, index_t idx, const size_t len,
                     } else {
                         tn_counter++;
                         quality_counter_tn += tar.a[j].a[l].quality;
+                        printf("%s: %u\n", tar.a[j].name, tar.a[j].a[l].start);
                     }
                 }
                 j++;
