@@ -153,7 +153,8 @@ void compare(target_v tar, read_v reads, index_t idx, const size_t len,
              const unsigned int w, const unsigned int k, const unsigned int b,
              const unsigned int min_t, const unsigned int loc_r) {
     unsigned int tp_counter = 0;
-    unsigned int fp_counter = 0;
+    unsigned int um_counter = 0;
+    unsigned int m_counter = 0;
     unsigned int tn_counter = 0;
     unsigned int loc_counter = 0;
     unsigned int quality_counter_tn = 0;
@@ -179,7 +180,9 @@ void compare(target_v tar, read_v reads, index_t idx, const size_t len,
                         }
                     }
                     if (!flag) {
-                        fp_counter++;
+                        um_counter++;
+                    } else {
+                        m_counter++;
                     }
                 }
                 for (size_t l = 0; l < tar.a[j].n; l++) {
@@ -188,28 +191,28 @@ void compare(target_v tar, read_v reads, index_t idx, const size_t len,
                     } else {
                         tn_counter++;
                         quality_counter_tn += tar.a[j].a[l].quality;
-                        printf("%s: %u\n", tar.a[j].name, tar.a[j].a[l].start);
                     }
                 }
                 j++;
             } else {
-                fp_counter += locs.n;
+                um_counter += locs.n;
             }
         } else {
-            fp_counter += locs.n;
+            um_counter += locs.n;
         }
     }
     printf("Info: Number of true positives %u (%f%%)\n", tp_counter,
-           ((float)tp_counter) / loc_counter * 100);
+           ((float)loc_counter - tn_counter) / loc_counter * 100);
     printf("Info: Average mapping quality of the true positives %u\n",
            quality_counter_tp / tp_counter);
     printf("Info: Number of true negatives %u (%f%%)\n", tn_counter,
            ((float)tn_counter) / loc_counter * 100);
     printf("Info: Average mapping quality of the true negatives %u\n",
            quality_counter_tn / tn_counter);
-    printf("Info: Number of false positives %u\n", fp_counter);
-    printf("Info: Number of found locations %u\n", fp_counter + tp_counter);
-    printf("Info: Percentage of true locations compared to the found locations "
+    printf("Info: Number of unmatching locations %u\n", um_counter);
+    printf("Info: Number of found locations %u\n", um_counter + m_counter);
+    printf("Info: Percentage of matching locations compared to the found "
+           "locations "
            "%f%%\n",
-           ((float)tp_counter) / (fp_counter + tp_counter) * 100);
+           ((float)m_counter) / (um_counter + m_counter) * 100);
 }
