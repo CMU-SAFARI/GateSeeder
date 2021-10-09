@@ -104,31 +104,15 @@ void get_locations(index_t idx, char *read, const size_t len,
                    const unsigned int w, const unsigned int k,
                    const unsigned int b, const unsigned int min_t,
                    const unsigned int loc_r, location_v *locs) {
-    // mm72_v p = {.n = 0, .m = 0, .a = NULL};
     min_stra_v p;
     p.n = 0;
     get_minimizers(read, READ_LENGTH, w, k, b, &p);
 
-    mm72_v p_ = {.n = 0, .m = 0, .a = NULL};
-    mm_sketch(0, read, READ_LENGTH, w, k, b, 0, &p_);
-    if (p_.n != p.n) {
-        printf("p.n: %lu, p_.n: %lu\n", p.n, p_.n);
-        for (size_t i = 0; i < p.n; i++) {
-            printf("%x\n", p.a[i].minimizer);
-        }
-        puts("----------");
-        for (size_t i = 0; i < p_.n; i++) {
-            printf("%x\n", p_.a[i].minimizer);
-        }
-        exit(1);
-    }
-
+    // get locations should not eliminate doublons ???
     buffer_t buffer[LOCATION_BUFFER_SIZE];
-
     uint32_t minimizers[LOCATION_BUFFER_SIZE];
     size_t dist = 0;
     unsigned char dist_flag = 1;
-
     size_t n = 0;
     uint32_t min, max;
     uint32_t minimizer;

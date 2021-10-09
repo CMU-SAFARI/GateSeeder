@@ -10,6 +10,7 @@
 
 * True negatives bug fixed
 * Corrected the sketch function of _minimap2_
+* Rewrote the sketch function for synthesis
 
 == Results
 
