@@ -5,9 +5,14 @@
 #include <stdint.h>
 
 typedef struct {
-    uint32_t minimizer;
+    uint32_t minimizer; // size: b
     uint8_t strand;
 } min_stra_t;
+
+typedef struct {
+    uint64_t minimizer; // size: 2*k
+    uint8_t strand;
+} min_stra_reg_t;
 
 typedef struct {
     size_t n;

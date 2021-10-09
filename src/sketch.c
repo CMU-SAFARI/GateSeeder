@@ -126,6 +126,8 @@ void mm_sketch(void *km, const char *str, unsigned int len, int w, int k,
         }
         buf[buf_pos] = info; // need to do this here as appropriate buf_pos
                              // and buf[buf_pos] are needed below
+                             //
+        // printf("%lx\n", info.x>>8);
         if (l == w + k - 1 &&
             min.x != UINT64_MAX) { // special case for the first window
             // - because identical k-mers are not
@@ -158,6 +160,7 @@ void mm_sketch(void *km, const char *str, unsigned int len, int w, int k,
                 val.minimizer = (min.x >> 8) & mask1;
                 val.location = min.y >> 1;
                 val.strand = min.y & 1;
+                // printf("%x\n", val.minimizer);
                 kv_push(mm72_t, km, *p, val);
             }
             for (j = buf_pos + 1, min.x = UINT64_MAX; j < w;
@@ -170,6 +173,8 @@ void mm_sketch(void *km, const char *str, unsigned int len, int w, int k,
             for (j = 0; j <= buf_pos; ++j)
                 if (min.x >= buf[j].x)
                     min = buf[j], min_pos = j;
+
+            // printf("%lx\n", min.x >>8);
             if (l >= w + k - 1 &&
                 min.x != UINT64_MAX) {            // write identical k-mers
                 for (j = buf_pos + 1; j < w; ++j) // these two loops make sure

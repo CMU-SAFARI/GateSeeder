@@ -164,7 +164,10 @@ void compare(target_v tar, read_v reads, index_t idx, const size_t len,
     char buff[50000] = {0};
     size_t j = 0;
     for (size_t i = 0; i < reads.n; i++) {
-        get_locations(idx, reads.a[i], len, w, k, b, min_t, loc_r, &locs);
+        //if (strcmp(reads.name[i], "ERR240727.48861\0") == 0) {
+            //printf("%s\n", reads.name[i]);
+            get_locations(idx, reads.a[i], len, w, k, b, min_t, loc_r, &locs);
+        //}
         if (j < tar.n) {
             if (strcmp(tar.a[j].name, reads.name[i]) == 0) {
                 loc_counter += tar.a[j].n;

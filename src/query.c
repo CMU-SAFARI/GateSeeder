@@ -1,6 +1,7 @@
 #include "query.h"
 #include "kvec.h"
 #include "minimizer.h"
+#include "mmpriv.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -104,11 +105,23 @@ void get_locations(index_t idx, char *read, const size_t len,
                    const unsigned int b, const unsigned int min_t,
                    const unsigned int loc_r, location_v *locs) {
     // mm72_v p = {.n = 0, .m = 0, .a = NULL};
-    // TODO We only need the minimizers and the strand, can be optimized
     min_stra_v p;
     p.n = 0;
     get_minimizers(read, READ_LENGTH, w, k, b, &p);
-    // printf("%lu\n", p.n);
+
+    mm72_v p_ = {.n = 0, .m = 0, .a = NULL};
+    mm_sketch(0, read, READ_LENGTH, w, k, b, 0, &p_);
+    if (p_.n != p.n) {
+        printf("p.n: %lu, p_.n: %lu\n", p.n, p_.n);
+        for (size_t i = 0; i < p.n; i++) {
+            printf("%x\n", p.a[i].minimizer);
+        }
+        puts("----------");
+        for (size_t i = 0; i < p_.n; i++) {
+            printf("%x\n", p_.a[i].minimizer);
+        }
+        exit(1);
+    }
 
     buffer_t buffer[LOCATION_BUFFER_SIZE];
 
