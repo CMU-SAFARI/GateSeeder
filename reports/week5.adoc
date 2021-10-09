@@ -1,0 +1,36 @@
+= Week 4
+
+== TO DO
+
+* Understand why there are true negatives and try to delete them
+* Implement different sort algorithm
+* Start implementation on Vitis-HLS
+
+== Achievements
+
+* True negatives bug fixed
+* Corrected the sketch function of _minimap2_
+
+== Results
+
+=== True negatives bug fixed
+
+[source]
+----
+Info: k = 18, w = 12, b = 26, m = 3 & l = 200
+Info: Reads file: res/ERR240727_1.fastq read
+Info: Number of true positives 5338322 (99.995636%)
+Info: Average mapping quality of the true positives 29
+Info: Number of true negatives 36 (0.004363%)
+Info: Average mapping quality of the true negatives 1
+Info: Number of unmatching locations 72679251
+Info: Number of found locations 78009322
+Info: Percentage of matching locations compared to the found locations 6.832608%
+----
+
+The remaining true negatives correspond to the filtered minimizers.
+
+== Questions
+* Input stream, each base on 3 bits (A, T, C, G, N)?
+* Or each base on 2 bits, and we delete the Ns from the reads (in this case more minimizers);
+
