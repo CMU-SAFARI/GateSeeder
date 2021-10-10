@@ -11,7 +11,6 @@ typedef struct {
 
 typedef struct {
     uint64_t minimizer; // size: 2*k
-    uint32_t position;
     uint8_t strand;
 } min_stra_reg_t;
 

@@ -24,8 +24,8 @@ Info: Number of true positives 5338322 (99.995636%)
 Info: Average mapping quality of the true positives 29
 Info: Number of true negatives 36 (0.004363%)
 Info: Average mapping quality of the true negatives 1
-Info: Number of unmatching locations 72679251
-Info: Number of found locations 78009322
+Info: Number of unmatching locations 72679250
+Info: Number of found locations 78009321
 Info: Percentage of matching locations compared to the found locations 6.832608%
 ----
 
