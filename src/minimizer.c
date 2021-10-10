@@ -77,8 +77,7 @@ void get_minimizers(const char *read, const size_t len, const unsigned int w,
         buff[buff_pos] = hash_reg;
 
         if (l == w + k - 1) { // a new minimum; then write the old min
-                              // while(same_min_count)
-            {
+            while (same_min_count) {
                 strand_pos = (strand_pos == 0) ? w - 1 : strand_pos - 1;
                 p->a[p->n].minimizer = min_reg.minimizer & mask1;
                 p->a[p->n].strand = strand_buff[strand_pos];
