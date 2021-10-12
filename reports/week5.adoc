@@ -11,6 +11,7 @@
 * True negatives bug fixed
 * Corrected the sketch function of _minimap2_
 * Rewrote the sketch function for synthesis
+* Query function done, adapted for a FPGA implementation
 
 == Results
 
@@ -20,13 +21,13 @@
 ----
 Info: k = 18, w = 12, b = 26, m = 3 & l = 200
 Info: Reads file: res/ERR240727_1.fastq read
-Info: Number of true positives 5338322 (99.995636%)
-Info: Average mapping quality of the true positives 29
-Info: Number of true negatives 36 (0.004363%)
-Info: Average mapping quality of the true negatives 1
-Info: Number of unmatching locations 72679250
-Info: Number of found locations 78009321
-Info: Percentage of matching locations compared to the found locations 6.832608%
+Info: Number of true positives 5426773 (99.999031%)
+Info: Average mapping quality of the true positives 28
+Info: Number of true negatives 8 (0.000969%)
+Info: Average mapping quality of the true negatives 0
+Info: Number of unmatching locations 81611547
+Info: Number of found locations 87008516
+Info: Percentage of matching locations compared to the found locations 6.202806%
 ----
 
 The remaining true negatives correspond to the filtered minimizers.
