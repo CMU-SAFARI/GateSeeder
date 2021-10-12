@@ -108,40 +108,70 @@ void get_locations(index_t idx, char *read, const size_t len,
     p.n = 0;
     get_minimizers(read, READ_LENGTH, w, k, b, &p);
 
-    // get locations should not eliminate doublons ???
-    buffer_t buffer[LOCATION_BUFFER_SIZE];
-    uint32_t minimizers[LOCATION_BUFFER_SIZE];
-    size_t dist = 0;
-    unsigned char dist_flag = 1;
-    size_t n = 0;
-    uint32_t min, max;
-    uint32_t minimizer;
-    for (size_t i = 0; i < p.n; i++) {
-        minimizer = p.a[i].minimizer;
-        for (size_t k = 0; k < dist; k++) {
-            if (minimizer == minimizers[k]) {
-                dist_flag = 0;
-                break;
+    buffer_t location_buffer[2][LOCATION_BUFFER_SIZE];
+    size_t location_buffer_len[2] = {0};
+    buffer_t mem_buffer[2][500];
+    uint16_t mem_buffer_len[2];
+    uint8_t repetition[2];
+
+    for (size_t i = 0; i <= p.n; i++) {
+        unsigned char sel = i % 2;
+        if (i != p.n) {
+            size_t mem_buffer_i = 0;
+            uint32_t minimizer = p.a[i].minimizer;
+            uint32_t min = (minimizer == 0) ? 0 : idx.h[minimizer - 1];
+            uint32_t max = idx.h[minimizer];
+            repetition[sel] = p.repetition[sel];
+            mem_buffer_len[sel] = max - min;
+            for (uint32_t j = min; j < max; j++) {
+                mem_buffer[sel][mem_buffer_i] =
+                    (buffer_t){.location = idx.location[j],
+                               .strand = idx.strand[j] ^ p.a[i].strand};
+
+                mem_buffer_i++;
             }
         }
-        if (dist_flag) {
-            minimizers[dist] = minimizer;
-            dist++;
-            min = (minimizer == 0) ? 0 : idx.h[minimizer - 1];
-            max = idx.h[minimizer];
-
-            for (uint32_t j = min; j < max; j++) {
-                buffer[n] = (buffer_t){.location = idx.location[j],
-                                       .strand = idx.strand[j] ^ p.a[i].strand};
-                n++;
+        if (i != 0) {
+            size_t loc_i = 0;
+            size_t mem_i = 0;
+            size_t k = 0;
+            while (loc_i < location_buffer_len[sel] &&
+                   mem_i < mem_buffer_len[1 - sel]) {
+                if (location_buffer[sel][loc_i].location <=
+                    mem_buffer[1 - sel][mem_i].location) {
+                    location_buffer[1 - sel][k] = location_buffer[sel][loc_i];
+                    k++;
+                    loc_i++;
+                } else {
+                    for (uint8_t rep = 0; rep < repetition[1 - sel]; rep++) {
+                        location_buffer[1 - sel][k] =
+                            mem_buffer[1 - sel][mem_i];
+                        k++;
+                    }
+                    mem_i++;
+                }
             }
-        } else {
-            dist_flag = 1;
+            if (loc_i == location_buffer_len[sel]) {
+                while (mem_i == mem_buffer_len[sel - 1]) {
+                    for (uint8_t rep = 0; rep < repetition[1 - sel]; rep++) {
+                        location_buffer[1 - sel][k] =
+                            mem_buffer[1 - sel][mem_i];
+                        k++;
+                    }
+                    mem_i++;
+                }
+            } else {
+                location_buffer[1 - sel][k] = location_buffer[sel][loc_i];
+                k++;
+                loc_i++;
+            }
+            location_buffer_len[1 - sel] = k;
         }
     }
 
+    buffer_t *buffer = location_buffer[1 - p.n % 2];
+    size_t n = location_buffer_len[1 - p.n % 2];
     if (n >= min_t) {
-        qsort(buffer, n, sizeof(buffer_t), cmp);
         uint32_t loc_buffer[LOCATION_BUFFER_SIZE];
         locs->n = 0;
         unsigned char loc_counter = 1;

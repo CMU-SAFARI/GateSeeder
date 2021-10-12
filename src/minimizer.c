@@ -64,9 +64,7 @@ void get_minimizers(const char *read, const size_t len, const unsigned int w,
             }
         } else {
             if (l >= w + k - 1) {
-                p->a[p->n].minimizer = min_reg.minimizer & mask1;
-                p->a[p->n].strand = min_reg.strand;
-                p->n++;
+                push_min_stra(p, min_reg.minimizer & mask1, min_reg.strand);
                 min_saved = 1;
             }
             l = 0;
@@ -76,18 +74,15 @@ void get_minimizers(const char *read, const size_t len, const unsigned int w,
         if (l == w + k - 1) { // a new minimum; then write the old min
             while (same_min_count) {
                 strand_pos = (strand_pos == 0) ? w - 1 : strand_pos - 1;
-                p->a[p->n].minimizer = min_reg.minimizer & mask1;
-                p->a[p->n].strand = strand_buff[strand_pos];
-                p->n++;
+                push_min_stra(p, min_reg.minimizer & mask1,
+                              strand_buff[strand_pos]);
                 same_min_count--;
             }
         }
 
         if (hash_reg.minimizer <= min_reg.minimizer) {
             if (l >= w + k) {
-                p->a[p->n].minimizer = min_reg.minimizer & mask1;
-                p->a[p->n].strand = min_reg.strand;
-                p->n++;
+                push_min_stra(p, min_reg.minimizer & mask1, min_reg.strand);
             } else if (l < w + k - 1 &&
                        hash_reg.minimizer == min_reg.minimizer) {
                 strand_buff[strand_pos] = min_reg.strand;
@@ -101,9 +96,7 @@ void get_minimizers(const char *read, const size_t len, const unsigned int w,
             min_saved = 0;
         } else if (buff_pos == min_pos) {
             if (l >= w + k - 1) {
-                p->a[p->n].minimizer = min_reg.minimizer & mask1;
-                p->a[p->n].strand = min_reg.strand;
-                p->n++;
+                push_min_stra(p, min_reg.minimizer & mask1, min_reg.strand);
             }
             min_reg.minimizer = UINT64_MAX;
             unsigned char same_min_count_w = 0;
@@ -139,9 +132,8 @@ void get_minimizers(const char *read, const size_t len, const unsigned int w,
             }
             while (same_min_count_w && l >= w + k - 1) {
                 strand_pos = (strand_pos == 0) ? w - 1 : strand_pos - 1;
-                p->a[p->n].minimizer = min_reg.minimizer & mask1;
-                p->a[p->n].strand = strand_buff[strand_pos];
-                p->n++;
+                push_min_stra(p, min_reg.minimizer & mask1,
+                              strand_buff[strand_pos]);
                 same_min_count_w--;
             }
         }
@@ -149,11 +141,26 @@ void get_minimizers(const char *read, const size_t len, const unsigned int w,
     }
 
     if (min_reg.minimizer != UINT64_MAX && !min_saved) {
-        p->a[p->n].minimizer = min_reg.minimizer & mask1;
-        p->a[p->n].strand = min_reg.strand;
-        p->n++;
+        push_min_stra(p, min_reg.minimizer & mask1, min_reg.strand);
     }
 }
 
-void push_min_stra(min_stra_v* p, uint32_t min, uint8_t stra){
+void push_min_stra(min_stra_v *p, uint32_t min, uint8_t stra) {
+    if (p->n == 0) {
+        p->a[0].minimizer = min;
+        p->a[0].strand = stra;
+        p->repetition[0] = 1;
+        p->n++;
+        return;
+    }
+    for (size_t i = 0; i < p->n; i++) {
+        if (p->a[i].minimizer == min && p->a[0].strand == stra) {
+            p->repetition[i]++;
+            return;
+        }
+    }
+    p->a[p->n].minimizer = min;
+    p->a[p->n].strand = stra;
+    p->repetition[p->n] = 1;
+    p->n++;
 }
