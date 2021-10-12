@@ -119,6 +119,7 @@ void get_minimizers(const char *read, const size_t len, const unsigned int w,
                     strand_pos = (strand_pos == w - 1) ? 0 : strand_pos + 1;
                     same_min_count_w++;
                     min_pos = j;
+                    min_reg.strand = buff[j].strand;
                 }
             }
             for (size_t j = 0; j <= buff_pos; j++) {
@@ -133,6 +134,7 @@ void get_minimizers(const char *read, const size_t len, const unsigned int w,
                     strand_pos = (strand_pos == w - 1) ? 0 : strand_pos + 1;
                     same_min_count_w++;
                     min_pos = j;
+                    min_reg.strand = buff[j].strand;
                 }
             }
             while (same_min_count_w && l >= w + k - 1) {
@@ -151,4 +153,7 @@ void get_minimizers(const char *read, const size_t len, const unsigned int w,
         p->a[p->n].strand = min_reg.strand;
         p->n++;
     }
+}
+
+void push_min_stra(min_stra_v* p, uint32_t min, uint8_t stra){
 }
