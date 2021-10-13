@@ -1,3 +1,4 @@
 *.d
 *.o
 main
+vitis_hls/seeding
