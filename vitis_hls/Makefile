@@ -4,4 +4,7 @@ vitis:
 format:
 	clang-format -i -style="{BasedOnStyle: llvm, IndentWidth: 4}" *.cpp *.h
 
-.PHONY: vitis format
+clean:
+	$(RM) -r seeding
+
+.PHONY: vitis format clean

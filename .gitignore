@@ -2,3 +2,4 @@
 *.o
 main
 vitis_hls/seeding
+vitis_hls/vitis_hls.log
