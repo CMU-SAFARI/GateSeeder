@@ -1,0 +1,15 @@
+= Week 6
+
+== TO DO
+
+* Implementation on Vitis-HLS
+
+== Achievements
+
+* Interface defined
+
+== Results
+
+== Questions
+
+* Which target flow: _Vivado IP Flow_ or _Vitis Kernel Flow_?

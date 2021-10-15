@@ -2,18 +2,24 @@
 
 FPGA Genome Indexing &amp; Seeding (Julien Eudine)
 
-== Installation
+== TO DO
 
-Clone the repository & build the program:
+* HLS implementation
+* Multi threaded CPU implementation
+
+== CPU implementation
+
+=== Installation
+
+Build the program:
 [source, shell]
 ----
-git clone git@github.com:jeudine/genome_indexing.git
-cd genome_indexing && make
+cd cpu_impl && make
 ----
 
-== Usage
+=== Usage
 
-=== Seed extraction and indexing from the reference genome
+==== Seed extraction and indexing from the reference genome
 
 [source, shell]
 ----
@@ -30,7 +36,7 @@ Two output binary formats can be generated:
 .A representation of the default data structure
 image::img/schematic.png[schematic]
 
-=== Seed extraction, querying and filtering from reads
+==== Seed extraction, querying and filtering from reads
 
 [source, shell]
 ----
@@ -41,10 +47,21 @@ The default values for `k`, `w`, `b`, `m` and `l` are 18, 12, 26, 4 and 200 resp
 
 To compare the mapping locations with a mapping positions file, you can add the option `-c <mapping positions file (.paf)>`. This option only compares both mappings and doesn't output the mapping file.
 
+== FPGA implementation
+
+=== Installation
+
+Synthesize the kernel:
+[source, shell]
+----
+cd fpga_impl && make
+----
+
 == Reports
 
 In all the following results link:https://www.ncbi.nlm.nih.gov/assembly/GCF_000001405.39[GRCh38.p13] (3,209,286,105 bases) is used as the genome reference.
 
+* *https://github.com/mealser/FPGA_Genome_Indexing/blob/main/reports/week6.adoc[week6]*
 * *https://github.com/mealser/FPGA_Genome_Indexing/blob/main/reports/week5.adoc[week5]*
 * *https://github.com/mealser/FPGA_Genome_Indexing/blob/main/reports/week4.adoc[week4]*
 * *https://github.com/mealser/FPGA_Genome_Indexing/blob/main/reports/week3.adoc[week3]*

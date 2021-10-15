@@ -1,5 +1,5 @@
 *.d
 *.o
 main
-vitis_hls/seeding
-vitis_hls/vitis_hls.log
+fpga_impl/seeding
+fpga_impl/vitis_hls.log

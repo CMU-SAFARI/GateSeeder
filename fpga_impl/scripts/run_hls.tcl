@@ -2,7 +2,7 @@
 open_project -reset seeding
 
 # Add design files
-add_files seeding.cpp
+add_files src/seeding.cpp
 # Add test bench & files
 #add_files -tb
 
@@ -11,12 +11,11 @@ set_top seeding
 
 # ########################################################
 # Create a solution
-open_solution -reset solution1
+open_solution -flow_target vitis -reset solution1
 # Define technology and clock rate
 set_part {xcvu9p-flga2104-2-i}
 create_clock -period 8
 
-# Source x_hls.tcl to determine which steps to execute
 set hls_exec 0
 #csim_design
 # Set any optimization directives
