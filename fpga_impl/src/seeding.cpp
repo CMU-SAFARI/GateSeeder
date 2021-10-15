@@ -14,11 +14,11 @@ void seeding(const uint32_t h[H_SIZE], const uint32_t location[LS_SIZE],
 #pragma HLS INTERFACE mode = m_axi port = location
 #pragma HLS INTERFACE mode = m_axi port = strand
 
-#pragma HLS INTERFACE m_axi port = read depth = 100 // LEN_READ
-#pragma HLS INTERFACE m_axi port = dst depth = 100  // LEN_READ
+#pragma HLS INTERFACE mode = m_axi port = read depth = 100 // LEN_READ
+#pragma HLS INTERFACE mode = m_axi port = dst depth = 100  // LEN_READ
 
     base_t read_buff[LEN_READ];
 
-    //memcpy creates a burst access to memory
-    memcpy((void *)read_buff, (const void *)read, LEN_READ*sizeof(base_t));
+    // memcpy creates a burst access to memory
+    memcpy((void *)read_buff, (const void *)read, LEN_READ * sizeof(base_t));
 }

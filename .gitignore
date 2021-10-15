@@ -3,3 +3,4 @@
 main
 fpga_impl/seeding
 fpga_impl/vitis_hls.log
+res/
