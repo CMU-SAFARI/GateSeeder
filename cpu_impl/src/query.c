@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #define BUFFER_SIZE 4294967296
-#define LOCATION_BUFFER_SIZE 20000
+#define LOCATION_BUFFER_SIZE 200000
 
 void get_locations(index_t idx, char *read, const size_t len,
                    const unsigned int w, const unsigned int k,
@@ -20,8 +20,8 @@ void get_locations(index_t idx, char *read, const size_t len,
                                                        // the locations and the
                                                        // corresponding strand
     size_t location_buffer_len[2] = {0};
-    buffer_t mem_buffer[2][500]; // Buffers used to store the locations(and the
-                                 // corresponding strand) returned by the index
+    buffer_t mem_buffer[2][2000]; // Buffers used to store the locations(and the
+                                  // corresponding strand) returned by the index
     uint16_t mem_buffer_len[2];
     uint8_t repetition[2];
 

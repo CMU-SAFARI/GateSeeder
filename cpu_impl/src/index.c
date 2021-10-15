@@ -91,9 +91,11 @@ void create_index(FILE *fp, const unsigned int w, const unsigned int k,
     float hash_size = (float)idx->n / (1 << 28);
     float average = (float)idx->m / idx->n;
 
+    printf("Info: Number of (location, strand): %u\n", idx->m);
+    printf("Info: Size of the strand array: %fGB\n", strand_size);
     printf("Info: Size of the location array: %fGB\n", location_size);
     printf("Info: Size of the strand array: %fGB\n", strand_size);
-    printf("Info: Size of the key array: %fGB\n", hash_size);
+    printf("Info: Size of the minimizer array: %fGB\n", hash_size);
     printf("Info: Total size: %fGB\n", location_size + strand_size + hash_size);
     printf("Info: Average locations per minimizers: %f\n", average);
 
