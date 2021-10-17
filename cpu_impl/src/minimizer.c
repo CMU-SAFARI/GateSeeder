@@ -154,7 +154,7 @@ void push_min_stra(min_stra_v *p, uint32_t min, uint8_t stra) {
         return;
     }
     for (size_t i = 0; i < p->n; i++) {
-        if (p->a[i].minimizer == min && p->a[0].strand == stra) {
+        if (p->a[i].minimizer == min && p->a[i].strand == stra) {
             p->repetition[i]++;
             return;
         }
