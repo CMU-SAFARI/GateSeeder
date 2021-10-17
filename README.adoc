@@ -5,6 +5,7 @@ FPGA Genome Indexing &amp; Seeding (Julien Eudine)
 == TO DO
 
 * HLS implementation
+** *https://www.xilinx.com/html_docs/xilinx2021_1/vitis_doc/vitis_hls_coding_styles.html?hl=assert#tbc1539734248790[assertions]*
 * Multi threaded CPU implementation
 
 == CPU implementation

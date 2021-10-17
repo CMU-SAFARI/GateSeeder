@@ -1,8 +1,8 @@
 # Create a project
-open_project -reset seeding
+open_project -reset work
 
 # Add design files
-add_files src/seeding.cpp
+add_files -cflags "-O3" "src/seeding.cpp src/extraction.cpp"
 # Add test bench & files
 #add_files -tb
 

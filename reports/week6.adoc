@@ -13,3 +13,4 @@
 == Questions
 
 * Which target flow: _Vivado IP Flow_ or _Vitis Kernel Flow_?
+* To fit (location, strand) on 32 bits, replace the LSBit of location by the strand?
