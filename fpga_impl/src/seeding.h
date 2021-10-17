@@ -7,9 +7,9 @@
 #define H_SIZE 67108864  // chrom1_w12_k18_f500_b26
 #define LS_SIZE 33594136 // chrom1_w12_k18_f500_b26
 #define W 12
+#define W_LOG 4
 #define K 18
 #define B 26
-#define B_MASK ((1 << B) - 1)
 #define MIN_T 3
 #define LOC_R 200
 #define READ_LEN 100
