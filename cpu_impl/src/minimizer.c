@@ -33,7 +33,6 @@ void get_minimizers(const char *read, const size_t len, const unsigned int w,
              mask1 = (1ULL << b) - 1; // should be defined as const parameters.
 
     min_stra_reg_t buff[256]; // size:  w
-    memset(buff, 0xff, w * sizeof(min_stra_reg_t));
 
     unsigned int l = 0;  // l counts the number of bases and is reset to 0 each
                          // time there is an ambiguous base, optimal size:
