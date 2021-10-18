@@ -3,6 +3,17 @@
 
 #define SHIFT1 (2 * (K - 1))
 
+static inline ap_uint<2 * K> hash64(ap_uint<2 * K> key) {
+    key = (~key + (key << 21)); // key = (key << 21) - key - 1;
+    key = key ^ key >> 24;
+    key = ((key + (key << 3)) + (key << 8)); // key * 265
+    key = key ^ key >> 14;
+    key = ((key + (key << 2)) + (key << 4)); // key * 21
+    key = key ^ key >> 28;
+    key = (key + (key << 31));
+    return key;
+}
+
 void extract_minimizers(const base_t *read, min_stra_v *p) {
     min_stra_t buff[W];
     ap_uint<2 * K> kmer[2] = {0, 0};

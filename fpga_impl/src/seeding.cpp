@@ -20,4 +20,6 @@ void seeding(const uint32_t h[H_SIZE], const uint32_t location[LS_SIZE],
     p.n = 0;
 
     extract_minimizers(read, &p);
+
+    dst[0] = location[p.a[0].minimizer];
 }
