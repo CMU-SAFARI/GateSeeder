@@ -1,4 +1,4 @@
-#include "extraction.h"
+#include "extraction.hpp"
 #include <stddef.h>
 
 void extract_minimizers(const base_t *read, min_stra_v *p) {
@@ -123,8 +123,7 @@ void push_min_stra(min_stra_v *p, min_stra_t val) {
     }
 LOOP_push_min_stra:
     for (size_t i = 0; i < p->n; i++) {
-        if (p->a[i].minimizer == min_stra.minimizer &&
-            p->a[i].strand == min_stra.strand) {
+        if (p->a[i] == min_stra) {
             p->repetition[i]++;
             return;
         }

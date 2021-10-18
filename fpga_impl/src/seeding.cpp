@@ -1,5 +1,5 @@
-#include "seeding.h"
-#include "extraction.h"
+#include "seeding.hpp"
+#include "extraction.hpp"
 #include <string.h>
 
 void seeding(const uint32_t h[H_SIZE], const uint32_t location[LS_SIZE],

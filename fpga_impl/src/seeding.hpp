@@ -1,5 +1,5 @@
-#ifndef SEEDING_H
-#define SEEDING_H
+#ifndef SEEDING_HPP
+#define SEEDING_HPP
 
 #include "ap_int.h"
 #include <stdint.h>
