@@ -1,9 +1,11 @@
 #include "extraction.hpp"
 #include <stddef.h>
 
+#define SHIFT1 (2 * (K - 1))
+
 void extract_minimizers(const base_t *read, min_stra_v *p) {
     min_stra_t buff[W];
-
+    ap_uint<2 * K> kmer[2] = {0, 0};
     ap_uint<READ_LEN_LOG> l(0); // l counts the number of bases and is reset to
                                 // 0 each time there is an ambiguous base
     ap_uint<W_LOG> buff_pos(0);
@@ -13,48 +15,48 @@ void extract_minimizers(const base_t *read, min_stra_v *p) {
     ap_uint<W_LOG> same_min_count(0);
     ap_uint<1> strand_buff[W];
     ap_uint<W_LOG> strand_pos(0);
-    // HERE
-    for (unsigned int i = 0; i < len; ++i) {
-        unsigned int c = seq_nt4_table[(uint8_t)read[i]]; // should be removed
-        min_stra_reg_t hash_reg = {.minimizer = UINT64_MAX, .strand = 0};
-        if (c < 4) {                             // not an ambiguous base
-            kmer[0] = (kmer[0] << 2 | c) & mask; // forward k-mer
-            kmer[1] = (kmer[1] >> 2) | (3ULL ^ c) << shift1; // reverse k-mer
+    for (size_t i = 0; i < READ_LEN; ++i) {
+        base_t c = read[i];
+        min_stra_t hash_reg = {~ap_uint<2 * K>(0), 0};
+        if (c < 4) {                      // not an ambiguous base
+            kmer[0] = (kmer[0] << 2 | c); // forward k-mer
+            kmer[1] = (kmer[1] >> 2) | (3 ^ c) << SHIFT1; // reverse k-mer
             if (kmer[0] == kmer[1]) {
                 continue; // skip "symmetric k-mers" as we don't
                 // know it strand
             }
-            unsigned char z = kmer[0] < kmer[1] ? 0 : 1; // strand
+            ap_uint<1> z = (kmer[0] > kmer[1]); // strand
             ++l;
-            if (l >= k) {
-                hash_reg.minimizer = hash64(kmer[z], mask);
+            if (l >= K) {
+                hash_reg.minimizer = hash64(kmer[z]);
                 hash_reg.strand = z;
             }
         } else {
-            if (l >= w + k - 1) {
-                push_min_stra(p, min_reg.minimizer & mask1, min_reg.strand);
+            if (l >= W + K - 1) {
+                push_min_stra(p, min_reg);
                 min_saved = 1;
             }
             l = 0;
         }
         buff[buff_pos] = hash_reg;
 
-        if (l == w + k - 1) { // a new minimum; then write the old min
+        if (l == W + K - 1) { // a new minimum; then write the old min
             while (same_min_count) {
-                strand_pos = (strand_pos == 0) ? w - 1 : strand_pos - 1;
-                push_min_stra(p, min_reg.minimizer & mask1,
-                              strand_buff[strand_pos]);
+                strand_pos = strand_pos ? strand_pos.to_uint() - 1 : W - 1;
+                push_min_stra(p, (min_stra_t){min_reg.minimizer,
+                                              strand_buff[strand_pos]});
                 same_min_count--;
             }
         }
 
         if (hash_reg.minimizer <= min_reg.minimizer) {
-            if (l >= w + k) {
-                push_min_stra(p, min_reg.minimizer & mask1, min_reg.strand);
-            } else if (l < w + k - 1 &&
+            if (l >= W + K) {
+                push_min_stra(p, min_reg);
+            } else if (l < W + K - 1 &&
                        hash_reg.minimizer == min_reg.minimizer) {
                 strand_buff[strand_pos] = min_reg.strand;
-                strand_pos = (strand_pos == w - 1) ? 0 : strand_pos + 1;
+                strand_pos =
+                    (strand_pos == W - 1) ? 0 : strand_pos.to_uint() + 1;
                 same_min_count++;
             } else {
                 same_min_count = 0;
@@ -63,21 +65,22 @@ void extract_minimizers(const base_t *read, min_stra_v *p) {
             min_pos = buff_pos;
             min_saved = 0;
         } else if (buff_pos == min_pos) {
-            if (l >= w + k - 1) {
-                push_min_stra(p, min_reg.minimizer & mask1, min_reg.strand);
+            if (l >= W + K - 1) {
+                push_min_stra(p, min_reg);
             }
-            min_reg.minimizer = UINT64_MAX;
-            unsigned char same_min_count_w = 0;
-            for (size_t j = buff_pos + 1; j < w; j++) {
+            min_reg.minimizer = ~ap_uint<2 * K>(0);
+            ap_uint<W_LOG> same_min_count_w = 0;
+            for (size_t j = buff_pos + 1; j < W; j++) {
                 if (min_reg.minimizer > buff[j].minimizer) {
                     min_reg = buff[j];
                     min_pos = j;
                     min_saved = 0;
                     same_min_count_w = 0;
                 } else if (min_reg.minimizer == buff[j].minimizer &&
-                           min_reg.minimizer != UINT64_MAX) {
+                           min_reg.minimizer != ~ap_uint<2 * K>(0)) {
                     strand_buff[strand_pos] = min_reg.strand;
-                    strand_pos = (strand_pos == w - 1) ? 0 : strand_pos + 1;
+                    strand_pos =
+                        (strand_pos == W - 1) ? 0 : strand_pos.to_uint() + 1;
                     same_min_count_w++;
                     min_pos = j;
                     min_reg.strand = buff[j].strand;
@@ -90,26 +93,27 @@ void extract_minimizers(const base_t *read, min_stra_v *p) {
                     same_min_count_w = 0;
                     min_saved = 0;
                 } else if (min_reg.minimizer == buff[j].minimizer &&
-                           min_reg.minimizer != UINT64_MAX) {
+                           min_reg.minimizer != ~ap_uint<2 * K>(0)) {
                     strand_buff[strand_pos] = min_reg.strand;
-                    strand_pos = (strand_pos == w - 1) ? 0 : strand_pos + 1;
+                    strand_pos =
+                        (strand_pos == W - 1) ? 0 : strand_pos.to_uint() + 1;
                     same_min_count_w++;
                     min_pos = j;
                     min_reg.strand = buff[j].strand;
                 }
             }
-            while (same_min_count_w && l >= w + k - 1) {
-                strand_pos = (strand_pos == 0) ? w - 1 : strand_pos - 1;
-                push_min_stra(p, min_reg.minimizer & mask1,
-                              strand_buff[strand_pos]);
+            while (same_min_count_w && l >= W + K - 1) {
+                strand_pos = strand_pos ? strand_pos.to_uint() - 1 : W - 1;
+                push_min_stra(p, (min_stra_t){min_reg.minimizer,
+                                              strand_buff[strand_pos]});
                 same_min_count_w--;
             }
         }
-        buff_pos = (buff_pos == w - 1) ? 0 : buff_pos + 1;
+        buff_pos = (buff_pos == W - 1) ? 0 : buff_pos.to_uint() + 1;
     }
 
-    if (min_reg.minimizer != UINT64_MAX && !min_saved) {
-        push_min_stra(p, min_reg.minimizer & mask1, min_reg.strand);
+    if (min_reg.minimizer != ~ap_uint<2 * K>(0) && !min_saved) {
+        push_min_stra(p, min_reg);
     }
 }
 
