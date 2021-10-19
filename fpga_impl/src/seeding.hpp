@@ -14,6 +14,9 @@
 #define LOC_R 200
 #define READ_LEN 100
 #define READ_LEN_LOG 7
+#define LOCATION_BUFFER_SIZE 200000 // TODO
+#define OUT 5000
+#define OUT_LOG 13
 
 typedef ap_uint<3> base_t;
 
