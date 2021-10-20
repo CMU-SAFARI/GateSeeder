@@ -115,10 +115,9 @@ void seeding(const ap_uint<32> h[H_SIZE], const ap_uint<32> location[LS_SIZE],
             }
         }
 
-        // Store the solution
-        for (size_t i = 0; i < locs_len; i++) {
-            locs_o[i] = loc_buffer[i];
-        }
+        // Store the positons
+        memcpy((void *)locs_o, (const void *)loc_buffer,
+               locs_len * sizeof(ap_uint<32>));
         locs_len_o = locs_len;
     } else {
         locs_len_o = 0;

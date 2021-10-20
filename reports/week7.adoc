@@ -1,0 +1,14 @@
+= Week 7
+
+== TO DO
+
+* Continue the FPGA implementation
+* Write a test bench
+* Try to merge the location and strand array
+
+== Achievements
+
+== Results
+
+== Questions
+

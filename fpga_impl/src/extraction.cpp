@@ -1,6 +1,6 @@
 #include "extraction.hpp"
+#include <assert.h>
 #include <stddef.h>
-
 #define SHIFT1 (2 * (K - 1))
 
 static inline ap_uint<2 * K> hash64(ap_uint<2 * K> key) {
@@ -136,8 +136,9 @@ void push_min_stra(min_stra_v *p, min_stra_t val) {
         p->n++;
         return;
     }
+    assert(p->n <= READ_LEN); // TODO can be more precize
 LOOP_push_min_stra:
-    for (size_t i = 0; i < p->n; i++) {
+    for (ap_uint<READ_LEN_LOG> i = 0; i < p->n; i++) {
         if (p->a[i] == min_stra) {
             p->repetition[i]++;
             return;

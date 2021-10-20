@@ -1,5 +1,5 @@
-#ifndef MINIMIZER_H
-#define MINIMIZER_H
+#ifndef EXTRACTION_H
+#define EXTRACTION_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -20,8 +20,9 @@ typedef struct {
     uint8_t repetition[5000];
 } min_stra_v;
 
-void get_minimizers(const char *read, const size_t len, const unsigned int w,
-                    const unsigned int k, const unsigned int b, min_stra_v *p);
+void extract_minimizers(const char *read, const size_t len,
+                        const unsigned int w, const unsigned int k,
+                        const unsigned int b, min_stra_v *p);
 
 void push_min_stra(min_stra_v *p, uint32_t min, uint8_t stra);
 

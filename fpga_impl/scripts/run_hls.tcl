@@ -2,7 +2,7 @@
 open_project -reset work
 
 # Add design files
-add_files -cflags "-O3" "src/seeding.cpp src/extraction.cpp"
+add_files -cflags "-O3 -Wall" "src/seeding.cpp src/extraction.cpp"
 # Add test bench & files
 #add_files -tb
 
@@ -13,7 +13,7 @@ set_top seeding
 # Create a solution
 open_solution -flow_target vitis -reset solution1
 # Define technology and clock rate
-set_part {xcvu9p-flga2104-2-i}
+set_part {xcvu37p-fsvh2892-3-e}
 create_clock -period 8
 
 set hls_exec 0

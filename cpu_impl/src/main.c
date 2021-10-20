@@ -1,6 +1,7 @@
 #include "compare.h"
 #include "index.h"
-#include "query.h"
+#include "parse.h"
+#include "seeding.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -104,8 +105,7 @@ int main(int argc, char *argv[]) {
                 exit(2);
             }
             for (size_t i = 0; i < reads.n; i++) {
-                get_locations(idx, reads.a[i], READ_LENGTH, w, k, b, m, l,
-                              &locs[i]);
+                seeding(idx, reads.a[i], READ_LENGTH, w, k, b, m, l, &locs[i]);
                 for (size_t j = 0; j < locs[i].n; j++) {
                     if (j) {
                         printf("\t");

@@ -1,4 +1,4 @@
-#include "minimizer.h"
+#include "extraction.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -26,17 +26,18 @@ static inline uint64_t hash64(uint64_t key, uint64_t mask) {
     return key;
 }
 
-void get_minimizers(const char *read, const size_t len, const unsigned int w,
-                    const unsigned int k, const unsigned int b, min_stra_v *p) {
+void extract_minimizers(const char *read, const size_t len,
+                        const unsigned int w, const unsigned int k,
+                        const unsigned int b, min_stra_v *p) {
 
     uint64_t shift1 = 2 * (k - 1), mask = (1ULL << 2 * k) - 1, kmer[2] = {0, 0},
              mask1 = (1ULL << b) - 1; // should be defined as const parameters.
 
     min_stra_reg_t buff[256]; // size:  w
 
-    unsigned int l = 0;  // l counts the number of bases and is reset to 0 each
-                         // time there is an ambiguous base, optimal size:
-                         // log2(k) + 1 or max = size of the read
+    unsigned int l = 0; // l counts the number of bases and is reset to 0 each
+                        // time there is an ambiguous base
+
     size_t buff_pos = 0; // size: log2(size(buff)) + 1
     unsigned int min_pos = 0;
     min_stra_reg_t min_reg = {.minimizer = UINT64_MAX, .strand = 0};
@@ -55,7 +56,7 @@ void get_minimizers(const char *read, const size_t len, const unsigned int w,
                 continue; // skip "symmetric k-mers" as we don't
                 // know it strand
             }
-            unsigned char z = kmer[0] < kmer[1] ? 0 : 1; // strand
+            unsigned char z = kmer[0] > kmer[1]; // strand
             ++l;
             if (l >= k) {
                 hash_reg.minimizer = hash64(kmer[z], mask);

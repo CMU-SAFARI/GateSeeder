@@ -20,5 +20,8 @@ format:
 clean:
 	$(RM) *.o $(EXE) *.d
 
-.PHONY: clean format all
+run: $(EXE)
+	./main -i ../res/u_w12_k18_f500_b26.bin ../res/ERR240727_1.fastq -c ../res/u_w12_k18.paf -m 3 -b26
+
+.PHONY: clean format all run
 -include $(wildcard *.d)

@@ -1,20 +1,19 @@
-#include "query.h"
+#include "seeding.h"
+#include "extraction.h"
 #include "kvec.h"
-#include "minimizer.h"
 #include "mmpriv.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-#define BUFFER_SIZE 4294967296
 #define LOCATION_BUFFER_SIZE 200000
 
-void get_locations(index_t idx, char *read, const size_t len,
-                   const unsigned int w, const unsigned int k,
-                   const unsigned int b, const unsigned int min_t,
-                   const unsigned int loc_r, location_v *locs) {
+void seeding(index_t idx, char *read, const size_t len, const unsigned int w,
+             const unsigned int k, const unsigned int b,
+             const unsigned int min_t, const unsigned int loc_r,
+             location_v *locs) {
     min_stra_v p; // Buffer which stores the minimizers and their strand
     p.n = 0;
-    get_minimizers(read, READ_LENGTH, w, k, b, &p);
+    extract_minimizers(read, READ_LENGTH, w, k, b, &p);
 
     buffer_t location_buffer[2][LOCATION_BUFFER_SIZE]; // Buffers which stores
                                                        // the locations and the
@@ -119,90 +118,4 @@ void get_locations(index_t idx, char *read, const size_t len,
             locs->a[i] = loc_buffer[i];
         }
     }
-}
-
-void parse_fastq(FILE *fp, read_v *reads) {
-    char *read_buffer = (char *)malloc(sizeof(char) * BUFFER_SIZE);
-    if (read_buffer == NULL) {
-        fputs("Memory error\n", stderr);
-        exit(2);
-    }
-
-    fread(read_buffer, sizeof(char), BUFFER_SIZE, fp);
-    if (!feof(fp)) {
-        fputs("Reading error: buffer too small\n", stderr);
-        fclose(fp);
-        exit(3);
-    }
-
-    reads->n = 0;
-    reads->a = NULL;
-    reads->name = NULL;
-
-    size_t i = 0;
-    char name_buffer[100] = {0};
-    unsigned char name_i = 0;
-
-    for (;;) {
-        char c = read_buffer[i];
-
-        if (c == '@') {
-            i++;
-            c = read_buffer[i];
-            name_i = 0;
-            while (c != ' ') {
-                name_buffer[name_i] = c;
-                name_i++;
-                i++;
-                c = read_buffer[i];
-            }
-            name_buffer[name_i] = '\0';
-
-            while (c != '\n') {
-                i++;
-                c = read_buffer[i];
-            }
-            reads->n++;
-            reads->a = (char **)realloc(reads->a, reads->n * sizeof(char *));
-            if (reads->a == NULL) {
-                fputs("Memory error\n", stderr);
-                exit(2);
-            }
-
-            reads->name =
-                (char **)realloc(reads->name, reads->n * sizeof(char *));
-            if (reads->name == NULL) {
-                fputs("Memory error\n", stderr);
-                exit(2);
-            }
-
-            reads->a[reads->n - 1] = (char *)malloc(READ_LENGTH * sizeof(char));
-            if (reads->a[reads->n - 1] == NULL) {
-                fputs("Memory error\n", stderr);
-                exit(2);
-            }
-            for (size_t j = 0; j < READ_LENGTH; j++) {
-                i++;
-                reads->a[reads->n - 1][j] = read_buffer[i];
-            }
-
-            reads->name[reads->n - 1] = (char *)malloc(100 * sizeof(char));
-            if (reads->name[reads->n - 1] == NULL) {
-                fputs("Memory error\n", stderr);
-                exit(2);
-            }
-            strcpy(reads->name[reads->n - 1], name_buffer);
-            i++;
-            assert(read_buffer[i] == '\n');
-            i++;
-            assert(read_buffer[i] == '+');
-            i = READ_LENGTH + i;
-        } else if (c == 0) {
-            break;
-        }
-        i++;
-    }
-    free(read_buffer);
-    fclose(fp);
-    return;
 }
