@@ -12,6 +12,113 @@ static inline unsigned char compare(mm72_t left, mm72_t right) {
     return (left.minimizer) <= (right.minimizer);
 }
 
+void create_cindex(FILE *fp, const unsigned int w, const unsigned int k,
+                   const unsigned int filter_threshold, const unsigned int b,
+                   cindex_t *idx) {
+    mm72_v *p = (mm72_v *)calloc(1, sizeof(mm72_v));
+
+    // Parse & sketch
+    parse_sketch(fp, w, k, b, p);
+
+    // Sort p
+    sort(p);
+    printf("Info: Array sorted\n");
+
+    // Write the data in the struct & filter out the most frequent minimizers
+    idx->h = (uint32_t *)malloc(sizeof(uint32_t) * (1 << b));
+    idx->location = (uint32_t *)malloc(sizeof(uint32_t) * p->n);
+    if (idx->h == NULL || idx->location == NULL) {
+        fputs("Memory error\n", stderr);
+        exit(2);
+    }
+
+    unsigned int diff_counter = 0;
+    uint32_t index = p->a[0].minimizer;
+    unsigned int freq_counter = 0;
+    unsigned int filter_counter = 0;
+    size_t pos = 0;
+    uint32_t l = 0;
+
+    for (size_t i = 0; i < index; i++) {
+        idx->h[i] = 0;
+    }
+
+    for (size_t i = 1; i < p->n; i++) {
+        if (index == p->a[i].minimizer) {
+            freq_counter++;
+        } else {
+            if (freq_counter < filter_threshold) {
+                diff_counter++;
+                for (size_t j = pos; j < i; j++) {
+                    idx->location[l] =
+                        (p->a[j].location & (UINT32_MAX - 1)) | p->a[j].strand;
+                    l++;
+                }
+            } else {
+                filter_counter++;
+            }
+            pos = i;
+            freq_counter = 0;
+            while (index != p->a[i].minimizer) {
+                idx->h[index] = l;
+                index++;
+            }
+        }
+    }
+    if (freq_counter < filter_threshold) {
+        diff_counter++;
+        for (size_t j = pos; j < p->n; j++) {
+            idx->location[l] =
+                (p->a[j].location & (UINT32_MAX - 1)) | p->a[j].strand;
+            l++;
+        }
+    } else {
+        filter_counter++;
+    }
+
+    for (size_t i = index; i < (1 << b); i++) {
+        idx->h[i] = l;
+    }
+
+    kv_destroy(*p);
+    printf("Info: Number of ignored minimizers: %u\n", filter_counter);
+    printf("Info: Number of distinct minimizers: %u\n", diff_counter);
+    idx->n = 1 << b;
+    idx->m = l;
+    float location_size = (float)idx->m / (1 << 28);
+    float hash_size = (float)idx->n / (1 << 28);
+    float average = (float)idx->m / idx->n;
+
+    printf("Info: Number of locations: %u\n", idx->m);
+    printf("Info: Size of the location array: %fGB\n", location_size);
+    printf("Info: Size of the minimizer array: %fGB\n", hash_size);
+    printf("Info: Total size: %fGB\n", location_size + hash_size);
+    printf("Info: Average locations per minimizers: %f\n", average);
+
+    unsigned int empty_counter = 0;
+    uint32_t j = 0;
+    unsigned long sd_counter = (idx->h[0] - average) * (idx->h[0] - average);
+    for (size_t i = 0; i < idx->n; i++) {
+        if (i > 0) {
+            sd_counter += (idx->h[i] - idx->h[i - 1] - average) *
+                          (idx->h[i] - idx->h[i - 1] - average);
+        }
+        if (idx->h[i] == j) {
+            empty_counter++;
+        } else {
+            j = idx->h[i];
+        }
+    }
+
+    float sd = sqrtf((float)sd_counter / idx->n);
+    printf("Info: Standard deviation of the number of locations per "
+           "minimizers: %f\n",
+           sd);
+    printf("Info: Number of empty entries in the hash-table: %u (%f%%)\n",
+           empty_counter, (float)empty_counter / idx->n * 100);
+    return;
+}
+
 void create_index(FILE *fp, const unsigned int w, const unsigned int k,
                   const unsigned int filter_threshold, const unsigned int b,
                   index_t *idx) {
@@ -138,6 +245,39 @@ void create_raw_index(FILE *fp, const unsigned int w, const unsigned int k,
     return;
 }
 
+void read_cindex(FILE *fp, cindex_t *idx) {
+    fread(&idx->n, sizeof(uint32_t), 1, fp);
+    fprintf(stderr, "Info: Number of minimizers: %u\n", idx->n);
+
+    idx->h = (uint32_t *)malloc(sizeof(uint32_t) * idx->n);
+    if (idx->h == NULL) {
+        fputs("Memory error\n", stderr);
+        exit(2);
+    }
+    fread(idx->h, sizeof(uint32_t), idx->n, fp);
+    idx->m = idx->h[idx->n - 1];
+    fprintf(stderr, "Info: Size of the location & strand arrays: %u\n", idx->m);
+
+    idx->location = (uint32_t *)malloc(sizeof(uint32_t) * idx->m);
+    if (idx->location == NULL) {
+        fputs("Memory error\n", stderr);
+        exit(2);
+    }
+    fread(idx->location, sizeof(uint32_t), idx->m, fp);
+
+    // Check if we reached the EOF
+    uint8_t eof;
+    fread(&eof, sizeof(uint8_t), 1, fp);
+    if (!feof(fp)) {
+        fputs("Reading error: wrong file format\n", stderr);
+        fclose(fp);
+        exit(3);
+    }
+
+    fclose(fp);
+    return;
+}
+
 void read_index(FILE *fp, index_t *idx) {
     fread(&idx->n, sizeof(uint32_t), 1, fp);
     fprintf(stderr, "Info: Number of minimizers: %u\n", idx->n);
@@ -208,7 +348,7 @@ void parse_sketch(FILE *fp, const unsigned int w, const unsigned int k,
 
         if (c == '>') {
             if (chromo_len > 0) {
-                mm_sketch(0, dna_buffer, chromo_len, w, k, b, 0, p);
+                mm_sketch(0, dna_buffer, chromo_len, w, k, b, p);
                 dna_len += chromo_len;
                 chromo_len = 0;
             }
@@ -234,7 +374,7 @@ void parse_sketch(FILE *fp, const unsigned int w, const unsigned int k,
     free(read_buffer);
     fclose(fp);
     if (chromo_len > 0) {
-        mm_sketch(0, dna_buffer, chromo_len, w, k, b, 0, p);
+        mm_sketch(0, dna_buffer, chromo_len, w, k, b, p);
         dna_len += chromo_len;
     }
 

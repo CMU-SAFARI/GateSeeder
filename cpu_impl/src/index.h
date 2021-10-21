@@ -12,6 +12,12 @@ typedef struct {
 } index_t;
 
 typedef struct {
+    uint32_t n, m;      // size of h & location
+    uint32_t *h;        // hash table
+    uint32_t *location; // location array
+} cindex_t;
+
+typedef struct {
     uint32_t minimizer;
     uint32_t location;
     uint8_t strand;
@@ -27,12 +33,16 @@ typedef struct {
     unsigned int i;
 } thread_param_t;
 
+void create_cindex(FILE *fp, const unsigned int w, const unsigned int k,
+                   const unsigned int filter_threshold, const unsigned int b,
+                   cindex_t *idx);
 void create_index(FILE *fp, const unsigned int w, const unsigned int k,
                   const unsigned int filter_threshold, const unsigned int b,
                   index_t *idx);
 void create_raw_index(FILE *fp, const unsigned int w, const unsigned int k,
                       const unsigned int filter_threshold, const unsigned int b,
                       mm72_v *idx);
+void read_cindex(FILE *fp, cindex_t *idx);
 void read_index(FILE *fp, index_t *idx);
 void parse_sketch(FILE *fp, const unsigned int w, const unsigned int k,
                   const unsigned int b, mm72_v *p);

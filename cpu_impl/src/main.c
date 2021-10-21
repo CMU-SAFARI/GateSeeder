@@ -15,11 +15,12 @@ int main(int argc, char *argv[]) {
     unsigned char r = 0;
     unsigned int m = 4;
     unsigned int l = 200;
-    index_t idx = {.n = 0, .m = 0, .h = NULL, .location = NULL, .strand = NULL};
+    unsigned char compact = 0;
+    cindex_t idx = {.n = 0, .m = 0, .h = NULL, .location = NULL};
     target_v target = {.n = 0, .a = NULL};
 
     int option;
-    while ((option = getopt(argc, argv, ":w:k:f:pb:ri:c:m:l:")) != -1) {
+    while ((option = getopt(argc, argv, ":w:k:f:pb:ri:c:m:l:o")) != -1) {
         switch (option) {
         case 'w':
             w = atoi(optarg);
@@ -49,7 +50,7 @@ int main(int argc, char *argv[]) {
                 fprintf(stderr, "Error: cannot open `%s`\n", optarg);
                 exit(1);
             }
-            read_index(bin_fp, &idx);
+            read_cindex(bin_fp, &idx);
             // printf("Info: Binary file: %s read\n", optarg);
         } break;
         case 'c': {
@@ -67,6 +68,9 @@ int main(int argc, char *argv[]) {
             break;
         case 'l':
             l = atoi(optarg);
+            break;
+        case 'o':
+            compact = 1;
             break;
         case ':':
             fprintf(stderr, "Error: '%c' requires a value\n", optopt);
@@ -105,7 +109,7 @@ int main(int argc, char *argv[]) {
                 exit(2);
             }
             for (size_t i = 0; i < reads.n; i++) {
-                seeding(idx, reads.a[i], READ_LENGTH, w, k, b, m, l, &locs[i]);
+                cseeding(idx, reads.a[i], READ_LENGTH, w, k, b, m, l, &locs[i]);
                 for (size_t j = 0; j < locs[i].n; j++) {
                     if (j) {
                         printf("\t");
@@ -165,37 +169,53 @@ int main(int argc, char *argv[]) {
             fclose(out_fp);
             printf("Info: Binary file `%s` written\n", argv[optind + 1]);
         } else {
-            puts("Info: Output format: minimizer array, location array, strand "
-                 "array");
-            create_index(in_fp, w, k, f, b, &idx);
-            fwrite(&(idx.n), sizeof(idx.n), 1, out_fp);
-            fwrite(idx.h, sizeof(idx.h[0]), idx.n, out_fp);
-            fwrite(idx.location, sizeof(idx.location[0]), idx.m, out_fp);
-            fwrite(idx.strand, sizeof(idx.strand[0]), idx.m, out_fp);
-            fclose(out_fp);
-            printf("Info: Binary file `%s` written\n", argv[optind + 1]);
+            if (compact) {
+                puts("Info: Output format: minimizer array, location array");
+                create_cindex(in_fp, w, k, f, b, &idx);
+                fwrite(&(idx.n), sizeof(idx.n), 1, out_fp);
+                fwrite(idx.h, sizeof(idx.h[0]), idx.n, out_fp);
+                fwrite(idx.location, sizeof(idx.location[0]), idx.m, out_fp);
+                fclose(out_fp);
+                printf("Info: Binary file `%s` written\n", argv[optind + 1]);
+            } else {
+                puts("Info: Output format: minimizer array, location array, "
+                     "strand "
+                     "array");
+                index_t idx = {.n = 0,
+                               .m = 0,
+                               .h = NULL,
+                               .location = NULL,
+                               .strand = NULL};
+                create_index(in_fp, w, k, f, b, &idx);
+                fwrite(&(idx.n), sizeof(idx.n), 1, out_fp);
+                fwrite(idx.h, sizeof(idx.h[0]), idx.n, out_fp);
+                fwrite(idx.location, sizeof(idx.location[0]), idx.m, out_fp);
+                fwrite(idx.strand, sizeof(idx.strand[0]), idx.m, out_fp);
+                fclose(out_fp);
+                printf("Info: Binary file `%s` written\n", argv[optind + 1]);
 
-            if (p) {
-                FILE *gnuplot = popen("gnuplot", "w");
-                fprintf(gnuplot, "set terminal png size 1200, 900\n");
-                // fprintf(gnuplot, "set logscale y\n");
-                fprintf(gnuplot, "set output 'cumulative.png'\n");
-                fprintf(gnuplot,
+                if (p) {
+                    FILE *gnuplot = popen("gnuplot", "w");
+                    fprintf(gnuplot, "set terminal png size 1200, 900\n");
+                    // fprintf(gnuplot, "set logscale y\n");
+                    fprintf(gnuplot, "set output 'cumulative.png'\n");
+                    fprintf(
+                        gnuplot,
                         "set title 'Cumulative sum of the number of entries "
                         "(k = %u, w = %u, f = %u and b = %u)'\n",
                         k, w, f, b);
-                fprintf(gnuplot, "set xlabel 'Minimizers'\n");
-                fprintf(
-                    gnuplot,
-                    "set ylabel 'Cumulative sum of the number of locations'\n");
-                fprintf(gnuplot, "plot '-' with lines lw 3 notitle\n");
-                for (uint32_t i = 0; i < idx.n; i += idx.n / 1000) {
-                    fprintf(gnuplot, "%u %u\n", i, idx.h[i]);
+                    fprintf(gnuplot, "set xlabel 'Minimizers'\n");
+                    fprintf(gnuplot, "set ylabel 'Cumulative sum of the number "
+                                     "of locations'\n");
+                    fprintf(gnuplot, "plot '-' with lines lw 3 notitle\n");
+                    for (uint32_t i = 0; i < idx.n; i += idx.n / 1000) {
+                        fprintf(gnuplot, "%u %u\n", i, idx.h[i]);
+                    }
+                    fprintf(gnuplot, "e\n");
+                    fflush(gnuplot);
+                    pclose(gnuplot);
+                    puts("Info: cumulative.png written");
                 }
-                fprintf(gnuplot, "e\n");
-                fflush(gnuplot);
-                pclose(gnuplot);
-                puts("Info: cumulative.png written");
             }
         }
     }

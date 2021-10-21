@@ -68,7 +68,7 @@ static inline int tq_shift(tiny_queue_t *q) {
  * appended to p
  */
 void mm_sketch(void *km, const char *str, unsigned int len, int w, int k,
-               const unsigned int b, int is_hpc, mm72_v *p) {
+               const unsigned int b, mm72_v *p) {
     uint64_t shift1 = 2 * (k - 1), mask = (1ULL << 2 * k) - 1, kmer[2] = {0, 0};
     uint64_t mask1 = (1ULL << b) - 1;
     uint64_t last_loc = UINT64_MAX;
@@ -88,21 +88,7 @@ void mm_sketch(void *km, const char *str, unsigned int len, int w, int k,
         mm128_t info = {UINT64_MAX, UINT64_MAX};
         if (c < 4) { // not an ambiguous base
             int z;
-            if (is_hpc) {
-                unsigned int skip_len = 1;
-                if (i + 1 < len && seq_nt4_table[(uint8_t)str[i + 1]] == c) {
-                    for (skip_len = 2; i + skip_len < len; ++skip_len)
-                        if (seq_nt4_table[(uint8_t)str[i + skip_len]] != c)
-                            break;
-                    i += skip_len - 1; // put $i at the end of the
-                                       // current homopolymer run
-                }
-                tq_push(&tq, skip_len);
-                kmer_span += skip_len;
-                if (tq.count > k)
-                    kmer_span -= tq_shift(&tq);
-            } else
-                kmer_span = l + 1 < k ? l + 1 : k;
+            kmer_span = l + 1 < k ? l + 1 : k;
             kmer[0] = (kmer[0] << 2 | c) & mask;             // forward k-mer
             kmer[1] = (kmer[1] >> 2) | (3ULL ^ c) << shift1; // reverse k-mer
             if (kmer[0] == kmer[1])

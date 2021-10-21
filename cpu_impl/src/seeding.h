@@ -21,10 +21,13 @@ typedef struct {
     uint8_t strand;
 } buffer_t;
 
-// Return the possible locations on the reference genome
+void cseeding(cindex_t idx, char *read, const size_t len, const unsigned int w,
+              const unsigned int k, const unsigned int b,
+              const unsigned int min_t, const unsigned int loc_r,
+              location_v *locs);
+
 void seeding(index_t idx, char *read, const size_t len, const unsigned int w,
              const unsigned int k, const unsigned int b,
              const unsigned int min_t, const unsigned int loc_r,
              location_v *locs);
-
 #endif

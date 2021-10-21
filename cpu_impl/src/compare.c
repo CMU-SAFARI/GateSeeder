@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-void compare(target_v tar, read_v reads, index_t idx, const size_t len,
+void compare(target_v tar, read_v reads, cindex_t idx, const size_t len,
              const unsigned int w, const unsigned int k, const unsigned int b,
              const unsigned int min_t, const unsigned int loc_r) {
     unsigned int tp_counter = 0;
@@ -17,15 +17,15 @@ void compare(target_v tar, read_v reads, index_t idx, const size_t len,
     char buff[50000] = {0};
     size_t j = 0;
     for (size_t i = 0; i < reads.n; i++) {
-        seeding(idx, reads.a[i], len, w, k, b, min_t, loc_r, &locs);
+        cseeding(idx, reads.a[i], len, w, k, b, min_t, loc_r, &locs);
         if (j < tar.n) {
             if (strcmp(tar.a[j].name, reads.name[i]) == 0) {
                 loc_counter += tar.a[j].n;
                 for (size_t k = 0; k < locs.n; k++) {
                     flag = 0;
                     for (size_t l = 0; l < tar.a[j].n; l++) {
-                        if (locs.a[k] >= tar.a[j].a[l].start &&
-                            locs.a[k] <= tar.a[j].a[l].end) {
+                        if (locs.a[k] >= (tar.a[j].a[l].start - 3) &&
+                            locs.a[k] <= (tar.a[j].a[l].end + 3)) {
                             tp_counter++;
                             quality_counter_tp += tar.a[j].a[l].quality;
                             flag = 1;
