@@ -8,6 +8,9 @@
 
 == Achievements
 
+* Compact index implementation (CPU + FPGA)
+* Redundant minimizer bug fixed
+
 == Results
 
 == Questions

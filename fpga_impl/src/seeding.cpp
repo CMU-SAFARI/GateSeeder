@@ -28,7 +28,6 @@ void seeding(const ap_uint<32> h[H_SIZE], const ap_uint<32> location[LS_SIZE],
     ap_uint<32> mem_buffer[2][2000];     // Buffers used to store the locations
                                          // returned by the index
     uint16_t mem_buffer_len[2];          // TODO
-    uint8_t repetition[2];               // TODO
 
     for (size_t i = 0; i <= p.n; i++) {
         unsigned char sel = i % 2;
@@ -39,7 +38,6 @@ void seeding(const ap_uint<32> h[H_SIZE], const ap_uint<32> location[LS_SIZE],
             uint32_t minimizer = p.a[i].minimizer;
             uint32_t min = minimizer ? h[minimizer - 1].to_uint() : 0;
             uint32_t max = h[minimizer];
-            repetition[sel] = p.repetition[sel];
             mem_buffer_len[sel] = max - min;
             for (uint32_t j = min; j < max; j++) {
                 mem_buffer[sel][mem_buffer_i] = location[j] ^ p.a[i].strand;
@@ -60,21 +58,15 @@ void seeding(const ap_uint<32> h[H_SIZE], const ap_uint<32> location[LS_SIZE],
                     len++;
                     loc_i++;
                 } else {
-                    for (uint8_t rep = 0; rep < repetition[1 - sel]; rep++) {
-                        location_buffer[1 - sel][len] =
-                            mem_buffer[1 - sel][mem_i];
-                        len++;
-                    }
+                    location_buffer[1 - sel][len] = mem_buffer[1 - sel][mem_i];
+                    len++;
                     mem_i++;
                 }
             }
             if (loc_i == location_buffer_len[sel]) {
                 while (mem_i != mem_buffer_len[1 - sel]) {
-                    for (uint8_t rep = 0; rep < repetition[1 - sel]; rep++) {
-                        location_buffer[1 - sel][len] =
-                            mem_buffer[1 - sel][mem_i];
-                        len++;
-                    }
+                    location_buffer[1 - sel][len] = mem_buffer[1 - sel][mem_i];
+                    len++;
                     mem_i++;
                 }
             } else {

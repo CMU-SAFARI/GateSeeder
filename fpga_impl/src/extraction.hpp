@@ -23,7 +23,6 @@ struct min_stra_t {
 struct min_stra_v {
     ap_uint<MIN_STRA_SIZE_LOG> n;
     min_stra_b_t a[MIN_STRA_SIZE];
-    ap_uint<READ_LEN_LOG> repetition[MIN_STRA_SIZE];
 };
 
 void extract_minimizers(const base_t *read, min_stra_v *p);

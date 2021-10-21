@@ -22,7 +22,6 @@ void cseeding(cindex_t idx, char *read, const size_t len, const unsigned int w,
     uint32_t mem_buffer[2][2000]; // Buffers used to store the locations(and the
                                   // corresponding strand) returned by the index
     uint16_t mem_buffer_len[2];
-    uint8_t repetition[2];
 
     for (size_t i = 0; i <= p.n; i++) {
         unsigned char sel = i % 2;
@@ -33,11 +32,9 @@ void cseeding(cindex_t idx, char *read, const size_t len, const unsigned int w,
             uint32_t minimizer = p.a[i].minimizer;
             uint32_t min = (minimizer == 0) ? 0 : idx.h[minimizer - 1];
             uint32_t max = idx.h[minimizer];
-            repetition[sel] = p.repetition[sel];
             mem_buffer_len[sel] = max - min;
             for (uint32_t j = min; j < max; j++) {
                 mem_buffer[sel][mem_buffer_i] = idx.location[j] ^ p.a[i].strand;
-
                 mem_buffer_i++;
             }
         }
@@ -54,21 +51,15 @@ void cseeding(cindex_t idx, char *read, const size_t len, const unsigned int w,
                     len++;
                     loc_i++;
                 } else {
-                    for (uint8_t rep = 0; rep < repetition[1 - sel]; rep++) {
-                        location_buffer[1 - sel][len] =
-                            mem_buffer[1 - sel][mem_i];
-                        len++;
-                    }
+                    location_buffer[1 - sel][len] = mem_buffer[1 - sel][mem_i];
+                    len++;
                     mem_i++;
                 }
             }
             if (loc_i == location_buffer_len[sel]) {
                 while (mem_i != mem_buffer_len[1 - sel]) {
-                    for (uint8_t rep = 0; rep < repetition[1 - sel]; rep++) {
-                        location_buffer[1 - sel][len] =
-                            mem_buffer[1 - sel][mem_i];
-                        len++;
-                    }
+                    location_buffer[1 - sel][len] = mem_buffer[1 - sel][mem_i];
+                    len++;
                     mem_i++;
                 }
             } else {
@@ -132,13 +123,12 @@ void seeding(index_t idx, char *read, const size_t len, const unsigned int w,
     extract_minimizers(read, READ_LENGTH, w, k, b, &p);
 
     buffer_t location_buffer[2][LOCATION_BUFFER_SIZE]; // Buffers which stores
-                                                       // the locations and the
-                                                       // corresponding strand
+    // the locations and the
+    // corresponding strand
     size_t location_buffer_len[2] = {0};
     buffer_t mem_buffer[2][2000]; // Buffers used to store the locations(and the
-                                  // corresponding strand) returned by the index
+    // corresponding strand) returned by the index
     uint16_t mem_buffer_len[2];
-    uint8_t repetition[2];
 
     for (size_t i = 0; i <= p.n; i++) {
         unsigned char sel = i % 2;
@@ -149,7 +139,6 @@ void seeding(index_t idx, char *read, const size_t len, const unsigned int w,
             uint32_t minimizer = p.a[i].minimizer;
             uint32_t min = (minimizer == 0) ? 0 : idx.h[minimizer - 1];
             uint32_t max = idx.h[minimizer];
-            repetition[sel] = p.repetition[sel];
             mem_buffer_len[sel] = max - min;
             for (uint32_t j = min; j < max; j++) {
                 mem_buffer[sel][mem_buffer_i] =
@@ -173,21 +162,15 @@ void seeding(index_t idx, char *read, const size_t len, const unsigned int w,
                     len++;
                     loc_i++;
                 } else {
-                    for (uint8_t rep = 0; rep < repetition[1 - sel]; rep++) {
-                        location_buffer[1 - sel][len] =
-                            mem_buffer[1 - sel][mem_i];
-                        len++;
-                    }
+                    location_buffer[1 - sel][len] = mem_buffer[1 - sel][mem_i];
+                    len++;
                     mem_i++;
                 }
             }
             if (loc_i == location_buffer_len[sel]) {
                 while (mem_i != mem_buffer_len[1 - sel]) {
-                    for (uint8_t rep = 0; rep < repetition[1 - sel]; rep++) {
-                        location_buffer[1 - sel][len] =
-                            mem_buffer[1 - sel][mem_i];
-                        len++;
-                    }
+                    location_buffer[1 - sel][len] = mem_buffer[1 - sel][mem_i];
+                    len++;
                     mem_i++;
                 }
             } else {

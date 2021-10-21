@@ -24,8 +24,8 @@ void compare(target_v tar, read_v reads, cindex_t idx, const size_t len,
                 for (size_t k = 0; k < locs.n; k++) {
                     flag = 0;
                     for (size_t l = 0; l < tar.a[j].n; l++) {
-                        if (locs.a[k] >= (tar.a[j].a[l].start - 3) &&
-                            locs.a[k] <= (tar.a[j].a[l].end + 3)) {
+                        if (locs.a[k] >= (tar.a[j].a[l].start) &&
+                            locs.a[k] <= (tar.a[j].a[l].end)) {
                             tp_counter++;
                             quality_counter_tp += tar.a[j].a[l].quality;
                             flag = 1;

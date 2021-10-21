@@ -2,7 +2,7 @@ SRC_DIR		:= src
 CC		:= gcc
 
 DEPFLAGS	= -MD -MP
-CFLAGS		= -g -O3 $(DEPFLAGS) -Wall -Werror
+CFLAGS		= -g -O3 $(DEPFLAGS) -Wall #-Werror
 LDLIBS		= -pthread -lm
 VPATH		= $(SRC_DIR)
 EXE		= main
@@ -21,7 +21,7 @@ clean:
 	$(RM) *.o $(EXE) *.d
 
 run: $(EXE)
-	./main -i t.bin ../res/ERR240727_1.fastq -c ../res/u_w12_k18.paf -m 3 -b26 -l 200
+	./main -i ../res/c_w12_k18_f500_b26.bin ../res/ERR240727_1.fastq -c ../res/u_w12_k18.paf -m 3 -b26 -l 150
 
 .PHONY: clean format all run
 -include $(wildcard *.d)

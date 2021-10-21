@@ -17,7 +17,6 @@ typedef struct {
 typedef struct {
     size_t n;
     min_stra_t a[5000];
-    uint8_t repetition[5000];
 } min_stra_v;
 
 void extract_minimizers(const char *read, const size_t len,
