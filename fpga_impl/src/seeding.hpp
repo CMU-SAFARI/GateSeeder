@@ -11,7 +11,7 @@
 #define K 18
 #define B 26
 #define MIN_T 3
-#define LOC_R 200
+#define LOC_R 150
 #define READ_LEN 100
 #define READ_LEN_LOG 7
 #define LOCATION_BUFFER_SIZE 200000 // TODO

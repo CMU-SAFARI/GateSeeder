@@ -29,7 +29,8 @@ void extract_minimizers(const base_t *read, min_stra_v *p) {
         min_stra_t hash_reg = {~ap_uint<2 * K>(0), 0};
         if (c < 4) {                      // not an ambiguous base
             kmer[0] = (kmer[0] << 2 | c); // forward k-mer
-            kmer[1] = (kmer[1] >> 2) | (3 ^ c) << SHIFT1; // reverse k-mer
+            kmer[1] = (kmer[1] >> 2) | (~ap_uint<2 * K>(0) ^ c)
+                                           << SHIFT1; // reverse k-mer
             if (kmer[0] == kmer[1]) {
                 continue; // skip "symmetric k-mers" as we don't
                 // know it strand

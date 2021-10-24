@@ -4,7 +4,7 @@ open_project -reset work
 # Add design files
 add_files -cflags "-O3 -Wall" "src/seeding.cpp src/extraction.cpp"
 # Add test bench & files
-add_files -tb "src/tb_top.cpp src/tb_driver.cpp"
+add_file -cflags "-O3" -tb "src/tb_top.cpp src/tb_driver.cpp"
 
 # Set the top-level function
 set_top seeding
@@ -39,7 +39,7 @@ if {$hls_exec == 1} {
 } else {
 	# Default is to exit after setup
 	csynth_design
-	cosim_design
+        cosim_design -O -argv "../res/ERR240727_1.fastq ../res/c_w12_k18_f500_b26.bin ../res/ch1_w12_k_18_f500_b26_l150.data"
 }
 
 exit

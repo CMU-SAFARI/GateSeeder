@@ -97,6 +97,7 @@ void seeding(const ap_uint<32> h[H_SIZE], const ap_uint<32> location[LS_SIZE],
                 loc_counter++;
                 if (loc_counter == MIN_T) {
                     loc_buffer[locs_len] = buffer[init_loc_idx];
+                    loc_buffer[locs_len][0] = 0;
                     locs_len++;
                     init_loc_idx++;
                     loc_counter = 1;

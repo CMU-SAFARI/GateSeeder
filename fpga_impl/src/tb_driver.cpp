@@ -1,5 +1,6 @@
 #include "tb_driver.hpp"
 #include "seeding.hpp"
+#include <cstdlib>
 #define READ_BUFFER_SIZE 2147483648
 
 using namespace std;
@@ -24,6 +25,7 @@ vector<out_loc_t> drive_sim(ifstream &ifs_read, ifstream &ifs_idx) {
     if (!ifs_read.eof()) {
         fputs("Reading error: buffer too small\n", stderr);
         ifs_read.close();
+        ifs_idx.close();
         exit(3);
     }
 
@@ -105,7 +107,7 @@ index_t parse_index(ifstream &ifs) {
     }
     delete[] h_buff;
     size_t m = idx.h[n - 1];
-    fprintf(stderr, "Info: Size of the location & strand arrays: %u\n", m);
+    fprintf(stderr, "Info: Size of the location array: %u\n", m);
 
     idx.location = new ap_uint<32>[m];
     uint32_t *l_buff = new uint32_t[m];
@@ -126,4 +128,50 @@ index_t parse_index(ifstream &ifs) {
 
     ifs.close();
     return idx;
+}
+
+vector<exp_loc_t> parse_data(ifstream &ifs) {
+    char *buffer = new char[READ_BUFFER_SIZE];
+    ifs.read(buffer, READ_BUFFER_SIZE);
+    if (!ifs.eof()) {
+        cerr << "Reading error: buffer too small" << endl;
+        ifs.close();
+        exit(3);
+    }
+    vector<exp_loc_t> exp_locs;
+    vector<uint32_t> loc_buffer;
+    char num[11] = {0};
+    size_t num_i = 0;
+    exp_loc_t loc;
+    size_t i = 0;
+    for (;;) {
+        char c = buffer[i];
+        switch (c) {
+        case '\n':
+            if (num_i != 0) {
+                num[num_i] = '\0';
+                num_i = 0;
+                loc_buffer.push_back(strtoul(num, NULL, 10));
+            }
+            loc.locs = new uint32_t[loc_buffer.size()];
+            loc.n = loc_buffer.size();
+            std::copy(loc_buffer.begin(), loc_buffer.end(), loc.locs);
+            exp_locs.push_back(loc);
+            loc_buffer.clear();
+            break;
+        case '\t':
+            num[num_i] = '\0';
+            num_i = 0;
+            loc_buffer.push_back(strtoul(num, NULL, 10));
+            break;
+        case 0:
+            delete[] buffer;
+            return exp_locs;
+        default:
+            num[num_i] = c;
+            num_i++;
+            break;
+        }
+        i++;
+    }
 }
