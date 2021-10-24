@@ -1,6 +1,7 @@
 *.d
 *.o
 main
+sim
 fpga_impl/work
 fpga_impl/vitis_hls.log
 res/

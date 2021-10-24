@@ -20,6 +20,7 @@
 
 typedef ap_uint<3> base_t;
 
-void seeding(const uint32_t h[H_SIZE], const uint32_t location[LS_SIZE],
-             const base_t *read, uint32_t *dst);
+void seeding(const ap_uint<32> h[H_SIZE], const ap_uint<32> location[LS_SIZE],
+             const base_t *read_i, ap_uint<32> *locs_o,
+             ap_uint<OUT_LOG> &locs_len_o);
 #endif

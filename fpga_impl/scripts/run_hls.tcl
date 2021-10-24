@@ -4,7 +4,7 @@ open_project -reset work
 # Add design files
 add_files -cflags "-O3 -Wall" "src/seeding.cpp src/extraction.cpp"
 # Add test bench & files
-#add_files -tb
+add_files -tb "src/tb_top.cpp src/tb_driver.cpp"
 
 # Set the top-level function
 set_top seeding
@@ -39,6 +39,7 @@ if {$hls_exec == 1} {
 } else {
 	# Default is to exit after setup
 	csynth_design
+	cosim_design
 }
 
 exit
