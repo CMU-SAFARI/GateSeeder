@@ -7,13 +7,16 @@ DEPFLAGS	= -MD -MP
 CPPFLAGS	= -I $(HLS_ROOT)/include
 CXXFLAGS	= -O3 -g $(DEPFLAGS)
 VPATH		= $(SRC_DIR)
-SIM		= sim
+SIM		= sim.x
 
 SRCS		= $(wildcard $(SRC_DIR)/*.cpp)
 OBJS		= $(SRCS:$(SRC_DIR)/%.cpp=%.o)
 
 vitis:
 	vitis_hls -f scripts/run_hls.tcl
+
+sim: $(SIM)
+	./$(SIM) ../res/ERR240727_1.fastq ../res/c_w12_k18_f500_b26.bin
 
 $(SIM): $(OBJS)
 	$(CXX) $(LDFLAGS) $^ -o $@ $(LDLIBS)
@@ -24,4 +27,4 @@ format:
 clean:
 	$(RM) -r work *.o *.d $(SIM)
 
-.PHONY: vitis format clean
+.PHONY: vitis format clean sim
