@@ -14,7 +14,7 @@
 
 == Results
 
-* FPGA implementation debugged, ready to be optimized and tested on real Hardware
+* FPGA implementation debugged, ready to be optimized and tested on real hardware
 
 == Questions
 
