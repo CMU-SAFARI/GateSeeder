@@ -58,9 +58,9 @@ void compare(target_v tar, read_v reads, cindex_t idx, const size_t len,
            ((float)loc_counter - tn_counter) / loc_counter * 100);
     printf("Info: Average mapping quality of the true positives %u\n",
            quality_counter_tp / tp_counter);
-    printf("Info: Number of true negatives %u (%f%%)\n", tn_counter,
+    printf("Info: Number of false negatives %u (%f%%)\n", tn_counter,
            ((float)tn_counter) / loc_counter * 100);
-    printf("Info: Average mapping quality of the true negatives %u\n",
+    printf("Info: Average mapping quality of the false negatives %u\n",
            quality_counter_tn / tn_counter);
     printf("Info: Number of unmatching locations %u\n", um_counter);
     printf("Info: Number of found locations %u\n", um_counter + m_counter);

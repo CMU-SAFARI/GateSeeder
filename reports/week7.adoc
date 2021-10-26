@@ -10,8 +10,11 @@
 
 * Compact index implementation (CPU + FPGA)
 * Redundant minimizer bug fixed
+* Test bench for C/C++ and post-synthesis simulation
 
 == Results
+
+* FPGA implementation debugged, ready to be optimized and tested on real Hardware
 
 == Questions
 
