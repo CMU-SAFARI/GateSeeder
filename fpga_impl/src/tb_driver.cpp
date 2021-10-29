@@ -64,8 +64,8 @@ vector<out_loc_t> drive_sim(ifstream &ifs_read, ifstream &ifs_idx) {
 			}
 
 			// DUT
-			ap_uint<32> locs_buffer[OUT];
-			ap_uint<OUT_LOG> locs_len;
+			ap_uint<32> locs_buffer[OUT_SIZE];
+			ap_uint<OUT_SIZE_LOG> locs_len;
 			seeding(idx.h, idx.location, base_buffer, locs_buffer, locs_len);
 
 			read.n    = locs_len.to_uint();
@@ -107,7 +107,7 @@ index_t parse_index(ifstream &ifs) {
 	}
 	delete[] h_buff;
 	size_t m = idx.h[n - 1];
-	fprintf(stderr, "Info: Size of the location array: %u\n", m);
+	fprintf(stderr, "Info: Size of the location array: %lu\n", m);
 
 	idx.location     = new ap_uint<32>[m];
 	uint32_t *l_buff = new uint32_t[m];
