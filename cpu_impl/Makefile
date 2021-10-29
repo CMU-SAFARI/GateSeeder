@@ -15,7 +15,7 @@ all: $(EXE)
 $(EXE): $(OBJS)
 
 format:
-	clang-format -i -style="{BasedOnStyle: llvm, IndentWidth: 4}" $(SRC_DIR)/*
+	clang-format -i $(SRC_DIR)/*
 
 clean:
 	$(RM) *.o $(EXE) *.d

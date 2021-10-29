@@ -24,9 +24,9 @@
 #define MM_SEED_SEG_MASK (0xffULL << (MM_SEED_SEG_SHIFT))
 
 #ifndef kroundup32
-#define kroundup32(x)                                                          \
-    (--(x), (x) |= (x) >> 1, (x) |= (x) >> 2, (x) |= (x) >> 4,                 \
-     (x) |= (x) >> 8, (x) |= (x) >> 16, ++(x))
+#define kroundup32(x)                                              \
+	(--(x), (x) |= (x) >> 1, (x) |= (x) >> 2, (x) |= (x) >> 4, \
+	 (x) |= (x) >> 8, (x) |= (x) >> 16, ++(x))
 #endif
 
 #define mm_seq4_set(s, i, c) ((s)[(i) >> 3] |= (uint32_t)(c) << (((i)&7) << 2))
@@ -40,17 +40,17 @@ extern "C" {
 #endif
 
 typedef struct {
-    uint32_t n;
-    uint32_t q_pos;
-    uint32_t q_span : 31, flt : 1;
-    uint32_t seg_id : 31, is_tandem : 1;
-    const uint64_t *cr;
+	uint32_t n;
+	uint32_t q_pos;
+	uint32_t q_span : 31, flt : 1;
+	uint32_t seg_id : 31, is_tandem : 1;
+	const uint64_t *cr;
 } mm_seed_t;
 
 typedef struct {
-    int n_u, n_a;
-    uint64_t *u;
-    mm128_t *a;
+	int n_u, n_a;
+	uint64_t *u;
+	mm128_t *a;
 } mm_seg_t;
 
 double cputime(void);
@@ -157,15 +157,15 @@ void mm_err_fread(void *p, size_t size, size_t nitems, FILE *fp);
 
 static inline float mg_log2(float x) // NB: this doesn't work when x<2
 {
-    union {
-        float f;
-        uint32_t i;
-    } z = {x};
-    float log_2 = ((z.i >> 23) & 255) - 128;
-    z.i &= ~(255 << 23);
-    z.i += 127 << 23;
-    log_2 += (-0.34484843f * z.f + 2.02466578f) * z.f - 0.67487759f;
-    return log_2;
+	union {
+		float f;
+		uint32_t i;
+	} z         = {x};
+	float log_2 = ((z.i >> 23) & 255) - 128;
+	z.i &= ~(255 << 23);
+	z.i += 127 << 23;
+	log_2 += (-0.34484843f * z.f + 2.02466578f) * z.f - 0.67487759f;
+	return log_2;
 }
 
 #ifdef __cplusplus

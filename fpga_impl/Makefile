@@ -16,13 +16,13 @@ vitis:
 	vitis_hls -f scripts/run_hls.tcl
 
 sim: $(SIM)
-	./$(SIM) ../res/ERR240727_1.fastq ../res/c_w12_k18_f500_b26.bin ../res/ch1_w12_k_18_f500_b26_l150.data
+	./$(SIM) ../res/illumina.fastq ../res/c_w12_k18_f500_b26.bin ../res/illumina.dat
 
 $(SIM): $(OBJS)
 	$(CXX) $(LDFLAGS) $^ -o $@ $(LDLIBS)
 
 format:
-	clang-format -i -style="{BasedOnStyle: llvm, IndentWidth: 4}" src/*.cpp src/*.hpp
+	clang-format -i src/*.cpp src/*.hpp
 
 clean:
 	$(RM) -r work *.o *.d $(SIM)

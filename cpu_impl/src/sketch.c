@@ -20,33 +20,33 @@ unsigned char seq_nt4_table[256] = {
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
 
 static inline uint64_t hash64(uint64_t key, uint64_t mask) {
-    key = (~key + (key << 21)) & mask; // key = (key << 21) - key - 1;
-    key = key ^ key >> 24;
-    key = ((key + (key << 3)) + (key << 8)) & mask; // key * 265
-    key = key ^ key >> 14;
-    key = ((key + (key << 2)) + (key << 4)) & mask; // key * 21
-    key = key ^ key >> 28;
-    key = (key + (key << 31)) & mask;
-    return key;
+	key = (~key + (key << 21)) & mask; // key = (key << 21) - key - 1;
+	key = key ^ key >> 24;
+	key = ((key + (key << 3)) + (key << 8)) & mask; // key * 265
+	key = key ^ key >> 14;
+	key = ((key + (key << 2)) + (key << 4)) & mask; // key * 21
+	key = key ^ key >> 28;
+	key = (key + (key << 31)) & mask;
+	return key;
 }
 
 typedef struct { // a simplified version of kdq
-    int front, count;
-    int a[32];
+	int front, count;
+	int a[32];
 } tiny_queue_t;
 
 static inline void tq_push(tiny_queue_t *q, int x) {
-    q->a[((q->count++) + q->front) & 0x1f] = x;
+	q->a[((q->count++) + q->front) & 0x1f] = x;
 }
 
 static inline int tq_shift(tiny_queue_t *q) {
-    int x;
-    if (q->count == 0)
-        return -1;
-    x = q->a[q->front++];
-    q->front &= 0x1f;
-    --q->count;
-    return x;
+	int x;
+	if (q->count == 0)
+		return -1;
+	x = q->a[q->front++];
+	q->front &= 0x1f;
+	--q->count;
+	return x;
 }
 
 /**
@@ -69,121 +69,121 @@ static inline int tq_shift(tiny_queue_t *q) {
  */
 void mm_sketch(void *km, const char *str, unsigned int len, int w, int k,
                const unsigned int b, mm72_v *p) {
-    uint64_t shift1 = 2 * (k - 1), mask = (1ULL << 2 * k) - 1, kmer[2] = {0, 0};
-    uint64_t mask1 = (1ULL << b) - 1;
-    uint64_t last_loc = UINT64_MAX;
-    unsigned int i, j, l, buf_pos, min_pos, kmer_span = 0;
-    mm128_t buf[256], min = {UINT64_MAX, UINT64_MAX};
-    tiny_queue_t tq;
-    mm72_t val;
-    assert(len > 0 && (w > 0 && w < 256) &&
-           (k > 0 && k <= 28)); // 56 bits for k-mer; could use long
-                                // k-mers, but 28 enough in practice
-    memset(buf, 0xff, w * 16);
-    memset(&tq, 0, sizeof(tiny_queue_t));
-    kv_resize(mm72_t, km, *p, p->n + len / w);
+	uint64_t shift1 = 2 * (k - 1), mask = (1ULL << 2 * k) - 1, kmer[2] = {0, 0};
+	uint64_t mask1    = (1ULL << b) - 1;
+	uint64_t last_loc = UINT64_MAX;
+	unsigned int i, j, l, buf_pos, min_pos, kmer_span = 0;
+	mm128_t buf[256], min = {UINT64_MAX, UINT64_MAX};
+	tiny_queue_t tq;
+	mm72_t val;
+	assert(len > 0 && (w > 0 && w < 256) &&
+	       (k > 0 && k <= 28)); // 56 bits for k-mer; could use long
+	                            // k-mers, but 28 enough in practice
+	memset(buf, 0xff, w * 16);
+	memset(&tq, 0, sizeof(tiny_queue_t));
+	kv_resize(mm72_t, km, *p, p->n + len / w);
 
-    for (i = l = buf_pos = min_pos = 0; i < len; ++i) {
-        unsigned int c = seq_nt4_table[(uint8_t)str[i]];
-        mm128_t info = {UINT64_MAX, UINT64_MAX};
-        if (c < 4) { // not an ambiguous base
-            int z;
-            kmer_span = l + 1 < k ? l + 1 : k;
-            kmer[0] = (kmer[0] << 2 | c) & mask;             // forward k-mer
-            kmer[1] = (kmer[1] >> 2) | (3ULL ^ c) << shift1; // reverse k-mer
-            if (kmer[0] == kmer[1])
-                continue; // skip "symmetric k-mers" as we don't
-                          // know it strand
-            z = kmer[0] < kmer[1] ? 0 : 1; // strand
-            ++l;
-            if (l >= k && kmer_span < 256) {
-                info.x = hash64(kmer[z], mask) << 8 | kmer_span;
-                info.y = (uint32_t)i << 1 | z;
-            }
-        } else {
-            if (l >= w + k - 1 && min.x != UINT64_MAX) {
-                val.minimizer = (min.x >> 8) & mask1;
-                val.location = min.y >> 1;
-                last_loc = min.y;
-                val.strand = min.y & 1;
-                kv_push(mm72_t, km, *p, val);
-            }
-            l = 0, tq.count = tq.front = 0, kmer_span = 0;
-        }
-        buf[buf_pos] = info; // need to do this here as appropriate buf_pos
-                             // and buf[buf_pos] are needed below
-                             //
-        if (l == w + k - 1 &&
-            min.x != UINT64_MAX) { // special case for the first window
-            // - because identical k-mers are not
-            // stored yet
-            for (j = buf_pos + 1; j < w; ++j)
-                if (min.x == buf[j].x && buf[j].y != min.y) {
-                    val.minimizer = (buf[j].x >> 8) & mask1;
-                    val.location = buf[j].y >> 1;
-                    val.strand = buf[j].y & 1;
-                    kv_push(mm72_t, km, *p, val);
-                }
-            for (j = 0; j < buf_pos; ++j)
-                if (min.x == buf[j].x && buf[j].y != min.y) {
-                    val.minimizer = (buf[j].x >> 8) & mask1;
-                    val.location = buf[j].y >> 1;
-                    val.strand = buf[j].y & 1;
-                    kv_push(mm72_t, km, *p, val);
-                }
-        }
-        if (info.x <= min.x) { // a new minimum; then write the old min
-            if (l >= w + k && min.x != UINT64_MAX) {
-                val.minimizer = (min.x >> 8) & mask1;
-                val.location = min.y >> 1;
-                val.strand = min.y & 1;
-                kv_push(mm72_t, km, *p, val);
-            }
-            min = info, min_pos = buf_pos;
-        } else if (buf_pos == min_pos) { // old min has moved outside the window
-            if (l >= w + k - 1 && min.x != UINT64_MAX) {
-                val.minimizer = (min.x >> 8) & mask1;
-                val.location = min.y >> 1;
-                val.strand = min.y & 1;
-                kv_push(mm72_t, km, *p, val);
-            }
-            for (j = buf_pos + 1, min.x = UINT64_MAX; j < w;
-                 ++j) // the two loops are necessary when there are
-                      // identical k-mers
-                if (min.x >= buf[j].x)
-                    min = buf[j],
-                    min_pos = j; // >= is important s.t. min is
-                                 // always the closest k-mer
-            for (j = 0; j <= buf_pos; ++j)
-                if (min.x >= buf[j].x)
-                    min = buf[j], min_pos = j;
+	for (i = l = buf_pos = min_pos = 0; i < len; ++i) {
+		unsigned int c = seq_nt4_table[(uint8_t)str[i]];
+		mm128_t info   = {UINT64_MAX, UINT64_MAX};
+		if (c < 4) { // not an ambiguous base
+			int z;
+			kmer_span = l + 1 < k ? l + 1 : k;
+			kmer[0]   = (kmer[0] << 2 | c) & mask;             // forward k-mer
+			kmer[1]   = (kmer[1] >> 2) | (3ULL ^ c) << shift1; // reverse k-mer
+			if (kmer[0] == kmer[1])
+				continue;              // skip "symmetric k-mers" as we don't
+				                       // know it strand
+			z = kmer[0] < kmer[1] ? 0 : 1; // strand
+			++l;
+			if (l >= k && kmer_span < 256) {
+				info.x = hash64(kmer[z], mask) << 8 | kmer_span;
+				info.y = (uint32_t)i << 1 | z;
+			}
+		} else {
+			if (l >= w + k - 1 && min.x != UINT64_MAX) {
+				val.minimizer = (min.x >> 8) & mask1;
+				val.location  = min.y >> 1;
+				last_loc      = min.y;
+				val.strand    = min.y & 1;
+				kv_push(mm72_t, km, *p, val);
+			}
+			l = 0, tq.count = tq.front = 0, kmer_span = 0;
+		}
+		buf[buf_pos] = info; // need to do this here as appropriate buf_pos
+		                     // and buf[buf_pos] are needed below
+		                     //
+		if (l == w + k - 1 &&
+		    min.x != UINT64_MAX) { // special case for the first window
+			// - because identical k-mers are not
+			// stored yet
+			for (j = buf_pos + 1; j < w; ++j)
+				if (min.x == buf[j].x && buf[j].y != min.y) {
+					val.minimizer = (buf[j].x >> 8) & mask1;
+					val.location  = buf[j].y >> 1;
+					val.strand    = buf[j].y & 1;
+					kv_push(mm72_t, km, *p, val);
+				}
+			for (j = 0; j < buf_pos; ++j)
+				if (min.x == buf[j].x && buf[j].y != min.y) {
+					val.minimizer = (buf[j].x >> 8) & mask1;
+					val.location  = buf[j].y >> 1;
+					val.strand    = buf[j].y & 1;
+					kv_push(mm72_t, km, *p, val);
+				}
+		}
+		if (info.x <= min.x) { // a new minimum; then write the old min
+			if (l >= w + k && min.x != UINT64_MAX) {
+				val.minimizer = (min.x >> 8) & mask1;
+				val.location  = min.y >> 1;
+				val.strand    = min.y & 1;
+				kv_push(mm72_t, km, *p, val);
+			}
+			min = info, min_pos = buf_pos;
+		} else if (buf_pos == min_pos) { // old min has moved outside the window
+			if (l >= w + k - 1 && min.x != UINT64_MAX) {
+				val.minimizer = (min.x >> 8) & mask1;
+				val.location  = min.y >> 1;
+				val.strand    = min.y & 1;
+				kv_push(mm72_t, km, *p, val);
+			}
+			for (j = buf_pos + 1, min.x = UINT64_MAX; j < w;
+			     ++j) // the two loops are necessary when there are
+			          // identical k-mers
+				if (min.x >= buf[j].x)
+					min     = buf[j],
+					min_pos = j; // >= is important s.t. min is
+					             // always the closest k-mer
+			for (j = 0; j <= buf_pos; ++j)
+				if (min.x >= buf[j].x)
+					min = buf[j], min_pos = j;
 
-            if (l >= w + k - 1 &&
-                min.x != UINT64_MAX) {            // write identical k-mers
-                for (j = buf_pos + 1; j < w; ++j) // these two loops make sure
-                                                  // the output is sorted
-                    if (min.x == buf[j].x && min.y != buf[j].y) {
-                        val.minimizer = (buf[j].x >> 8) & mask1;
-                        val.location = buf[j].y >> 1;
-                        val.strand = buf[j].y & 1;
-                        kv_push(mm72_t, km, *p, val);
-                    }
-                for (j = 0; j <= buf_pos; ++j)
-                    if (min.x == buf[j].x && min.y != buf[j].y) {
-                        val.minimizer = (buf[j].x >> 8) & mask1;
-                        val.location = buf[j].y >> 1;
-                        val.strand = buf[j].y & 1;
-                        kv_push(mm72_t, km, *p, val);
-                    }
-            }
-        }
-        if (++buf_pos == w)
-            buf_pos = 0;
-    }
-    if (min.x != UINT64_MAX && min.y != last_loc) {
-        val.minimizer = (min.x >> 8) & mask1;
-        val.location = min.y >> 1;
-        val.strand = min.y & 1;
-        kv_push(mm72_t, km, *p, val);
-    }
+			if (l >= w + k - 1 &&
+			    min.x != UINT64_MAX) {                // write identical k-mers
+				for (j = buf_pos + 1; j < w; ++j) // these two loops make sure
+				                                  // the output is sorted
+					if (min.x == buf[j].x && min.y != buf[j].y) {
+						val.minimizer = (buf[j].x >> 8) & mask1;
+						val.location  = buf[j].y >> 1;
+						val.strand    = buf[j].y & 1;
+						kv_push(mm72_t, km, *p, val);
+					}
+				for (j = 0; j <= buf_pos; ++j)
+					if (min.x == buf[j].x && min.y != buf[j].y) {
+						val.minimizer = (buf[j].x >> 8) & mask1;
+						val.location  = buf[j].y >> 1;
+						val.strand    = buf[j].y & 1;
+						kv_push(mm72_t, km, *p, val);
+					}
+			}
+		}
+		if (++buf_pos == w)
+			buf_pos = 0;
+	}
+	if (min.x != UINT64_MAX && min.y != last_loc) {
+		val.minimizer = (min.x >> 8) & mask1;
+		val.location  = min.y >> 1;
+		val.strand    = min.y & 1;
+		kv_push(mm72_t, km, *p, val);
+	}
 }

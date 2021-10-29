@@ -7,19 +7,19 @@
 #include <vector>
 
 struct out_loc_t {
-    char name[100];
-    unsigned int n;
-    uint32_t *locs;
+	char name[100];
+	unsigned int n;
+	uint32_t *locs;
 };
 
 struct exp_loc_t {
-    unsigned int n;
-    uint32_t *locs;
+	unsigned int n;
+	uint32_t *locs;
 };
 
 struct index_t {
-    ap_uint<32> *h;
-    ap_uint<32> *location;
+	ap_uint<32> *h;
+	ap_uint<32> *location;
 };
 
 std::vector<out_loc_t> drive_sim(std::ifstream &ifs_read,

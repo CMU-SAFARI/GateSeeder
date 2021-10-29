@@ -6,9 +6,7 @@
 #include <sys/types.h>
 
 #define MM_F_NO_DIAG 0x001 // no exact diagonal hit
-#define MM_F_NO_DUAL                                                           \
-    0x002 // skip pairs where query name is lexicographically larger than target
-          // name
+#define MM_F_NO_DUAL 0x002 // skip pairs where query name is lexicographically larger than target name
 #define MM_F_CIGAR 0x004
 #define MM_F_OUT_SAM 0x008
 #define MM_F_NO_QUAL 0x010
@@ -68,144 +66,144 @@ extern "C" {
 
 // emulate 128-bit integers and arrays
 typedef struct {
-    uint64_t x, y;
+	uint64_t x, y;
 } mm128_t;
 typedef struct {
-    size_t n, m;
-    mm128_t *a;
+	size_t n, m;
+	mm128_t *a;
 } mm128_v;
 
 // minimap2 index
 typedef struct {
-    char *name;      // name of the db sequence
-    uint64_t offset; // offset in mm_idx_t::S
-    uint32_t len;    // length
-    uint32_t is_alt;
+	char *name;      // name of the db sequence
+	uint64_t offset; // offset in mm_idx_t::S
+	uint32_t len;    // length
+	uint32_t is_alt;
 } mm_idx_seq_t;
 
 typedef struct {
-    int32_t b, w, k, flag;
-    uint32_t n_seq; // number of reference sequences
-    int32_t index;
-    int32_t n_alt;
-    mm_idx_seq_t *seq;         // sequence name, length and offset
-    uint32_t *S;               // 4-bit packed sequence
-    struct mm_idx_bucket_s *B; // index (hidden)
-    struct mm_idx_intv_s *I;   // intervals (hidden)
-    void *km, *h;
+	int32_t b, w, k, flag;
+	uint32_t n_seq; // number of reference sequences
+	int32_t index;
+	int32_t n_alt;
+	mm_idx_seq_t *seq;         // sequence name, length and offset
+	uint32_t *S;               // 4-bit packed sequence
+	struct mm_idx_bucket_s *B; // index (hidden)
+	struct mm_idx_intv_s *I;   // intervals (hidden)
+	void *km, *h;
 } mm_idx_t;
 
 // minimap2 alignment
 typedef struct {
-    uint32_t capacity; // the capacity of cigar[]
-    int32_t dp_score, dp_max,
-        dp_max2; // DP score; score of the max-scoring segment; score of the
-                 // best alternate mappings
-    uint32_t n_ambi : 30,
-        trans_strand : 2; // number of ambiguous bases; transcript strand: 0 for
-                          // unknown, 1 for +, 2 for -
-    uint32_t n_cigar;     // number of cigar operations in cigar[]
-    uint32_t cigar[];
+	uint32_t capacity; // the capacity of cigar[]
+	int32_t dp_score, dp_max,
+	    dp_max2; // DP score; score of the max-scoring segment; score of the
+	             // best alternate mappings
+	uint32_t n_ambi : 30,
+	    trans_strand : 2; // number of ambiguous bases; transcript strand: 0 for
+	                      // unknown, 1 for +, 2 for -
+	uint32_t n_cigar;     // number of cigar operations in cigar[]
+	uint32_t cigar[];
 } mm_extra_t;
 
 typedef struct {
-    int32_t id;  // ID for internal uses (see also parent below)
-    int32_t cnt; // number of minimizers; if on the reverse strand
-    int32_t
-        rid; // reference index; if this is an alignment from inversion rescue
-    int32_t score;          // DP alignment score
-    int32_t qs, qe, rs, re; // query start and end; reference start and end
-    int32_t parent,
-        subsc;  // parent==id if primary; best alternate mapping score
-    int32_t as; // offset in the a[] array (for internal uses only)
-    int32_t mlen,
-        blen;       // seeded exact match length; seeded alignment block length
-    int32_t n_sub;  // number of suboptimal mappings
-    int32_t score0; // initial chaining score (before chain merging/spliting)
-    uint32_t mapq : 8, split : 2, rev : 1, inv : 1, sam_pri : 1,
-        proper_frag : 1, pe_thru : 1, seg_split : 1, seg_id : 8, split_inv : 1,
-        is_alt : 1, dummy : 6;
-    uint32_t hash;
-    float div;
-    mm_extra_t *p;
+	int32_t id;  // ID for internal uses (see also parent below)
+	int32_t cnt; // number of minimizers; if on the reverse strand
+	int32_t
+	    rid;                // reference index; if this is an alignment from inversion rescue
+	int32_t score;          // DP alignment score
+	int32_t qs, qe, rs, re; // query start and end; reference start and end
+	int32_t parent,
+	    subsc;  // parent==id if primary; best alternate mapping score
+	int32_t as; // offset in the a[] array (for internal uses only)
+	int32_t mlen,
+	    blen;       // seeded exact match length; seeded alignment block length
+	int32_t n_sub;  // number of suboptimal mappings
+	int32_t score0; // initial chaining score (before chain merging/spliting)
+	uint32_t mapq : 8, split : 2, rev : 1, inv : 1, sam_pri : 1,
+	    proper_frag : 1, pe_thru : 1, seg_split : 1, seg_id : 8, split_inv : 1,
+	    is_alt : 1, dummy : 6;
+	uint32_t hash;
+	float div;
+	mm_extra_t *p;
 } mm_reg1_t;
 
 // indexing and mapping options
 typedef struct {
-    short k, w, flag, bucket_bits;
-    int64_t mini_batch_size;
-    uint64_t batch_size;
+	short k, w, flag, bucket_bits;
+	int64_t mini_batch_size;
+	uint64_t batch_size;
 } mm_idxopt_t;
 
 typedef struct {
-    int64_t flag; // see MM_F_* macros
-    int seed;
-    int sdust_thres; // score threshold for SDUST; 0 to disable
+	int64_t flag; // see MM_F_* macros
+	int seed;
+	int sdust_thres; // score threshold for SDUST; 0 to disable
 
-    int max_qlen; // max query length
+	int max_qlen; // max query length
 
-    int bw, bw_long;          // bandwidth
-    int max_gap, max_gap_ref; // break a chain if there are no minimizers in a
-                              // max_gap window
-    int max_frag_len;
-    int max_chain_skip, max_chain_iter;
-    int min_cnt;         // min number of minimizers on each chain
-    int min_chain_score; // min chaining score
-    float chain_gap_scale;
-    int rmq_size_cap, rmq_inner_dist;
-    int rmq_rescue_size;
-    float rmq_rescue_ratio;
+	int bw, bw_long;          // bandwidth
+	int max_gap, max_gap_ref; // break a chain if there are no minimizers in a
+	                          // max_gap window
+	int max_frag_len;
+	int max_chain_skip, max_chain_iter;
+	int min_cnt;         // min number of minimizers on each chain
+	int min_chain_score; // min chaining score
+	float chain_gap_scale;
+	int rmq_size_cap, rmq_inner_dist;
+	int rmq_rescue_size;
+	float rmq_rescue_ratio;
 
-    float mask_level;
-    int mask_len;
-    float pri_ratio;
-    int best_n; // top best_n chains are subjected to DP alignment
+	float mask_level;
+	int mask_len;
+	float pri_ratio;
+	int best_n; // top best_n chains are subjected to DP alignment
 
-    float alt_drop;
+	float alt_drop;
 
-    int a, b, q, e, q2,
-        e2;      // matching score, mismatch, gap-open and gap-ext penalties
-    int sc_ambi; // score when one or both bases are "N"
-    int noncan;  // cost of non-canonical splicing sites
-    int junc_bonus;
-    int zdrop, zdrop_inv; // break alignment if alignment score drops too fast
-                          // along the diagonal
-    int end_bonus;
-    int min_dp_max; // drop an alignment if the score of the max scoring segment
-                    // is below this threshold
-    int min_ksw_len;
-    int anchor_ext_len, anchor_ext_shift;
-    float max_clip_ratio; // drop an alignment if BOTH ends are clipped above
-                          // this ratio
+	int a, b, q, e, q2,
+	    e2;      // matching score, mismatch, gap-open and gap-ext penalties
+	int sc_ambi; // score when one or both bases are "N"
+	int noncan;  // cost of non-canonical splicing sites
+	int junc_bonus;
+	int zdrop, zdrop_inv; // break alignment if alignment score drops too fast
+	                      // along the diagonal
+	int end_bonus;
+	int min_dp_max; // drop an alignment if the score of the max scoring segment
+	                // is below this threshold
+	int min_ksw_len;
+	int anchor_ext_len, anchor_ext_shift;
+	float max_clip_ratio; // drop an alignment if BOTH ends are clipped above
+	                      // this ratio
 
-    int rank_min_len;
-    float rank_frac;
+	int rank_min_len;
+	float rank_frac;
 
-    int pe_ori, pe_bonus;
+	int pe_ori, pe_bonus;
 
-    float mid_occ_frac; // only used by mm_mapopt_update(); see below
-    float q_occ_frac;
-    int32_t min_mid_occ, max_mid_occ;
-    int32_t mid_occ; // ignore seeds with occurrences above this threshold
-    int32_t max_occ, max_max_occ, occ_dist;
-    int64_t mini_batch_size; // size of a batch of query bases to process in
-                             // parallel
-    int64_t max_sw_mat;
-    int64_t cap_kalloc;
+	float mid_occ_frac; // only used by mm_mapopt_update(); see below
+	float q_occ_frac;
+	int32_t min_mid_occ, max_mid_occ;
+	int32_t mid_occ; // ignore seeds with occurrences above this threshold
+	int32_t max_occ, max_max_occ, occ_dist;
+	int64_t mini_batch_size; // size of a batch of query bases to process in
+	                         // parallel
+	int64_t max_sw_mat;
+	int64_t cap_kalloc;
 
-    const char *split_prefix;
+	const char *split_prefix;
 } mm_mapopt_t;
 
 // index reader
 typedef struct {
-    int is_idx, n_parts;
-    int64_t idx_size;
-    mm_idxopt_t opt;
-    FILE *fp_out;
-    union {
-        struct mm_bseq_file_s *seq;
-        FILE *idx;
-    } fp;
+	int is_idx, n_parts;
+	int64_t idx_size;
+	mm_idxopt_t opt;
+	FILE *fp_out;
+	union {
+		struct mm_bseq_file_s *seq;
+		FILE *idx;
+	} fp;
 } mm_idx_reader_t;
 
 // memory buffer for thread-local storage during mapping
@@ -213,8 +211,8 @@ typedef struct mm_tbuf_s mm_tbuf_t;
 
 // global variables
 extern int mm_verbose,
-    mm_dbg_flag; // verbose level: 0 for no info, 1 for error, 2 for warning, 3
-                 // for message (default); debugging flag
+    mm_dbg_flag;            // verbose level: 0 for no info, 1 for error, 2 for warning, 3
+                            // for message (default); debugging flag
 extern double mm_realtime0; // wall-clock timer
 
 /**

@@ -5,32 +5,32 @@
 #include <stdio.h>
 
 typedef struct {
-    uint32_t n, m;      // size of h & location (or strand)
-    uint32_t *h;        // hash table
-    uint32_t *location; // location array
-    uint8_t *strand;    // strand array
+	uint32_t n, m;      // size of h & location (or strand)
+	uint32_t *h;        // hash table
+	uint32_t *location; // location array
+	uint8_t *strand;    // strand array
 } index_t;
 
 typedef struct {
-    uint32_t n, m;      // size of h & location
-    uint32_t *h;        // hash table
-    uint32_t *location; // location array
+	uint32_t n, m;      // size of h & location
+	uint32_t *h;        // hash table
+	uint32_t *location; // location array
 } cindex_t;
 
 typedef struct {
-    uint32_t minimizer;
-    uint32_t location;
-    uint8_t strand;
+	uint32_t minimizer;
+	uint32_t location;
+	uint8_t strand;
 } mm72_t;
 
 typedef struct {
-    size_t n, m;
-    mm72_t *a;
+	size_t n, m;
+	mm72_t *a;
 } mm72_v;
 
 typedef struct {
-    mm72_v *p;
-    unsigned int i;
+	mm72_v *p;
+	unsigned int i;
 } thread_param_t;
 
 void create_cindex(FILE *fp, const unsigned int w, const unsigned int k,
