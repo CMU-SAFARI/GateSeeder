@@ -72,6 +72,7 @@ void cseeding(cindex_t idx, char *read, const size_t len, const unsigned int w, 
 
 	size_t n = location_buffer_len[1 - p.n % 2];
 	// Adjacency test
+	locs->n = 0;
 	if (n >= min_t) {
 		buffer_t *buffer = (buffer_t *)malloc(sizeof(buffer_t) * n);
 		for (size_t i = 0; i < n; i++) {
@@ -79,7 +80,6 @@ void cseeding(cindex_t idx, char *read, const size_t len, const unsigned int w, 
 			buffer[i].strand   = location_buffer[1 - p.n % 2][i] & 1;
 		}
 		uint32_t loc_buffer[LOCATION_BUFFER_SIZE];
-		locs->n             = 0;
 		size_t loc_counter  = 1;
 		size_t loc_offset   = 1;
 		size_t init_loc_idx = 0;

@@ -24,7 +24,7 @@ test: $(EXE)
 	./main -k 18 -w 12 -b 26 -m 3 -l 150 -i ../res/chr1_k18_w12_f700_b26.bin ../res/ERR240727_1.fastq -c ../res/illumina_k18_w12.paf
 
 run: $(EXE)
-	./main -k 18 -w 12 -b 26 -m 3 -l 150 -i ../res/chr1_k18_w12_f700_b26.bin ../res/illumina_1000.fastq > ../res/illumina_1000_chr1_k18_w12_f700_b26_m3_l150.dat
+	./main -k 18 -w 12 -b 26 -m 3 -l 150 -i ../res/chr1_k18_w12_f700_b26.bin ../res/illumina_100.fastq > ../res/illumina_100_chr1_k18_w12_f700_b26_m3_l150.dat
 
 .PHONY: clean format all run test
 -include $(wildcard *.d)
