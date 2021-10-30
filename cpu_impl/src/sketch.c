@@ -7,17 +7,13 @@
 #include "mmpriv.h"
 
 unsigned char seq_nt4_table[256] = {
-    0, 1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 1, 4, 4, 4, 2,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 0, 4, 1, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
+    0, 1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 1, 4, 4, 4, 2, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 1, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
 
 static inline uint64_t hash64(uint64_t key, uint64_t mask) {
 	key = (~key + (key << 21)) & mask; // key = (key << 21) - key - 1;
@@ -35,14 +31,11 @@ typedef struct { // a simplified version of kdq
 	int a[32];
 } tiny_queue_t;
 
-static inline void tq_push(tiny_queue_t *q, int x) {
-	q->a[((q->count++) + q->front) & 0x1f] = x;
-}
+static inline void tq_push(tiny_queue_t *q, int x) { q->a[((q->count++) + q->front) & 0x1f] = x; }
 
 static inline int tq_shift(tiny_queue_t *q) {
 	int x;
-	if (q->count == 0)
-		return -1;
+	if (q->count == 0) return -1;
 	x = q->a[q->front++];
 	q->front &= 0x1f;
 	--q->count;
@@ -67,8 +60,7 @@ static inline int tq_shift(tiny_queue_t *q) {
  * the bottom strand. Callers may want to set "p->n = 0"; otherwise results are
  * appended to p
  */
-void mm_sketch(void *km, const char *str, unsigned int len, int w, int k,
-               const unsigned int b, mm72_v *p) {
+void mm_sketch(void *km, const char *str, unsigned int len, int w, int k, const unsigned int b, mm72_v *p) {
 	uint64_t shift1 = 2 * (k - 1), mask = (1ULL << 2 * k) - 1, kmer[2] = {0, 0};
 	uint64_t mask1    = (1ULL << b) - 1;
 	uint64_t last_loc = UINT64_MAX;
@@ -76,9 +68,8 @@ void mm_sketch(void *km, const char *str, unsigned int len, int w, int k,
 	mm128_t buf[256], min = {UINT64_MAX, UINT64_MAX};
 	tiny_queue_t tq;
 	mm72_t val;
-	assert(len > 0 && (w > 0 && w < 256) &&
-	       (k > 0 && k <= 28)); // 56 bits for k-mer; could use long
-	                            // k-mers, but 28 enough in practice
+	assert(len > 0 && (w > 0 && w < 256) && (k > 0 && k <= 28)); // 56 bits for k-mer; could use long
+	                                                             // k-mers, but 28 enough in practice
 	memset(buf, 0xff, w * 16);
 	memset(&tq, 0, sizeof(tiny_queue_t));
 	kv_resize(mm72_t, km, *p, p->n + len / w);
@@ -110,11 +101,10 @@ void mm_sketch(void *km, const char *str, unsigned int len, int w, int k,
 			}
 			l = 0, tq.count = tq.front = 0, kmer_span = 0;
 		}
-		buf[buf_pos] = info; // need to do this here as appropriate buf_pos
-		                     // and buf[buf_pos] are needed below
-		                     //
-		if (l == w + k - 1 &&
-		    min.x != UINT64_MAX) { // special case for the first window
+		buf[buf_pos] = info;                         // need to do this here as appropriate buf_pos
+		                                             // and buf[buf_pos] are needed below
+		                                             //
+		if (l == w + k - 1 && min.x != UINT64_MAX) { // special case for the first window
 			// - because identical k-mers are not
 			// stored yet
 			for (j = buf_pos + 1; j < w; ++j)
@@ -147,21 +137,18 @@ void mm_sketch(void *km, const char *str, unsigned int len, int w, int k,
 				val.strand    = min.y & 1;
 				kv_push(mm72_t, km, *p, val);
 			}
-			for (j = buf_pos + 1, min.x = UINT64_MAX; j < w;
-			     ++j) // the two loops are necessary when there are
-			          // identical k-mers
+			for (j = buf_pos + 1, min.x = UINT64_MAX; j < w; ++j) // the two loops are necessary when there
+			                                                      // are identical k-mers
 				if (min.x >= buf[j].x)
 					min     = buf[j],
 					min_pos = j; // >= is important s.t. min is
 					             // always the closest k-mer
 			for (j = 0; j <= buf_pos; ++j)
-				if (min.x >= buf[j].x)
-					min = buf[j], min_pos = j;
+				if (min.x >= buf[j].x) min = buf[j], min_pos = j;
 
-			if (l >= w + k - 1 &&
-			    min.x != UINT64_MAX) {                // write identical k-mers
-				for (j = buf_pos + 1; j < w; ++j) // these two loops make sure
-				                                  // the output is sorted
+			if (l >= w + k - 1 && min.x != UINT64_MAX) { // write identical k-mers
+				for (j = buf_pos + 1; j < w; ++j)    // these two loops make sure
+				                                     // the output is sorted
 					if (min.x == buf[j].x && min.y != buf[j].y) {
 						val.minimizer = (buf[j].x >> 8) & mask1;
 						val.location  = buf[j].y >> 1;
@@ -177,8 +164,7 @@ void mm_sketch(void *km, const char *str, unsigned int len, int w, int k,
 					}
 			}
 		}
-		if (++buf_pos == w)
-			buf_pos = 0;
+		if (++buf_pos == w) buf_pos = 0;
 	}
 	if (min.x != UINT64_MAX && min.y != last_loc) {
 		val.minimizer = (min.x >> 8) & mask1;

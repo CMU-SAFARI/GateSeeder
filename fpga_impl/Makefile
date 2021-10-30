@@ -12,11 +12,15 @@ SIM		= sim.x
 SRCS		= $(wildcard $(SRC_DIR)/*.cpp)
 OBJS		= $(SRCS:$(SRC_DIR)/%.cpp=%.o)
 
+FASTQ		:= ../res/illumina_1000.fastq
+BIN 		:= ../res/chr1_k18_w12_f700_b26.bin
+DAT			:= ../res/illumina_1000_chr1_k18_w12_f700_b26_m3_l150.dat
+
 vitis:
 	vitis_hls -f scripts/run_hls.tcl
 
 sim: $(SIM)
-	./$(SIM) ../res/illumina.fastq ../res/c_w12_k18_f500_b26.bin ../res/illumina.dat
+	./$(SIM) $(FASTQ) $(BIN) $(DAT)
 
 $(SIM): $(OBJS)
 	$(CXX) $(LDFLAGS) $^ -o $@ $(LDLIBS)

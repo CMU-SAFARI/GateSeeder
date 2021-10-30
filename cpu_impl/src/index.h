@@ -33,19 +33,15 @@ typedef struct {
 	unsigned int i;
 } thread_param_t;
 
-void create_cindex(FILE *fp, const unsigned int w, const unsigned int k,
-                   const unsigned int filter_threshold, const unsigned int b,
-                   cindex_t *idx);
-void create_index(FILE *fp, const unsigned int w, const unsigned int k,
-                  const unsigned int filter_threshold, const unsigned int b,
-                  index_t *idx);
-void create_raw_index(FILE *fp, const unsigned int w, const unsigned int k,
-                      const unsigned int filter_threshold, const unsigned int b,
-                      mm72_v *idx);
+void create_cindex(FILE *fp, const unsigned int w, const unsigned int k, const unsigned int filter_threshold,
+                   const unsigned int b, cindex_t *idx);
+void create_index(FILE *fp, const unsigned int w, const unsigned int k, const unsigned int filter_threshold,
+                  const unsigned int b, index_t *idx);
+void create_raw_index(FILE *fp, const unsigned int w, const unsigned int k, const unsigned int filter_threshold,
+                      const unsigned int b, mm72_v *idx);
 void read_cindex(FILE *fp, cindex_t *idx);
 void read_index(FILE *fp, index_t *idx);
-void parse_sketch(FILE *fp, const unsigned int w, const unsigned int k,
-                  const unsigned int b, mm72_v *p);
+void parse_sketch(FILE *fp, const unsigned int w, const unsigned int k, const unsigned int b, mm72_v *p);
 void sort(mm72_v *p);
 void *thread_merge_sort(void *arg);
 void merge_sort(mm72_t *a, size_t l, size_t r);

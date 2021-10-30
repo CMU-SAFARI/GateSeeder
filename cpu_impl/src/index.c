@@ -8,13 +8,10 @@
 #define BUFFER_SIZE 4294967296
 #define NB_THREADS 6
 
-static inline unsigned char compare(mm72_t left, mm72_t right) {
-	return (left.minimizer) <= (right.minimizer);
-}
+static inline unsigned char compare(mm72_t left, mm72_t right) { return (left.minimizer) <= (right.minimizer); }
 
-void create_cindex(FILE *fp, const unsigned int w, const unsigned int k,
-                   const unsigned int filter_threshold, const unsigned int b,
-                   cindex_t *idx) {
+void create_cindex(FILE *fp, const unsigned int w, const unsigned int k, const unsigned int filter_threshold,
+                   const unsigned int b, cindex_t *idx) {
 	mm72_v *p = (mm72_v *)calloc(1, sizeof(mm72_v));
 
 	// Parse & sketch
@@ -50,8 +47,7 @@ void create_cindex(FILE *fp, const unsigned int w, const unsigned int k,
 			if (freq_counter < filter_threshold) {
 				diff_counter++;
 				for (size_t j = pos; j < i; j++) {
-					idx->location[l] =
-					    (p->a[j].location & (UINT32_MAX - 1)) | p->a[j].strand;
+					idx->location[l] = (p->a[j].location & (UINT32_MAX - 1)) | p->a[j].strand;
 					l++;
 				}
 			} else {
@@ -68,8 +64,7 @@ void create_cindex(FILE *fp, const unsigned int w, const unsigned int k,
 	if (freq_counter < filter_threshold) {
 		diff_counter++;
 		for (size_t j = pos; j < p->n; j++) {
-			idx->location[l] =
-			    (p->a[j].location & (UINT32_MAX - 1)) | p->a[j].strand;
+			idx->location[l] = (p->a[j].location & (UINT32_MAX - 1)) | p->a[j].strand;
 			l++;
 		}
 	} else {
@@ -100,8 +95,7 @@ void create_cindex(FILE *fp, const unsigned int w, const unsigned int k,
 	unsigned long sd_counter   = (idx->h[0] - average) * (idx->h[0] - average);
 	for (size_t i = 0; i < idx->n; i++) {
 		if (i > 0) {
-			sd_counter += (idx->h[i] - idx->h[i - 1] - average) *
-			              (idx->h[i] - idx->h[i - 1] - average);
+			sd_counter += (idx->h[i] - idx->h[i - 1] - average) * (idx->h[i] - idx->h[i - 1] - average);
 		}
 		if (idx->h[i] == j) {
 			empty_counter++;
@@ -114,14 +108,13 @@ void create_cindex(FILE *fp, const unsigned int w, const unsigned int k,
 	printf("Info: Standard deviation of the number of locations per "
 	       "minimizers: %f\n",
 	       sd);
-	printf("Info: Number of empty entries in the hash-table: %u (%f%%)\n",
-	       empty_counter, (float)empty_counter / idx->n * 100);
+	printf("Info: Number of empty entries in the hash-table: %u (%f%%)\n", empty_counter,
+	       (float)empty_counter / idx->n * 100);
 	return;
 }
 
-void create_index(FILE *fp, const unsigned int w, const unsigned int k,
-                  const unsigned int filter_threshold, const unsigned int b,
-                  index_t *idx) {
+void create_index(FILE *fp, const unsigned int w, const unsigned int k, const unsigned int filter_threshold,
+                  const unsigned int b, index_t *idx) {
 	mm72_v *p = (mm72_v *)calloc(1, sizeof(mm72_v));
 
 	// Parse & sketch
@@ -211,8 +204,7 @@ void create_index(FILE *fp, const unsigned int w, const unsigned int k,
 	unsigned long sd_counter   = (idx->h[0] - average) * (idx->h[0] - average);
 	for (size_t i = 0; i < idx->n; i++) {
 		if (i > 0) {
-			sd_counter += (idx->h[i] - idx->h[i - 1] - average) *
-			              (idx->h[i] - idx->h[i - 1] - average);
+			sd_counter += (idx->h[i] - idx->h[i - 1] - average) * (idx->h[i] - idx->h[i - 1] - average);
 		}
 		if (idx->h[i] == j) {
 			empty_counter++;
@@ -225,14 +217,13 @@ void create_index(FILE *fp, const unsigned int w, const unsigned int k,
 	printf("Info: Standard deviation of the number of locations per "
 	       "minimizers: %f\n",
 	       sd);
-	printf("Info: Number of empty entries in the hash-table: %u (%f%%)\n",
-	       empty_counter, (float)empty_counter / idx->n * 100);
+	printf("Info: Number of empty entries in the hash-table: %u (%f%%)\n", empty_counter,
+	       (float)empty_counter / idx->n * 100);
 	return;
 }
 
-void create_raw_index(FILE *fp, const unsigned int w, const unsigned int k,
-                      const unsigned int filter_threshold, const unsigned int b,
-                      mm72_v *p) {
+void create_raw_index(FILE *fp, const unsigned int w, const unsigned int k, const unsigned int filter_threshold,
+                      const unsigned int b, mm72_v *p) {
 	p->n = 0;
 	p->m = 0;
 	// Parse & sketch
@@ -318,8 +309,7 @@ void read_index(FILE *fp, index_t *idx) {
 	return;
 }
 
-void parse_sketch(FILE *fp, const unsigned int w, const unsigned int k,
-                  const unsigned int b, mm72_v *p) {
+void parse_sketch(FILE *fp, const unsigned int w, const unsigned int k, const unsigned int b, mm72_v *p) {
 	char *read_buffer = (char *)malloc(sizeof(char) * BUFFER_SIZE);
 	if (read_buffer == NULL) {
 		fputs("Memory error\n", stderr);
@@ -389,8 +379,7 @@ void sort(mm72_v *p) {
 	for (size_t i = 0; i < NB_THREADS; i++) {
 		params[i].p = p;
 		params[i].i = i;
-		pthread_create(&threads[i], NULL, thread_merge_sort,
-		               (void *)&params[i]);
+		pthread_create(&threads[i], NULL, thread_merge_sort, (void *)&params[i]);
 	}
 
 	for (size_t i = 0; i < NB_THREADS; i++) {
@@ -423,16 +412,14 @@ void merge_sort(mm72_t *a, size_t l, size_t r) {
 
 void final_merge(mm72_t *a, size_t n, size_t l, size_t r) {
 	if (r == l + 2) {
-		merge(a, l * n / NB_THREADS, (l + 1) * n / NB_THREADS - 1,
-		      r * n / NB_THREADS - 1);
+		merge(a, l * n / NB_THREADS, (l + 1) * n / NB_THREADS - 1, r * n / NB_THREADS - 1);
 	}
 
 	else if (r > l + 2) {
 		size_t m = (r + l) / 2;
 		final_merge(a, n, l, m);
 		final_merge(a, n, m, r);
-		merge(a, l * n / NB_THREADS, m * n / NB_THREADS - 1,
-		      r * n / NB_THREADS - 1);
+		merge(a, l * n / NB_THREADS, m * n / NB_THREADS - 1, r * n / NB_THREADS - 1);
 	}
 }
 

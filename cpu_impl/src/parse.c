@@ -42,15 +42,13 @@ void parse_paf(FILE *fp, target_v *target) {
 			if (name_buffer[name_i] != c && diff == 0 && !first_line) {
 				diff = 1;
 				target->n++;
-				target->a = (t_location_v *)realloc(
-				    target->a, target->n * sizeof(t_location_v));
+				target->a = (t_location_v *)realloc(target->a, target->n * sizeof(t_location_v));
 				if (target->a == NULL) {
 					fputs("Memory error\n", stderr);
 					exit(2);
 				}
 				target->a[target->n - 1].n = loc_buffer.n;
-				target->a[target->n - 1].a =
-				    (range_t *)malloc(sizeof(range_t) * loc_buffer.n);
+				target->a[target->n - 1].a = (range_t *)malloc(sizeof(range_t) * loc_buffer.n);
 				for (size_t j = 0; j < loc_buffer.n; j++) {
 					target->a[target->n - 1].a[j] = loc_buffer.a[j];
 				}
@@ -117,9 +115,8 @@ void parse_paf(FILE *fp, target_v *target) {
 			i++;
 			c = read_buffer[i];
 		}
-		number_buffer[number_i] = '\0';
-		loc_buffer.a[loc_buffer.n - 1].quality =
-		    strtoul(number_buffer, NULL, 10);
+		number_buffer[number_i]                = '\0';
+		loc_buffer.a[loc_buffer.n - 1].quality = strtoul(number_buffer, NULL, 10);
 		while (c != '\n') {
 			i++;
 			c = read_buffer[i];
@@ -127,15 +124,13 @@ void parse_paf(FILE *fp, target_v *target) {
 		i++;
 	}
 	target->n++;
-	target->a =
-	    (t_location_v *)realloc(target->a, target->n * sizeof(t_location_v));
+	target->a = (t_location_v *)realloc(target->a, target->n * sizeof(t_location_v));
 	if (target->a == NULL) {
 		fputs("Memory error\n", stderr);
 		exit(2);
 	}
 	target->a[target->n - 1].n = loc_buffer.n;
-	target->a[target->n - 1].a =
-	    (range_t *)malloc(sizeof(range_t) * loc_buffer.n);
+	target->a[target->n - 1].a = (range_t *)malloc(sizeof(range_t) * loc_buffer.n);
 	for (size_t j = 0; j < loc_buffer.n; j++) {
 		target->a[target->n - 1].a[j] = loc_buffer.a[j];
 	}
@@ -197,8 +192,7 @@ void parse_fastq(FILE *fp, read_v *reads) {
 				exit(2);
 			}
 
-			reads->name =
-			    (char **)realloc(reads->name, reads->n * sizeof(char *));
+			reads->name = (char **)realloc(reads->name, reads->n * sizeof(char *));
 			if (reads->name == NULL) {
 				fputs("Memory error\n", stderr);
 				exit(2);

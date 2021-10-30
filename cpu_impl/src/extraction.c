@@ -3,17 +3,13 @@
 #include <string.h>
 
 static unsigned char seq_nt4_table[256] = {
-    0, 1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 1, 4, 4, 4, 2,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 0, 4, 1, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
+    0, 1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 1, 4, 4, 4, 2, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 1, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
 
 static inline uint64_t hash64(uint64_t key, uint64_t mask) {
 	key = (~key + (key << 21)) & mask; // key = (key << 21) - key - 1;
@@ -26,8 +22,7 @@ static inline uint64_t hash64(uint64_t key, uint64_t mask) {
 	return key;
 }
 
-void extract_minimizers(const char *read, const size_t len,
-                        const unsigned int w, const unsigned int k,
+void extract_minimizers(const char *read, const size_t len, const unsigned int w, const unsigned int k,
                         const unsigned int b, min_stra_v *p) {
 
 	uint64_t shift1 = 2 * (k - 1), mask = (1ULL << 2 * k) - 1, kmer[2] = {0, 0},
@@ -79,8 +74,7 @@ void extract_minimizers(const char *read, const size_t len,
 		if (hash_reg.minimizer <= min_reg.minimizer) {
 			if (l >= w + k) {
 				push_min_stra(p, min_reg.minimizer & mask1, min_reg.strand);
-			} else if (l < w + k - 1 &&
-			           hash_reg.minimizer == min_reg.minimizer &&
+			} else if (l < w + k - 1 && hash_reg.minimizer == min_reg.minimizer &&
 			           hash_reg.strand != min_reg.strand) {
 				same_min = 1;
 			} else {
@@ -102,8 +96,7 @@ void extract_minimizers(const char *read, const size_t len,
 					min_pos    = j;
 					min_saved  = 0;
 					same_min_w = 0;
-				} else if (min_reg.minimizer == buff[j].minimizer &&
-				           min_reg.minimizer != UINT64_MAX) {
+				} else if (min_reg.minimizer == buff[j].minimizer && min_reg.minimizer != UINT64_MAX) {
 					min_pos = j;
 					if (min_reg.strand != buff[j].strand) {
 						same_min_w = 1;
@@ -116,8 +109,7 @@ void extract_minimizers(const char *read, const size_t len,
 					min_reg    = buff[j];
 					same_min_w = 0;
 					min_saved  = 0;
-				} else if (min_reg.minimizer == buff[j].minimizer &&
-				           min_reg.minimizer != UINT64_MAX) {
+				} else if (min_reg.minimizer == buff[j].minimizer && min_reg.minimizer != UINT64_MAX) {
 					min_pos = j;
 					if (min_reg.strand != buff[j].strand) {
 						same_min_w = 1;

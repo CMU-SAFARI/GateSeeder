@@ -82,8 +82,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (idx.n) {
-		fprintf(stderr, "Info: k = %u, w = %u, b = %u, m = %u & l = %u\n", k, w,
-		        b, m, l);
+		fprintf(stderr, "Info: k = %u, w = %u, b = %u, m = %u & l = %u\n", k, w, b, m, l);
 		if (optind >= argc) {
 			fputs("Error: expected reads file\n", stderr);
 			exit(3);
@@ -102,8 +101,7 @@ int main(int argc, char *argv[]) {
 		if (target.n) {
 			compare(target, reads, idx, READ_LENGTH, w, k, b, m, l);
 		} else {
-			location_v *locs =
-			    (location_v *)malloc(sizeof(location_v) * reads.n);
+			location_v *locs = (location_v *)malloc(sizeof(location_v) * reads.n);
 			if (locs == NULL) {
 				fputs("Memory error\n", stderr);
 				exit(2);
@@ -181,11 +179,7 @@ int main(int argc, char *argv[]) {
 				puts("Info: Output format: minimizer array, location array, "
 				     "strand "
 				     "array");
-				index_t idx = {.n        = 0,
-				               .m        = 0,
-				               .h        = NULL,
-				               .location = NULL,
-				               .strand   = NULL};
+				index_t idx = {.n = 0, .m = 0, .h = NULL, .location = NULL, .strand = NULL};
 				create_index(in_fp, w, k, f, b, &idx);
 				fwrite(&(idx.n), sizeof(idx.n), 1, out_fp);
 				fwrite(idx.h, sizeof(idx.h[0]), idx.n, out_fp);
@@ -199,11 +193,10 @@ int main(int argc, char *argv[]) {
 					fprintf(gnuplot, "set terminal png size 1200, 900\n");
 					// fprintf(gnuplot, "set logscale y\n");
 					fprintf(gnuplot, "set output 'cumulative.png'\n");
-					fprintf(
-					    gnuplot,
-					    "set title 'Cumulative sum of the number of entries "
-					    "(k = %u, w = %u, f = %u and b = %u)'\n",
-					    k, w, f, b);
+					fprintf(gnuplot,
+					        "set title 'Cumulative sum of the number of entries "
+					        "(k = %u, w = %u, f = %u and b = %u)'\n",
+					        k, w, f, b);
 					fprintf(gnuplot, "set xlabel 'Minimizers'\n");
 					fprintf(gnuplot, "set ylabel 'Cumulative sum of the number "
 					                 "of locations'\n");

@@ -7,10 +7,8 @@
 #include <string.h>
 #define LOCATION_BUFFER_SIZE 200000
 
-void cseeding(cindex_t idx, char *read, const size_t len, const unsigned int w,
-              const unsigned int k, const unsigned int b,
-              const unsigned int min_t, const unsigned int loc_r,
-              location_v *locs) {
+void cseeding(cindex_t idx, char *read, const size_t len, const unsigned int w, const unsigned int k,
+              const unsigned int b, const unsigned int min_t, const unsigned int loc_r, location_v *locs) {
 	min_stra_v p; // Buffer which stores the minimizers and their strand
 	p.n = 0;
 	extract_minimizers(read, READ_LENGTH, w, k, b, &p);
@@ -44,8 +42,7 @@ void cseeding(cindex_t idx, char *read, const size_t len, const unsigned int w,
 			size_t loc_i = 0;
 			size_t mem_i = 0;
 			size_t len   = 0;
-			while (loc_i < location_buffer_len[sel] &&
-			       mem_i < mem_buffer_len[1 - sel]) {
+			while (loc_i < location_buffer_len[sel] && mem_i < mem_buffer_len[1 - sel]) {
 				if (location_buffer[sel][loc_i] <= mem_buffer[1 - sel][mem_i]) {
 					location_buffer[1 - sel][len] = location_buffer[sel][loc_i];
 					len++;
@@ -78,9 +75,8 @@ void cseeding(cindex_t idx, char *read, const size_t len, const unsigned int w,
 	if (n >= min_t) {
 		buffer_t *buffer = (buffer_t *)malloc(sizeof(buffer_t) * n);
 		for (size_t i = 0; i < n; i++) {
-			buffer[i].location =
-			    location_buffer[1 - p.n % 2][i] & (UINT32_MAX - 1);
-			buffer[i].strand = location_buffer[1 - p.n % 2][i] & 1;
+			buffer[i].location = location_buffer[1 - p.n % 2][i] & (UINT32_MAX - 1);
+			buffer[i].strand   = location_buffer[1 - p.n % 2][i] & 1;
 		}
 		uint32_t loc_buffer[LOCATION_BUFFER_SIZE];
 		locs->n             = 0;
@@ -116,10 +112,8 @@ void cseeding(cindex_t idx, char *read, const size_t len, const unsigned int w,
 	}
 }
 
-void seeding(index_t idx, char *read, const size_t len, const unsigned int w,
-             const unsigned int k, const unsigned int b,
-             const unsigned int min_t, const unsigned int loc_r,
-             location_v *locs) {
+void seeding(index_t idx, char *read, const size_t len, const unsigned int w, const unsigned int k,
+             const unsigned int b, const unsigned int min_t, const unsigned int loc_r, location_v *locs) {
 	min_stra_v p; // Buffer which stores the minimizers and their strand
 	p.n = 0;
 	extract_minimizers(read, READ_LENGTH, w, k, b, &p);
@@ -144,8 +138,7 @@ void seeding(index_t idx, char *read, const size_t len, const unsigned int w,
 			mem_buffer_len[sel] = max - min;
 			for (uint32_t j = min; j < max; j++) {
 				mem_buffer[sel][mem_buffer_i] =
-				    (buffer_t){.location = idx.location[j],
-				               .strand   = idx.strand[j] ^ p.a[i].strand};
+				    (buffer_t){.location = idx.location[j], .strand = idx.strand[j] ^ p.a[i].strand};
 
 				mem_buffer_i++;
 			}
@@ -156,10 +149,8 @@ void seeding(index_t idx, char *read, const size_t len, const unsigned int w,
 			size_t loc_i = 0;
 			size_t mem_i = 0;
 			size_t len   = 0;
-			while (loc_i < location_buffer_len[sel] &&
-			       mem_i < mem_buffer_len[1 - sel]) {
-				if (location_buffer[sel][loc_i].location <=
-				    mem_buffer[1 - sel][mem_i].location) {
+			while (loc_i < location_buffer_len[sel] && mem_i < mem_buffer_len[1 - sel]) {
+				if (location_buffer[sel][loc_i].location <= mem_buffer[1 - sel][mem_i].location) {
 					location_buffer[1 - sel][len] = location_buffer[sel][loc_i];
 					len++;
 					loc_i++;
@@ -194,13 +185,10 @@ void seeding(index_t idx, char *read, const size_t len, const unsigned int w,
 		locs->n                   = 0;
 		unsigned char loc_counter = 1;
 		size_t init_loc_idx       = 0;
-		//WRONG c.f. cseeding
+		// WRONG c.f. cseeding
 		while (init_loc_idx < n - min_t + 1) {
-			if ((buffer[init_loc_idx + loc_counter].location -
-			         buffer[init_loc_idx].location <
-			     loc_r) &&
-			    buffer[init_loc_idx + loc_counter].strand ==
-			        buffer[init_loc_idx].strand) {
+			if ((buffer[init_loc_idx + loc_counter].location - buffer[init_loc_idx].location < loc_r) &&
+			    buffer[init_loc_idx + loc_counter].strand == buffer[init_loc_idx].strand) {
 				loc_counter++;
 				if (loc_counter == min_t) {
 					loc_buffer[locs->n] = buffer[init_loc_idx].location;

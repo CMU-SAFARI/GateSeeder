@@ -9,10 +9,11 @@
 #define W 12
 #define W_LOG 4
 #define K 18
+#define MAX_KMER 0xfffffffff
 #define B 26
-#define F 500
-#define AVG_LOC 5 //TODO
-#define F_LOG 9
+#define F 700
+#define AVG_LOC 7 // TODO
+#define F_LOG 10
 #define MIN_T 3
 #define MIN_T_LOG 2
 #define LOC_R 150
@@ -25,7 +26,6 @@
 
 typedef ap_uint<3> base_t;
 
-void seeding(const ap_uint<32> h[H_SIZE], const ap_uint<32> location[LS_SIZE],
-             const base_t *read_i, ap_uint<32> *locs_o,
-             ap_uint<OUT_SIZE_LOG> &locs_len_o);
+void seeding(const ap_uint<32> h[H_SIZE], const ap_uint<32> location[LS_SIZE], const base_t *read_i,
+             ap_uint<32> *locs_o, ap_uint<OUT_SIZE_LOG> &locs_len_o);
 #endif

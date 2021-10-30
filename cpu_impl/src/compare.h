@@ -21,7 +21,6 @@ typedef struct {
 	t_location_v *a;
 } target_v;
 
-void compare(target_v tar, read_v reads, cindex_t idx, const size_t len,
-             const unsigned int w, const unsigned int k, const unsigned int b,
-             const unsigned int min_t, const unsigned int loc_r);
+void compare(target_v tar, read_v reads, cindex_t idx, const size_t len, const unsigned int w, const unsigned int k,
+             const unsigned int b, const unsigned int min_t, const unsigned int loc_r);
 #endif

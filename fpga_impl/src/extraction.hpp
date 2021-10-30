@@ -10,9 +10,7 @@
 struct min_stra_b_t {
 	ap_uint<B> minimizer;
 	ap_uint<1> strand;
-	int operator==(min_stra_b_t x) {
-		return (this->minimizer == x.minimizer && this->strand == x.strand);
-	}
+	int operator==(min_stra_b_t x) { return (this->minimizer == x.minimizer && this->strand == x.strand); }
 };
 
 struct min_stra_t {

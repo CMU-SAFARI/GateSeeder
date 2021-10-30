@@ -1,11 +1,9 @@
 #include "seeding.hpp"
 #include "extraction.hpp"
-#include <assert.h>
 #include <string.h>
 
-void seeding(const ap_uint<32> h[H_SIZE], const ap_uint<32> location[LS_SIZE],
-             const base_t *read_i, ap_uint<32> *locs_o,
-             ap_uint<OUT_SIZE_LOG> &locs_len_o) {
+void seeding(const ap_uint<32> h[H_SIZE], const ap_uint<32> location[LS_SIZE], const base_t *read_i,
+             ap_uint<32> *locs_o, ap_uint<OUT_SIZE_LOG> &locs_len_o) {
 
 #pragma HLS INTERFACE mode = m_axi port = h bundle = index_mem
 #pragma HLS INTERFACE mode = m_axi port = location bundle = index_mem // F
@@ -21,8 +19,7 @@ void seeding(const ap_uint<32> h[H_SIZE], const ap_uint<32> location[LS_SIZE],
 	p.n = 0;
 
 	extract_minimizers(read_buff, &p);
-	ap_uint<32> location_buffer[2]
-	                           [LOCATION_BUFFER_SIZE]; // Buffers which stores
+	ap_uint<32> location_buffer[2][LOCATION_BUFFER_SIZE]; // Buffers which stores
 	// the locations
 	ap_uint<LOCATION_BUFFER_SIZE_LOG> location_buffer_len[2];
 	location_buffer_len[0] = 0;
@@ -43,10 +40,11 @@ LOOP_query_locations:
 			ap_uint<32> max       = h[minimizer];
 			mem_buffer_len[sel]   = max - min;
 		LOOP_read_locations:
-			for (unsigned j = 0; j < mem_buffer_len[sel]; j++) {
-#pragma HLS loop_tripcount min = 0 max = 500 avg = 5 //F & AVG_LOC
+			for (size_t j = 0; j < mem_buffer_len[sel]; j++) {
+#pragma HLS loop_tripcount min = 0 max = 500 avg = 5 // F & AVG_LOC
 #pragma HLS PIPELINE II                          = 1
-                                mem_buffer[sel][j] = location[j + min] ^ p.a[i].strand;
+
+				mem_buffer[sel][j] = location[j + min] ^ p.a[i].strand;
 			}
 		}
 		// Merge the previously loaded mem_buffer with one of the
@@ -56,8 +54,7 @@ LOOP_query_locations:
 			size_t mem_i = 0;
 			size_t len   = 0;
 		LOOP_merge_fisrt_part:
-			while (loc_i < location_buffer_len[sel] &&
-			       mem_i < mem_buffer_len[!sel]) {
+			while (loc_i < location_buffer_len[sel] && mem_i < mem_buffer_len[!sel]) {
 				if (location_buffer[sel][loc_i] <= mem_buffer[!sel][mem_i]) {
 					location_buffer[!sel][len] = location_buffer[sel][loc_i];
 					len++;
@@ -97,30 +94,32 @@ LOOP_query_locations:
 		ap_uint<32> loc_buffer[LOCATION_BUFFER_SIZE];
 		locs_len                       = 0;
 		ap_uint<MIN_T_LOG> loc_counter = 1;
+		size_t loc_offset              = 1;
 		size_t init_loc_idx            = 0;
 	LOOP_adjacency_test:
 		while (init_loc_idx < n - MIN_T + 1) {
-			if ((buffer[init_loc_idx + loc_counter] - buffer[init_loc_idx] <
-			     LOC_R) &&
-			    buffer[init_loc_idx + loc_counter][0] ==
-			        buffer[init_loc_idx][0]) {
-				loc_counter++;
-				if (loc_counter == MIN_T) {
-					loc_buffer[locs_len]    = buffer[init_loc_idx];
-					loc_buffer[locs_len][0] = 0;
-					locs_len++;
-					init_loc_idx++;
-					loc_counter = 1;
+			if ((buffer[init_loc_idx + loc_offset] - buffer[init_loc_idx] < LOC_R)) {
+				if (buffer[init_loc_idx + loc_offset][0] == buffer[init_loc_idx][0]) {
+					loc_counter++;
+					if (loc_counter == MIN_T) {
+						loc_buffer[locs_len] =
+						    (buffer[init_loc_idx].range(31, 1), ap_uint<1>(0));
+						locs_len++;
+						init_loc_idx++;
+						loc_counter = 1;
+						loc_offset  = 0;
+					}
 				}
 			} else {
 				init_loc_idx++;
 				loc_counter = 1;
+				loc_offset  = 0;
 			}
+			loc_offset++;
 		}
 
 		// Store the positons
-		memcpy((void *)locs_o, (const void *)loc_buffer,
-		       locs_len * sizeof(ap_uint<32>));
+		memcpy((void *)locs_o, (const void *)loc_buffer, locs_len * sizeof(ap_uint<32>));
 		locs_len_o = locs_len;
 	} else {
 		locs_len_o = 0;

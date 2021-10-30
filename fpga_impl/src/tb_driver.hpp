@@ -22,8 +22,7 @@ struct index_t {
 	ap_uint<32> *location;
 };
 
-std::vector<out_loc_t> drive_sim(std::ifstream &ifs_read,
-                                 std::ifstream &ifs_idx);
+std::vector<out_loc_t> drive_sim(std::ifstream &ifs_read, std::ifstream &ifs_idx);
 index_t parse_index(std::ifstream &ifs);
 std::vector<exp_loc_t> parse_data(std::ifstream &ifs);
 #endif

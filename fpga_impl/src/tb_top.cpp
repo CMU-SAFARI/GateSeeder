@@ -22,14 +22,14 @@ int main(int argc, char *argv[]) {
 	}
 	for (size_t i = 0; i < res.size(); i++) {
 		if (res[i].n != exp[i].n) {
-			cout << "MISMATCH: Not the same number of locations: "
-			     << res[i].name << " " << res[i].n << "!=" << exp[i].n << endl;
+			cout << "MISMATCH: Not the same number of locations: " << res[i].name << " " << res[i].n
+			     << "!=" << exp[i].n << endl;
 			return 1;
 		}
 		for (size_t j = 0; j < res[i].n; j++) {
 			if (res[i].locs[j] != exp[i].locs[j]) {
-				cout << "MISMATCH: wrong location: " << res[i].name << " "
-				     << res[i].locs[j] << "!=" << exp[i].locs[j] << endl;
+				cout << "MISMATCH: wrong location: " << res[i].name << " " << res[i].locs[j]
+				     << "!=" << exp[i].locs[j] << endl;
 				return 1;
 			}
 		}
