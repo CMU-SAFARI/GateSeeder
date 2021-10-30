@@ -83,26 +83,28 @@ void cseeding(cindex_t idx, char *read, const size_t len, const unsigned int w,
 			buffer[i].strand = location_buffer[1 - p.n % 2][i] & 1;
 		}
 		uint32_t loc_buffer[LOCATION_BUFFER_SIZE];
-		locs->n                   = 0;
-		unsigned char loc_counter = 1;
-		size_t init_loc_idx       = 0;
+		locs->n             = 0;
+		size_t loc_counter  = 1;
+		size_t loc_offset   = 1;
+		size_t init_loc_idx = 0;
 		while (init_loc_idx < n - min_t + 1) {
-			if ((buffer[init_loc_idx + loc_counter].location -
-			         buffer[init_loc_idx].location <
-			     loc_r) &&
-			    buffer[init_loc_idx + loc_counter].strand ==
-			        buffer[init_loc_idx].strand) {
-				loc_counter++;
-				if (loc_counter == min_t) {
-					loc_buffer[locs->n] = buffer[init_loc_idx].location;
-					locs->n++;
-					init_loc_idx++;
-					loc_counter = 1;
+			if (buffer[init_loc_idx + loc_offset].location - buffer[init_loc_idx].location < loc_r) {
+				if (buffer[init_loc_idx + loc_offset].strand == buffer[init_loc_idx].strand) {
+					loc_counter++;
+					if (loc_counter == min_t) {
+						loc_buffer[locs->n] = buffer[init_loc_idx].location;
+						locs->n++;
+						init_loc_idx++;
+						loc_counter = 1;
+						loc_offset  = 0;
+					}
 				}
 			} else {
 				init_loc_idx++;
 				loc_counter = 1;
+				loc_offset  = 0;
 			}
+			loc_offset++;
 		}
 		free(buffer);
 
@@ -192,6 +194,7 @@ void seeding(index_t idx, char *read, const size_t len, const unsigned int w,
 		locs->n                   = 0;
 		unsigned char loc_counter = 1;
 		size_t init_loc_idx       = 0;
+		//WRONG c.f. cseeding
 		while (init_loc_idx < n - min_t + 1) {
 			if ((buffer[init_loc_idx + loc_counter].location -
 			         buffer[init_loc_idx].location <

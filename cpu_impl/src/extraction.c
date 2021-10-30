@@ -124,7 +124,7 @@ void extract_minimizers(const char *read, const size_t len,
 					}
 				}
 			}
-			if (same_min_w) {
+			if (same_min_w && l >= w + k - 1) {
 				push_min_stra(p, min_reg.minimizer & mask1, !min_reg.strand);
 			}
 		}
