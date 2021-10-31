@@ -25,7 +25,7 @@ void extract_minimizers(const base_t *read, min_stra_v *p) {
 	ap_uint<1> same_min(0);
 LOOP_extract_minimizer:
 	for (size_t i = 0; i < READ_LEN; ++i) {
-#pragma HLS PIPELINE II = 1
+		//#pragma HLS DATAFLOW
 		base_t c            = read[i];
 		min_stra_t hash_reg = {MAX_KMER, 0};
 		if (c < 4) {                                                 // not an ambiguous base

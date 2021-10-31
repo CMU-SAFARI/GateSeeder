@@ -5,7 +5,7 @@ CXX		:= g++
 
 DEPFLAGS	= -MD -MP
 CPPFLAGS	= -I $(HLS_ROOT)/include
-CXXFLAGS	= -O3 -g $(DEPFLAGS) -Wunused
+CXXFLAGS	= -O3 -g $(DEPFLAGS) -Wall -Werror -Wno-unknown-pragmas -Wno-unused-label
 VPATH		= $(SRC_DIR)
 SIM		= sim.x
 
