@@ -82,7 +82,7 @@ LOOP_merge_fisrt_part:
 	} else {
 	LOOP_merge_third_part:
 		for (; loc_i < buffer_i_len; loc_i++) {
-#pragma HLS loop_tripcount min = 0 max = 200000 // LOCATION_BUFFER_SIZE
+#pragma HLS loop_tripcount min = 0 max = 70000 // LOCATION_BUFFER_SIZE
 #pragma HLS PIPELINE II                = 1
 
 			buffer_o[buffer_o_len] = buffer_i[loc_i];
@@ -142,7 +142,7 @@ void adjacency_test(const ap_uint<32> *buffer_i, const ap_uint<LOCATION_BUFFER_S
 	ap_uint<MIN_T_LOG> ready2(0);
 	buffer_o_len = 0;
 	for (size_t i = 0; i < buffer_i_len; i++) {
-#pragma HLS loop_tripcount min = 0 max = 200000 // LOCATION_BUFFER_SIZE
+#pragma HLS loop_tripcount min = 0 max = 70000 // LOCATION_BUFFER_SIZE
 #pragma HLS PIPELINE II                = 1
 
 		ap_uint<32> loc = buffer_i[i];
