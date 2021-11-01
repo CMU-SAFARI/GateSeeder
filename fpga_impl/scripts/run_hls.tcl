@@ -18,12 +18,7 @@ set_top seeding
 
 # ########################################################
 # Create a solution
-open_solution -flow_target vivado -reset solution1
-
-config_interface -m_axi_max_read_burst_length 256
-config_interface -m_axi_max_bitwidth 1024
-config_interface -m_axi_max_widen_bitwidth 1024
-config_interface -m_axi_alignment_byte_size 64
+open_solution -flow_target vitis -reset solution1
 
 # Define technology and clock rate
 set_part {xcvu37p-fsvh2892-3-e}
