@@ -9,7 +9,7 @@ void seeding(const ap_uint<32> h[H_SIZE], const ap_uint<32> location[LS_SIZE], c
 #pragma HLS INTERFACE mode = m_axi port = location bundle = loc // F
 #pragma HLS INTERFACE mode = m_axi port = read_i depth = 100    // LEN_READ & LEN_READ
 #pragma HLS INTERFACE mode = m_axi port = locs_o depth = 5000   // OUT_SIZE TODO
-//#pragma HLS dataflow
+#pragma HLS dataflow
 	base_t read_buff[READ_LEN];
 	min_stra_v p; // Buffer which stores the minimizers and their strand
 	ap_uint<32> location_buffer1[LOCATION_BUFFER_SIZE];
@@ -98,7 +98,7 @@ void inline query_locations(const min_stra_b_t min_stra, ap_uint<32> *mem_buffer
                             const ap_uint<LOCATION_BUFFER_SIZE_LOG> buffer_i_len, ap_uint<32> *buffer_o,
                             ap_uint<LOCATION_BUFFER_SIZE_LOG> &buffer_o_len, const ap_uint<32> *mem_buffer_r,
                             const ap_uint<F_LOG> mem_buffer_len_r) {
-#pragma HLS dataflow
+//#pragma HLS dataflow
 	get_locations(min_stra, mem_buffer_w, mem_buffer_len_w, h, location);
 	merge_locations(buffer_i, buffer_i_len, buffer_o, buffer_o_len, mem_buffer_r, mem_buffer_len_r);
 }

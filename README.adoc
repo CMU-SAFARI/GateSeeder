@@ -62,6 +62,7 @@ cd fpga_impl && make
 
 In all the following results link:https://www.ncbi.nlm.nih.gov/assembly/GCF_000001405.39[GRCh38.p13] (3,209,286,105 bases) is used as the genome reference.
 
+* *https://github.com/mealser/FPGA_Genome_Indexing/blob/main/reports/week8.adoc[week8]*
 * *https://github.com/mealser/FPGA_Genome_Indexing/blob/main/reports/week7.adoc[week7]*
 * *https://github.com/mealser/FPGA_Genome_Indexing/blob/main/reports/week6.adoc[week6]*
 * *https://github.com/mealser/FPGA_Genome_Indexing/blob/main/reports/week5.adoc[week5]*

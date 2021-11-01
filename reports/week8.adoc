@@ -1,0 +1,27 @@
+= Week 8
+
+== TO DO
+
+* Finish the FPGA implementation
+* Define interface for HBM
+* Start working on the host program
+
+== Achievements
+
+* FPGA implementation done (coarse grain + fine grain parallelism)
+** Main kernel consists of a dataflow (5 tasks)
+*** Read the DNA read
+*** Extract the minimizers
+*** Query the locations
+*** Adjacency test
+*** Write the locations
+* Changed version of Vitis_HLS because of bugs
+* Read documentation for creating host program for Vitis
+
+== Results
+
+* cf. Vitis_HLS reports
+* Issues with Vitis HLS 2021.1
+
+== Questions
+
