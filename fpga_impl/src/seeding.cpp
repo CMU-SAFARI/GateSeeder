@@ -9,7 +9,7 @@ void seeding(const ap_uint<32> h[H_SIZE], const ap_uint<32> location[LS_SIZE], c
 #pragma HLS INTERFACE mode = m_axi port = location bundle = loc // F
 #pragma HLS INTERFACE mode = m_axi port = read_i depth = 100    // LEN_READ & LEN_READ
 #pragma HLS INTERFACE mode = m_axi port = locs_o depth = 5000   // OUT_SIZE TODO
-#pragma HLS dataflow
+//#pragma HLS dataflow
 	base_t read_buff[READ_LEN];
 	min_stra_v p; // Buffer which stores the minimizers and their strand
 	ap_uint<32> location_buffer1[LOCATION_BUFFER_SIZE];
@@ -37,6 +37,7 @@ void seeding(const ap_uint<32> h[H_SIZE], const ap_uint<32> location[LS_SIZE], c
 
 void get_locations(const min_stra_b_t min_stra, ap_uint<32> *mem_buffer, ap_uint<F_LOG> &len, const ap_uint<32> *h,
                    const ap_uint<32> *location) {
+#pragma HLS inline off
 	ap_uint<32> minimizer = min_stra.minimizer;
 	ap_uint<32> min       = minimizer ? h[minimizer - 1].to_uint() : 0;
 	ap_uint<32> max       = h[minimizer];
@@ -53,6 +54,7 @@ LOOP_read_locations:
 void merge_locations(const ap_uint<32> *buffer_i, const ap_uint<LOCATION_BUFFER_SIZE_LOG> buffer_i_len,
                      ap_uint<32> *buffer_o, ap_uint<LOCATION_BUFFER_SIZE_LOG> &buffer_o_len,
                      const ap_uint<32> *mem_buffer, const ap_uint<F_LOG> mem_buffer_len) {
+#pragma HLS inline off
 	size_t loc_i = 0;
 	size_t mem_i = 0;
 	buffer_o_len = 0;
