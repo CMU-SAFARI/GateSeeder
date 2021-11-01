@@ -22,7 +22,7 @@ open_solution -flow_target vitis -reset solution1
 
 # Define technology and clock rate
 set_part {xcvu37p-fsvh2892-3-e}
-create_clock -period 4
+create_clock -period 6
 
 set hls_exec 0
 #csim_design
