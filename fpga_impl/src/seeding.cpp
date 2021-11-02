@@ -9,23 +9,30 @@ void seeding(const ap_uint<32> h[H_SIZE], const ap_uint<32> location[LS_SIZE], c
 #pragma HLS INTERFACE m_axi port = location bundle = loc // F
 #pragma HLS INTERFACE m_axi port = read_i depth = 100    // LEN_READ & LEN_READ
 #pragma HLS INTERFACE m_axi port = locs_o depth = 5000   // OUT_SIZE TODO
-//#pragma HLS dataflow
+#pragma HLS dataflow
 	base_t read_buff[READ_LEN];
 	min_stra_v p; // Buffer which stores the minimizers and their strand
 	ap_uint<32> location_buffer1[LOCATION_BUFFER_SIZE];
 	ap_uint<32> location_buffer2[LOCATION_BUFFER_SIZE];
-	ap_uint<LOCATION_BUFFER_SIZE_LOG> location_buffer1_len(0);
-	ap_uint<LOCATION_BUFFER_SIZE_LOG> location_buffer2_len(0);
-	ap_uint<1> buffer_sel;
+	ap_uint<LOCATION_BUFFER_SIZE_LOG> location_buffer1_len;
+	ap_uint<LOCATION_BUFFER_SIZE_LOG> location_buffer2_len;
+	ap_uint<1> buffer_sel(0);
 	ap_uint<32> locs_buffer[LOCATION_BUFFER_SIZE];
-
+	ap_uint<32> mem_buffer1[F];
+	ap_uint<F_LOG> mem_buffer1_len;
 	read_read(read_buff, read_i);
 	extract_minimizers(read_buff, p);
-	loop_query_locations(p, location_buffer1, location_buffer2, location_buffer1_len, location_buffer2_len,
-	                     buffer_sel, h, location);
+	ap_uint<OUT_SIZE_LOG> locs_len;
+	// loop_query_locations(p, location_buffer1, location_buffer2, location_buffer1_len, location_buffer2_len,
+	// buffer_sel, h, location);
+
+	get_locations(p.a[0], mem_buffer1, mem_buffer1_len, h, location);
+	merge_locations(location_buffer1, location_buffer1_len, location_buffer2, location_buffer2_len, mem_buffer1,
+	                mem_buffer1_len);
+
 	adjacency_test(location_buffer1, location_buffer1_len, location_buffer2, location_buffer2_len, buffer_sel,
-	               locs_buffer, locs_len_o);
-	write_locs(locs_o, locs_buffer, locs_len_o);
+	               locs_buffer, locs_len);
+	write_locs(locs_o, locs_buffer, locs_len, locs_len_o);
 }
 
 void read_read(base_t *read_buff, const base_t *read_i) {
@@ -33,19 +40,21 @@ LOOP_read_read:
 	for (size_t i = 0; i < READ_LEN; i++) {
 #pragma HLS loop_tripcount min = 100 max = 100 // READ_LEN
 #pragma HLS PIPELINE II                  = 1
-                read_buff[i] = read_i[i];
+
+		read_buff[i] = read_i[i];
 	}
 }
 
-void write_locs(ap_uint<32> *locs_o, const ap_uint<32> *locs_buffer, const ap_uint<OUT_SIZE_LOG> locs_len_o) {
-	if (locs_len_o) {
-	LOOP_write_locs:
-		for (size_t i = 0; i < locs_len_o; i++) {
+void write_locs(ap_uint<32> *locs_o, const ap_uint<32> *locs_buffer, const ap_uint<OUT_SIZE_LOG> locs_len,
+                ap_uint<OUT_SIZE_LOG> &locs_len_o) {
+LOOP_write_locs:
+	for (size_t i = 0; i < locs_len; i++) {
 #pragma HLS loop_tripcount min = 0 max = 5000 // OUT_SIZE
 #pragma HLS PIPELINE II                = 1
-                        locs_o[i] = locs_buffer[i];
-		}
+
+		locs_o[i] = locs_buffer[i];
 	}
+	locs_len_o = locs_len;
 }
 
 void get_locations(const min_stra_b_t min_stra, ap_uint<32> *mem_buffer, ap_uint<F_LOG> &len, const ap_uint<32> *h,

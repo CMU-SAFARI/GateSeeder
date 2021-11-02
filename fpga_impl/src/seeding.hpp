@@ -50,7 +50,7 @@ struct min_stra_b_t {
 struct min_stra_v {
 	ap_uint<MIN_STRA_SIZE_LOG> n;
 	min_stra_b_t a[MIN_STRA_SIZE];
-	min_stra_v() { this->n = 0; }
+	// min_stra_v() { this->n = 0; }
 };
 
 void seeding(const ap_uint<32> h[H_SIZE], const ap_uint<32> location[LS_SIZE], const base_t *read_i,
@@ -74,6 +74,7 @@ void inline loop_query_locations(const min_stra_v p, ap_uint<32> *location_buffe
 void adjacency_test(const ap_uint<32> *buffer1_i, const ap_uint<LOCATION_BUFFER_SIZE_LOG> buffer1_i_len,
                     const ap_uint<32> *buffer2_i, const ap_uint<LOCATION_BUFFER_SIZE_LOG> buffer2_i_len,
                     const ap_uint<1> buffer_sel, ap_uint<32> *buffer_o, ap_uint<OUT_SIZE_LOG> &buffer_o_len);
-void write_locs(ap_uint<32> *locs_o, const ap_uint<32> *locs_buffer, const ap_uint<OUT_SIZE_LOG> locs_len_o);
 
+void write_locs(ap_uint<32> *locs_o, const ap_uint<32> *locs_buffer, const ap_uint<OUT_SIZE_LOG> locs_len,
+                ap_uint<OUT_SIZE_LOG> &locs_len_o);
 #endif

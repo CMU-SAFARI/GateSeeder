@@ -14,6 +14,7 @@ static inline ap_uint<2 * K> hash64(ap_uint<2 * K> key) {
 }
 
 void extract_minimizers(const base_t *read, min_stra_v &p) {
+	p.n = 0;
 	min_stra_t buff[W];
 	ap_uint<2 * K> kmer[2] = {0, 0};
 	ap_uint<READ_LEN_LOG> l(0); // l counts the number of bases and is reset to
@@ -115,7 +116,7 @@ LOOP_push_min_stra:
 			flag = 0;
 		}
 	}
-	if(flag) {
+	if (flag) {
 		p.a[p.n] = min_stra;
 		p.n++;
 	}
