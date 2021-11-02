@@ -5,10 +5,10 @@
 void seeding(const ap_uint<32> h[H_SIZE], const ap_uint<32> location[LS_SIZE], const base_t *read_i,
              ap_uint<32> *locs_o, ap_uint<OUT_SIZE_LOG> &locs_len_o) {
 
-#pragma HLS INTERFACE m_axi port = h bundle = h
-#pragma HLS INTERFACE m_axi port = location bundle = loc // F
-#pragma HLS INTERFACE m_axi port = read_i depth = 100    // LEN_READ & LEN_READ
-#pragma HLS INTERFACE m_axi port = locs_o depth = 5000   // OUT_SIZE TODO
+#pragma HLS INTERFACE mode = m_axi port = h bundle = h
+#pragma HLS INTERFACE mode = m_axi port = location bundle = loc // F
+#pragma HLS INTERFACE mode = m_axi port = read_i depth = 100    // LEN_READ & LEN_READ
+#pragma HLS INTERFACE mode = m_axi port = locs_o depth = 5000   // OUT_SIZE TODO
 #pragma HLS dataflow
 	base_t read_buff[READ_LEN];
 	min_stra_v p; // Buffer which stores the minimizers and their strand
@@ -16,20 +16,14 @@ void seeding(const ap_uint<32> h[H_SIZE], const ap_uint<32> location[LS_SIZE], c
 	ap_uint<32> location_buffer2[LOCATION_BUFFER_SIZE];
 	ap_uint<LOCATION_BUFFER_SIZE_LOG> location_buffer1_len;
 	ap_uint<LOCATION_BUFFER_SIZE_LOG> location_buffer2_len;
-	ap_uint<1> buffer_sel(0);
+	ap_uint<1> buffer_sel;
 	ap_uint<32> locs_buffer[LOCATION_BUFFER_SIZE];
-	ap_uint<32> mem_buffer1[F];
-	ap_uint<F_LOG> mem_buffer1_len;
+	ap_uint<OUT_SIZE_LOG> locs_len;
+
 	read_read(read_buff, read_i);
 	extract_minimizers(read_buff, p);
-	ap_uint<OUT_SIZE_LOG> locs_len;
-	// loop_query_locations(p, location_buffer1, location_buffer2, location_buffer1_len, location_buffer2_len,
-	// buffer_sel, h, location);
-
-	get_locations(p.a[0], mem_buffer1, mem_buffer1_len, h, location);
-	merge_locations(location_buffer1, location_buffer1_len, location_buffer2, location_buffer2_len, mem_buffer1,
-	                mem_buffer1_len);
-
+	query_locations(p, location_buffer1, location_buffer2, location_buffer1_len, location_buffer2_len, buffer_sel,
+	                h, location);
 	adjacency_test(location_buffer1, location_buffer1_len, location_buffer2, location_buffer2_len, buffer_sel,
 	               locs_buffer, locs_len);
 	write_locs(locs_o, locs_buffer, locs_len, locs_len_o);
@@ -59,7 +53,6 @@ LOOP_write_locs:
 
 void get_locations(const min_stra_b_t min_stra, ap_uint<32> *mem_buffer, ap_uint<F_LOG> &len, const ap_uint<32> *h,
                    const ap_uint<32> *location) {
-#pragma HLS inline off
 	ap_uint<32> minimizer = min_stra.minimizer;
 	ap_uint<32> min       = minimizer ? h[minimizer - 1].to_uint() : 0;
 	ap_uint<32> max       = h[minimizer];
@@ -76,7 +69,6 @@ LOOP_read_locations:
 void merge_locations(const ap_uint<32> *buffer_i, const ap_uint<LOCATION_BUFFER_SIZE_LOG> buffer_i_len,
                      ap_uint<32> *buffer_o, ap_uint<LOCATION_BUFFER_SIZE_LOG> &buffer_o_len,
                      const ap_uint<32> *mem_buffer, const ap_uint<F_LOG> mem_buffer_len) {
-#pragma HLS inline off
 	size_t loc_i = 0;
 	size_t mem_i = 0;
 	buffer_o_len = 0;
@@ -115,48 +107,44 @@ LOOP_merge_fisrt_part:
 	}
 }
 
-void inline query_locations(const min_stra_b_t min_stra, ap_uint<32> *mem_buffer_w, ap_uint<F_LOG> &mem_buffer_len_w,
-                            const ap_uint<32> *h, const ap_uint<32> *location, const ap_uint<32> *buffer_i,
-                            const ap_uint<LOCATION_BUFFER_SIZE_LOG> buffer_i_len, ap_uint<32> *buffer_o,
-                            ap_uint<LOCATION_BUFFER_SIZE_LOG> &buffer_o_len, const ap_uint<32> *mem_buffer_r,
-                            const ap_uint<F_LOG> mem_buffer_len_r) {
-#pragma HLS inline off
-	//#pragma HLS dataflow
-	get_locations(min_stra, mem_buffer_w, mem_buffer_len_w, h, location);
-	merge_locations(buffer_i, buffer_i_len, buffer_o, buffer_o_len, mem_buffer_r, mem_buffer_len_r);
-}
-
 void inline loop_query_locations(const min_stra_v p, ap_uint<32> *location_buffer1, ap_uint<32> *location_buffer2,
                                  ap_uint<LOCATION_BUFFER_SIZE_LOG> &location_buffer1_len,
                                  ap_uint<LOCATION_BUFFER_SIZE_LOG> &location_buffer2_len, ap_uint<1> &buffer_sel,
                                  const ap_uint<32> *h, const ap_uint<32> *location) {
-	ap_uint<32> mem_buffer1[F];
-	ap_uint<32> mem_buffer2[F];
-	ap_uint<F_LOG> mem_buffer1_len;
-	ap_uint<F_LOG> mem_buffer2_len;
-	get_locations(p.a[0], mem_buffer1, mem_buffer1_len, h, location);
-LOOP_query_locations:
-	for (size_t i = 1; i < p.n; i++) {
-#pragma HLS loop_tripcount min = 0 max = 100 // READ_LEN
-		if (i % 2) {
-			query_locations(p.a[i], mem_buffer2, mem_buffer2_len, h, location, location_buffer1,
-			                location_buffer1_len, location_buffer2, location_buffer2_len, mem_buffer1,
-			                mem_buffer1_len);
-		} else {
-			query_locations(p.a[i], mem_buffer1, mem_buffer1_len, h, location, location_buffer2,
-			                location_buffer2_len, location_buffer1, location_buffer1_len, mem_buffer2,
-			                mem_buffer2_len);
-		}
+
+	for (size_t i = 0; i < p.n / 2; i++) {
+#pragma HLS loop_tripcount min = 0 max = 50 // READ_LEN
+		ap_uint<32> mem_buffer1[F];
+		ap_uint<32> mem_buffer2[F];
+		ap_uint<F_LOG> mem_buffer1_len;
+		ap_uint<F_LOG> mem_buffer2_len;
+		get_locations(p.a[2 * i], mem_buffer1, mem_buffer1_len, h, location);
+		merge_locations(location_buffer1, location_buffer1_len, location_buffer2, location_buffer2_len,
+		                mem_buffer1, mem_buffer1_len);
+		get_locations(p.a[2 * i + 1], mem_buffer2, mem_buffer2_len, h, location);
+		merge_locations(location_buffer2, location_buffer2_len, location_buffer1, location_buffer1_len,
+		                mem_buffer2, mem_buffer2_len);
 	}
 	if (p.n % 2) {
+		ap_uint<32> mem_buffer1[F];
+		ap_uint<F_LOG> mem_buffer1_len;
+		get_locations(p.a[p.n - 1], mem_buffer1, mem_buffer1_len, h, location);
 		merge_locations(location_buffer1, location_buffer1_len, location_buffer2, location_buffer2_len,
 		                mem_buffer1, mem_buffer1_len);
 		buffer_sel = 0;
 	} else {
-		merge_locations(location_buffer2, location_buffer2_len, location_buffer1, location_buffer1_len,
-		                mem_buffer2, mem_buffer2_len);
 		buffer_sel = 1;
 	}
+}
+
+void inline query_locations(const min_stra_v p, ap_uint<32> *location_buffer1, ap_uint<32> *location_buffer2,
+                            ap_uint<LOCATION_BUFFER_SIZE_LOG> &location_buffer1_len,
+                            ap_uint<LOCATION_BUFFER_SIZE_LOG> &location_buffer2_len, ap_uint<1> &buffer_sel,
+                            const ap_uint<32> *h, const ap_uint<32> *location) {
+	location_buffer1_len = 0;
+	location_buffer2_len = 0;
+	loop_query_locations(p, location_buffer1, location_buffer2, location_buffer1_len, location_buffer2_len,
+	                     buffer_sel, h, location);
 }
 
 void adjacency_test(const ap_uint<32> *buffer1_i, const ap_uint<LOCATION_BUFFER_SIZE_LOG> buffer1_i_len,

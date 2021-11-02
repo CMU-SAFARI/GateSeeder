@@ -61,16 +61,14 @@ void get_locations(const min_stra_b_t min_stra, ap_uint<32> *mem_buffer, ap_uint
 void merge_locations(const ap_uint<32> *buffer_i, const ap_uint<LOCATION_BUFFER_SIZE_LOG> buffer_i_len,
                      ap_uint<32> *buffer_o, ap_uint<LOCATION_BUFFER_SIZE_LOG> &buffer_o_len,
                      const ap_uint<32> *mem_buffer, const ap_uint<F_LOG> mem_buffer_len);
-void inline query_locations(const min_stra_b_t min_stra, ap_uint<32> *mem_buffer_w, ap_uint<F_LOG> &mem_buffer_len_w,
-                            const ap_uint<32> *h, const ap_uint<32> *location, const ap_uint<32> *buffer_i,
-                            const ap_uint<LOCATION_BUFFER_SIZE_LOG> buffer_i_len, ap_uint<32> *buffer_o,
-                            ap_uint<LOCATION_BUFFER_SIZE_LOG> &buffer_o_len, const ap_uint<32> *mem_buffer_r,
-                            const ap_uint<F_LOG> mem_buffer_len_r);
-
 void inline loop_query_locations(const min_stra_v p, ap_uint<32> *location_buffer1, ap_uint<32> *location_buffer2,
                                  ap_uint<LOCATION_BUFFER_SIZE_LOG> &location_buffer1_len,
                                  ap_uint<LOCATION_BUFFER_SIZE_LOG> &location_buffer2_len, ap_uint<1> &buffer_sel,
                                  const ap_uint<32> *h, const ap_uint<32> *location);
+void inline query_locations(const min_stra_v p, ap_uint<32> *location_buffer1, ap_uint<32> *location_buffer2,
+                            ap_uint<LOCATION_BUFFER_SIZE_LOG> &location_buffer1_len,
+                            ap_uint<LOCATION_BUFFER_SIZE_LOG> &location_buffer2_len, ap_uint<1> &buffer_sel,
+                            const ap_uint<32> *h, const ap_uint<32> *location);
 void adjacency_test(const ap_uint<32> *buffer1_i, const ap_uint<LOCATION_BUFFER_SIZE_LOG> buffer1_i_len,
                     const ap_uint<32> *buffer2_i, const ap_uint<LOCATION_BUFFER_SIZE_LOG> buffer2_i_len,
                     const ap_uint<1> buffer_sel, ap_uint<32> *buffer_o, ap_uint<OUT_SIZE_LOG> &buffer_o_len);
