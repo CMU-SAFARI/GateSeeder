@@ -13,7 +13,7 @@ static inline ap_uint<2 * K> hash64(ap_uint<2 * K> key) {
 	return key;
 }
 
-void extract_minimizers(const base_t *read, min_stra_v *p) {
+void extract_minimizers(const base_t *read, min_stra_v &p) {
 	min_stra_t buff[W];
 	ap_uint<2 * K> kmer[2] = {0, 0};
 	ap_uint<READ_LEN_LOG> l(0); // l counts the number of bases and is reset to
@@ -105,16 +105,18 @@ LOOP_extract_minimizer:
 	}
 }
 
-void push_min_stra(min_stra_v *p, min_stra_t val) {
+void push_min_stra(min_stra_v &p, min_stra_t val) {
 	min_stra_b_t min_stra = {val.minimizer, val.strand};
+	ap_uint<1> flag(1);
 LOOP_push_min_stra:
-	for (size_t i = 0; i < p->n; i++) {
+	for (size_t i = 0; i < p.n; i++) {
 #pragma HLS loop_tripcount min = 0 max = 100 // READ_LEN
-#pragma HLS PIPELINE off
-		if (p->a[i] == min_stra) {
-			return;
+		if (p.a[i] == min_stra) {
+			flag = 0;
 		}
 	}
-	p->a[p->n] = min_stra;
-	p->n++;
+	if(flag) {
+		p.a[p.n] = min_stra;
+		p.n++;
+	}
 }

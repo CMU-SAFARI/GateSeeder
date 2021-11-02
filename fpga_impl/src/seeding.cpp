@@ -5,11 +5,11 @@
 void seeding(const ap_uint<32> h[H_SIZE], const ap_uint<32> location[LS_SIZE], const base_t *read_i,
              ap_uint<32> *locs_o, ap_uint<OUT_SIZE_LOG> &locs_len_o) {
 
-#pragma HLS INTERFACE mode = m_axi port = h bundle = h
-#pragma HLS INTERFACE mode = m_axi port = location bundle = loc // F
-#pragma HLS INTERFACE mode = m_axi port = read_i depth = 100    // LEN_READ & LEN_READ
-#pragma HLS INTERFACE mode = m_axi port = locs_o depth = 5000   // OUT_SIZE TODO
-#pragma HLS dataflow
+#pragma HLS INTERFACE m_axi port = h bundle = h
+#pragma HLS INTERFACE m_axi port = location bundle = loc // F
+#pragma HLS INTERFACE m_axi port = read_i depth = 100    // LEN_READ & LEN_READ
+#pragma HLS INTERFACE m_axi port = locs_o depth = 5000   // OUT_SIZE TODO
+//#pragma HLS dataflow
 	base_t read_buff[READ_LEN];
 	min_stra_v p; // Buffer which stores the minimizers and their strand
 	ap_uint<32> location_buffer1[LOCATION_BUFFER_SIZE];
@@ -19,19 +19,32 @@ void seeding(const ap_uint<32> h[H_SIZE], const ap_uint<32> location[LS_SIZE], c
 	ap_uint<1> buffer_sel;
 	ap_uint<32> locs_buffer[LOCATION_BUFFER_SIZE];
 
-	memcpy((void *)read_buff, (const void *)read_i, READ_LEN * sizeof(base_t));
-	extract_minimizers(read_buff, &p);
+	read_read(read_buff, read_i);
+	extract_minimizers(read_buff, p);
 	loop_query_locations(p, location_buffer1, location_buffer2, location_buffer1_len, location_buffer2_len,
 	                     buffer_sel, h, location);
+	adjacency_test(location_buffer1, location_buffer1_len, location_buffer2, location_buffer2_len, buffer_sel,
+	               locs_buffer, locs_len_o);
+	write_locs(locs_o, locs_buffer, locs_len_o);
+}
 
-	if (buffer_sel) {
-		adjacency_test(location_buffer1, location_buffer1_len, locs_buffer, locs_len_o);
-	} else {
-		adjacency_test(location_buffer2, location_buffer2_len, locs_buffer, locs_len_o);
+void read_read(base_t *read_buff, const base_t *read_i) {
+LOOP_read_read:
+	for (size_t i = 0; i < READ_LEN; i++) {
+#pragma HLS loop_tripcount min = 100 max = 100 // READ_LEN
+#pragma HLS PIPELINE II                  = 1
+                read_buff[i] = read_i[i];
 	}
+}
 
+void write_locs(ap_uint<32> *locs_o, const ap_uint<32> *locs_buffer, const ap_uint<OUT_SIZE_LOG> locs_len_o) {
 	if (locs_len_o) {
-		memcpy((void *)locs_o, (const void *)locs_buffer, locs_len_o * sizeof(ap_uint<32>));
+	LOOP_write_locs:
+		for (size_t i = 0; i < locs_len_o; i++) {
+#pragma HLS loop_tripcount min = 0 max = 5000 // OUT_SIZE
+#pragma HLS PIPELINE II                = 1
+                        locs_o[i] = locs_buffer[i];
+		}
 	}
 }
 
@@ -98,7 +111,8 @@ void inline query_locations(const min_stra_b_t min_stra, ap_uint<32> *mem_buffer
                             const ap_uint<LOCATION_BUFFER_SIZE_LOG> buffer_i_len, ap_uint<32> *buffer_o,
                             ap_uint<LOCATION_BUFFER_SIZE_LOG> &buffer_o_len, const ap_uint<32> *mem_buffer_r,
                             const ap_uint<F_LOG> mem_buffer_len_r) {
-//#pragma HLS dataflow
+#pragma HLS inline off
+	//#pragma HLS dataflow
 	get_locations(min_stra, mem_buffer_w, mem_buffer_len_w, h, location);
 	merge_locations(buffer_i, buffer_i_len, buffer_o, buffer_o_len, mem_buffer_r, mem_buffer_len_r);
 }
@@ -136,8 +150,13 @@ LOOP_query_locations:
 	}
 }
 
-void adjacency_test(const ap_uint<32> *buffer_i, const ap_uint<LOCATION_BUFFER_SIZE_LOG> buffer_i_len,
-                    ap_uint<32> *buffer_o, ap_uint<OUT_SIZE_LOG> &buffer_o_len) {
+void adjacency_test(const ap_uint<32> *buffer1_i, const ap_uint<LOCATION_BUFFER_SIZE_LOG> buffer1_i_len,
+                    const ap_uint<32> *buffer2_i, const ap_uint<LOCATION_BUFFER_SIZE_LOG> buffer2_i_len,
+                    const ap_uint<1> buffer_sel, ap_uint<32> *buffer_o, ap_uint<OUT_SIZE_LOG> &buffer_o_len) {
+
+	const ap_uint<32> *buffer_i                          = (buffer_sel) ? buffer1_i : buffer2_i;
+	const ap_uint<LOCATION_BUFFER_SIZE_LOG> buffer_i_len = (buffer_sel) ? buffer1_i_len : buffer2_i_len;
+
 	ap_uint<32> buffer1[MIN_T_1];
 	ap_uint<32> buffer2[MIN_T_1];
 	ap_uint<MIN_T_LOG> ready1(0);

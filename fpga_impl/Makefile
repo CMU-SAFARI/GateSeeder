@@ -1,4 +1,4 @@
-HLS_ROOT		?= /opt/xilinx/Vitis_HLS/2021.1
+HLS_ROOT		?= /opt/xilinx/Vitis_HLS/2020.2
 
 SRC_DIR		:= src
 CXX		:= g++
