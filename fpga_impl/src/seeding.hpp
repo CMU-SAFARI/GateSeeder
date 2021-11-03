@@ -50,14 +50,13 @@ struct min_stra_b_t {
 struct min_stra_v {
 	ap_uint<MIN_STRA_SIZE_LOG> n;
 	min_stra_b_t a[MIN_STRA_SIZE];
-	// min_stra_v() { this->n = 0; }
 };
 
 void seeding(const ap_uint<32> h[H_SIZE], const ap_uint<32> location[LS_SIZE], const base_t *read_i,
              ap_uint<32> *locs_o, ap_uint<OUT_SIZE_LOG> &locs_len_o);
 void read_read(base_t *read_buff, const base_t *read_i);
-void get_locations(const min_stra_b_t min_stra, ap_uint<32> *mem_buffer, ap_uint<F_LOG> &len, const ap_uint<32> *h,
-                   const ap_uint<32> *location);
+void read_locations(const min_stra_b_t min_stra, ap_uint<32> *mem_buffer, ap_uint<F_LOG> &len, const ap_uint<32> *h,
+                    const ap_uint<32> *location);
 void merge_locations(const ap_uint<32> *buffer_i, const ap_uint<LOCATION_BUFFER_SIZE_LOG> buffer_i_len,
                      ap_uint<32> *buffer_o, ap_uint<LOCATION_BUFFER_SIZE_LOG> &buffer_o_len,
                      const ap_uint<32> *mem_buffer, const ap_uint<F_LOG> mem_buffer_len);
@@ -69,10 +68,10 @@ void inline query_locations(const min_stra_v p, ap_uint<32> *location_buffer1, a
                             ap_uint<LOCATION_BUFFER_SIZE_LOG> &location_buffer1_len,
                             ap_uint<LOCATION_BUFFER_SIZE_LOG> &location_buffer2_len, ap_uint<1> &buffer_sel,
                             const ap_uint<32> *h, const ap_uint<32> *location);
-void adjacency_test(const ap_uint<32> *buffer1_i, const ap_uint<LOCATION_BUFFER_SIZE_LOG> buffer1_i_len,
-                    const ap_uint<32> *buffer2_i, const ap_uint<LOCATION_BUFFER_SIZE_LOG> buffer2_i_len,
-                    const ap_uint<1> buffer_sel, ap_uint<32> *buffer_o, ap_uint<OUT_SIZE_LOG> &buffer_o_len);
-
-void write_locs(ap_uint<32> *locs_o, const ap_uint<32> *locs_buffer, const ap_uint<OUT_SIZE_LOG> locs_len,
-                ap_uint<OUT_SIZE_LOG> &locs_len_o);
+void adjacency_test(const ap_uint<32> *buffer_i, const ap_uint<LOCATION_BUFFER_SIZE_LOG> buffer_len_i,
+                    ap_uint<32> *buffer_o, ap_uint<OUT_SIZE_LOG> &buffer_len_o);
+void get_locations(const min_stra_v p_i, const ap_uint<32> *h, const ap_uint<32> *location, ap_uint<32> *locs_o,
+                   ap_uint<OUT_SIZE_LOG> &locs_len_o);
+void write_locations(ap_uint<32> *locs_o, const ap_uint<32> *locs_buffer, const ap_uint<OUT_SIZE_LOG> locs_len,
+                     ap_uint<OUT_SIZE_LOG> &locs_len_o);
 #endif
