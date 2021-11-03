@@ -113,11 +113,9 @@ LOOP_push_min_stra:
 	for (size_t i = 0; i < p.n; i++) {
 #pragma HLS loop_tripcount min = 0 max = 100 // READ_LEN
 		if (p.a[i] == min_stra) {
-			flag = 0;
+			return;
 		}
 	}
-	if (flag) {
-		p.a[p.n] = min_stra;
-		p.n++;
-	}
+	p.a[p.n] = min_stra;
+	p.n++;
 }
