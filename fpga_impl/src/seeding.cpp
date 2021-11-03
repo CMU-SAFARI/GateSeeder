@@ -10,7 +10,7 @@ void seeding(const ap_uint<32> h[H_SIZE], const ap_uint<32> location[LS_SIZE], c
 #pragma HLS INTERFACE mode = m_axi port = read_i depth = 100    // LEN_READ & LEN_READ
 #pragma HLS INTERFACE mode = m_axi port = locs_o depth = 5000   // OUT_SIZE TODO
 #pragma HLS INTERFACE mode = s_axilite port = locs_len_o
-#pragma dataflow
+#pragma HLS dataflow
 	base_t read[READ_LEN];
 	min_stra_v p; // Buffer which stores the minimizers and their strand
 	ap_uint<32> locs[LOCATION_BUFFER_SIZE];
