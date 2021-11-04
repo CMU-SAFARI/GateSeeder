@@ -17,11 +17,13 @@ void seeding(const ap_uint<32> h[H_SIZE], const ap_uint<32> location[LS_SIZE], c
 	ap_uint<MIN_STRA_SIZE_LOG> p_l;
 	ap_uint<32> locs[OUT_SIZE];
 	ap_uint<OUT_SIZE_LOG> locs_len;
-
-	read_read(read, read_i);
-	extract_minimizers(read, p, p_l);
-	get_locations(p, p_l, h, location, locs, locs_len);
-	write_locations(locs_o, locs, locs_len, locs_len_o);
+#pragma HLS STREAM variable = p type = pipo depth = 100 // MIN_STRA_SIZE
+#pragma HLS STREAM variable                       = read
+#pragma HLS STREAM variable                       = locs
+        read_read(read, read_i);
+        extract_minimizers(read, p, p_l);
+        get_locations(p, p_l, h, location, locs, locs_len);
+        write_locations(locs_o, locs, locs_len, locs_len_o);
 }
 
 void read_read(base_t *read_buff, const base_t *read_i) {
