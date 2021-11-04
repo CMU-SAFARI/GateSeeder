@@ -26,7 +26,6 @@ void extract_minimizers(const base_t *read_i, min_stra_b_t *p_o, ap_uint<MIN_STR
 	ap_uint<1> same_min(0);
 LOOP_extract_minimizer:
 	for (size_t i = 0; i < READ_LEN; ++i) {
-		//#pragma HLS DATAFLOW
 		base_t c            = read_i[i];
 		min_stra_t hash_reg = {MAX_KMER, 0};
 		if (c < 4) {                                                 // not an ambiguous base
@@ -50,14 +49,12 @@ LOOP_extract_minimizer:
 			l = 0;
 		}
 		buff[buff_pos] = hash_reg;
-
 		if (l == W + K - 1) {
 			if (same_min) {
 				push_min_stra(p_o, p_lo, (min_stra_t){min_reg.minimizer, !min_reg.strand});
 				same_min = 0;
 			}
 		}
-
 		if (hash_reg.minimizer <= min_reg.minimizer) {
 			if (l >= W + K) {
 				push_min_stra(p_o, p_lo, min_reg);
@@ -100,7 +97,6 @@ LOOP_extract_minimizer:
 		}
 		buff_pos = (buff_pos == W - 1) ? 0 : buff_pos.to_uint() + 1;
 	}
-
 	if (min_reg.minimizer != MAX_KMER && !min_saved) {
 		push_min_stra(p_o, p_lo, min_reg);
 	}
@@ -109,13 +105,19 @@ LOOP_extract_minimizer:
 void push_min_stra(min_stra_b_t *p, ap_uint<MIN_STRA_SIZE_LOG> &p_l, min_stra_t val) {
 	min_stra_b_t min_stra = {val.minimizer, val.strand};
 	ap_uint<1> flag(1);
+	ap_uint<MIN_STRA_SIZE_LOG> i(0);
 LOOP_push_min_stra:
-	for (size_t i = 0; i < p_l; i++) {
+	// for (size_t i = 0; i < p_l; i++) {
+	while (i < p_l && flag) {
+#pragma HLS pipeline II        = 3
 #pragma HLS loop_tripcount min = 0 max = 100 // READ_LEN
 		if (p[i] == min_stra) {
-			return;
+			flag = 0;
 		}
+		i++;
 	}
-	p[p_l] = min_stra;
-	p_l++;
+	if (flag) {
+		p[p_l] = min_stra;
+		p_l++;
+	}
 }

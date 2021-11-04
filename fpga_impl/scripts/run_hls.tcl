@@ -47,7 +47,7 @@ if {$hls_exec == 1} {
 } else {
 	# Default is to exit after setup
 	csynth_design
-	#cosim_design -argv "$FASTQ $BIN $DAT"
+	#cosim_design -O -argv "$FASTQ $BIN $DAT"
 	#cosim_design -trace_level all
 }
 
