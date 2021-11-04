@@ -12,13 +12,15 @@ void seeding(const ap_uint<32> h[H_SIZE], const ap_uint<32> location[LS_SIZE], c
 #pragma HLS INTERFACE mode = s_axilite port = locs_len_o
 #pragma HLS dataflow
 	base_t read[READ_LEN];
-	min_stra_v p; // Buffer which stores the minimizers and their strand
-	ap_uint<32> locs[LOCATION_BUFFER_SIZE];
+	min_stra_b_t p[MIN_STRA_SIZE]; // Buffer which stores the minimizers
+	                               // and their strand
+	ap_uint<MIN_STRA_SIZE_LOG> p_l;
+	ap_uint<32> locs[OUT_SIZE];
 	ap_uint<OUT_SIZE_LOG> locs_len;
 
 	read_read(read, read_i);
-	extract_minimizers(read, p);
-	get_locations(p, h, location, locs, locs_len);
+	extract_minimizers(read, p, p_l);
+	get_locations(p, p_l, h, location, locs, locs_len);
 	write_locations(locs_o, locs, locs_len, locs_len_o);
 }
 
@@ -44,8 +46,8 @@ LOOP_write_locs:
 	locs_len_o = locs_len;
 }
 
-void get_locations(const min_stra_v p_i, const ap_uint<32> *h, const ap_uint<32> *location, ap_uint<32> *locs_o,
-                   ap_uint<OUT_SIZE_LOG> &locs_len_o) {
+void get_locations(const min_stra_b_t *p_i, const ap_uint<MIN_STRA_SIZE_LOG> p_li, const ap_uint<32> *h,
+                   const ap_uint<32> *location, ap_uint<32> *locs_o, ap_uint<OUT_SIZE_LOG> &locs_len_o) {
 	ap_uint<32> location_buffer1[LOCATION_BUFFER_SIZE];
 	ap_uint<32> location_buffer2[LOCATION_BUFFER_SIZE];
 	ap_uint<LOCATION_BUFFER_SIZE_LOG> location_buffer1_len(0);
@@ -54,17 +56,17 @@ void get_locations(const min_stra_v p_i, const ap_uint<32> *h, const ap_uint<32>
 	ap_uint<32> mem_buffer2[F];
 	ap_uint<F_LOG> mem_buffer1_len;
 	ap_uint<F_LOG> mem_buffer2_len;
-	for (size_t i = 0; i < p_i.n / 2; i++) {
+	for (size_t i = 0; i < p_li / 2; i++) {
 #pragma HLS loop_tripcount min = 0 max = 50 // READ_LEN / 2
-		read_locations(p_i.a[2 * i], mem_buffer1, mem_buffer1_len, h, location);
+		read_locations(p_i[2 * i], mem_buffer1, mem_buffer1_len, h, location);
 		merge_locations(location_buffer1, location_buffer1_len, location_buffer2, location_buffer2_len,
 		                mem_buffer1, mem_buffer1_len);
-		read_locations(p_i.a[2 * i + 1], mem_buffer2, mem_buffer2_len, h, location);
+		read_locations(p_i[2 * i + 1], mem_buffer2, mem_buffer2_len, h, location);
 		merge_locations(location_buffer2, location_buffer2_len, location_buffer1, location_buffer1_len,
 		                mem_buffer2, mem_buffer2_len);
 	}
-	if (p_i.n % 2) {
-		read_locations(p_i.a[p_i.n - 1], mem_buffer1, mem_buffer1_len, h, location);
+	if (p_li % 2) {
+		read_locations(p_i[p_li - 1], mem_buffer1, mem_buffer1_len, h, location);
 		merge_locations(location_buffer1, location_buffer1_len, location_buffer2, location_buffer2_len,
 		                mem_buffer1, mem_buffer1_len);
 		adjacency_test(location_buffer2, location_buffer2_len, locs_o, locs_len_o);
