@@ -3,14 +3,14 @@
 #include <stddef.h>
 
 void seeding(const ap_uint<32> h_m[H_SIZE], const ap_uint<32> loc_stra_m[LS_SIZE], const base_t read_i[READ_LEN],
-             ap_uint<32> *locs_o, ap_uint<OUT_SIZE_LOG> &locs_lo) {
+             ap_uint<32> *locs_o, ap_uint<OUT_SIZE_LOG> *locs_lo) {
 #pragma HLS INTERFACE mode = m_axi port = h_m bundle = h_m
 #pragma HLS INTERFACE mode = m_axi port = loc_stra_m bundle = loc_stra_m
 #pragma HLS INTERFACE mode = m_axi port = read_i bundle = read_i
 #pragma HLS INTERFACE mode = ap_hs port = read_i
 #pragma HLS INTERFACE mode = m_axi port = locs_o depth = 5000 bundle = locs_o // OUT_SIZE TODO
 //#pragma HLS INTERFACE mode = ap_ovld port = locs_o                            // OUT_SIZE TODO
-#pragma HLS INTERFACE mode = s_axilite port = locs_lo
+#pragma HLS INTERFACE mode = m_axi port = locs_lo
 	//#pragma HLS INTERFACE mode = ap_ovld port = locs_lo
 
 #pragma HLS dataflow
@@ -160,12 +160,12 @@ LOOP_adjacency_test:
 }
 
 void write_locations(const ap_uint<32> *locs_i, const ap_uint<OUT_SIZE_LOG> locs_li, ap_uint<32> *locs_o,
-                     ap_uint<OUT_SIZE_LOG> &locs_lo) {
+                     ap_uint<OUT_SIZE_LOG> *locs_lo) {
 LOOP_write_locs:
 	for (size_t i = 0; i < locs_li; i++) {
 #pragma HLS PIPELINE II        = 1
 #pragma HLS loop_tripcount min = 0 max = 5000 // OUT_SIZE
 		locs_o[i] = locs_i[i];
 	}
-	locs_lo = locs_li;
+	*locs_lo = locs_li;
 }

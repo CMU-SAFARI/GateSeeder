@@ -61,7 +61,7 @@ vector<out_loc_t> drive_sim(ifstream &ifs_read, ifstream &ifs_idx) {
 			// DUT
 			ap_uint<32> locs_buffer[OUT_SIZE];
 			ap_uint<OUT_SIZE_LOG> locs_len;
-			seeding(idx.h, idx.location, base_buffer, locs_buffer, locs_len);
+			seeding(idx.h, idx.location, base_buffer, locs_buffer, &locs_len);
 
 			read.n    = locs_len.to_uint();
 			read.locs = new uint32_t[read.n];
