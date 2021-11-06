@@ -2,13 +2,16 @@
 #include "extraction.hpp"
 #include <stddef.h>
 
-void seeding(const ap_uint<32> h_m[H_SIZE], const ap_uint<32> loc_stra_m[LS_SIZE], const base_t *read_i,
+void seeding(const ap_uint<32> h_m[H_SIZE], const ap_uint<32> loc_stra_m[LS_SIZE], const base_t read_i[READ_LEN],
              ap_uint<32> *locs_o, ap_uint<OUT_SIZE_LOG> &locs_lo) {
 #pragma HLS INTERFACE mode = m_axi port = h_m bundle = h_m
 #pragma HLS INTERFACE mode = m_axi port = loc_stra_m bundle = loc_stra_m
-#pragma HLS INTERFACE mode = m_axi port = read_i depth = 100 bundle = read_i  // LEN_READ & LEN_READ
+#pragma HLS INTERFACE mode = m_axi port = read_i bundle = read_i
+#pragma HLS INTERFACE mode = ap_hs port = read_i
 #pragma HLS INTERFACE mode = m_axi port = locs_o depth = 5000 bundle = locs_o // OUT_SIZE TODO
+//#pragma HLS INTERFACE mode = ap_ovld port = locs_o                            // OUT_SIZE TODO
 #pragma HLS INTERFACE mode = s_axilite port = locs_lo
+//#pragma HLS INTERFACE mode = ap_ovld port = locs_lo
 
 #pragma HLS dataflow
 	base_t read[READ_LEN];
@@ -16,8 +19,9 @@ void seeding(const ap_uint<32> h_m[H_SIZE], const ap_uint<32> loc_stra_m[LS_SIZE
 	ap_uint<MIN_STRA_SIZE_LOG> p_l;
 	ap_uint<32> locs[OUT_SIZE];
 	ap_uint<OUT_SIZE_LOG> locs_l;
-#pragma HLS STREAM variable = read
-#pragma HLS STREAM variable = p type = pipo depth = 100 // MIN_STRA_SIZE
+#pragma HLS STREAM variable        = read
+#pragma HLS ARRAY_RESHAPE variable = p type = complete dim = 1
+#pragma HLS STREAM variable = p type = fifo depth = 2
 #pragma HLS STREAM variable                       = locs
         read_read(read_i, read);
         extract_minimizers(read, p, p_l);

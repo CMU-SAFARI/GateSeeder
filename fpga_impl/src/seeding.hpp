@@ -4,8 +4,6 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wall"
 #pragma GCC diagnostic ignored "-Wuninitialized"
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#pragma GCC diagnostic ignored "-Wint-in-bool-context"
 #include "ap_int.h"
 #pragma GCC diagnostic pop
 

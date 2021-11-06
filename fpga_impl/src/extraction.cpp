@@ -106,18 +106,16 @@ void push_min_stra(min_stra_b_t *p, ap_uint<MIN_STRA_SIZE_LOG> &p_l, min_stra_t 
 	min_stra_b_t min_stra = {val.minimizer, val.strand};
 	ap_uint<1> flag(1);
 	ap_uint<MIN_STRA_SIZE_LOG> i(0);
+	p[p_l] = min_stra;
 LOOP_push_min_stra:
-	// for (size_t i = 0; i < p_l; i++) {
-	while (i < p_l && flag) {
-#pragma HLS pipeline II        = 3
+	for (size_t i = 0; i < READ_LEN; i++) {
 #pragma HLS loop_tripcount min = 0 max = 100 // READ_LEN
-		if (p[i] == min_stra) {
+#pragma HLS unroll
+		if (p[i] == min_stra && i < p_l) {
 			flag = 0;
 		}
-		i++;
 	}
 	if (flag) {
-		p[p_l] = min_stra;
 		p_l++;
 	}
 }
