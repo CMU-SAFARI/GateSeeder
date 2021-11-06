@@ -2,6 +2,7 @@
 *.o
 main
 sim.x
-fpga_impl/work
+fpga_impl/vitis_hls
 fpga_impl/vitis_hls.log
 res/
+*.xo

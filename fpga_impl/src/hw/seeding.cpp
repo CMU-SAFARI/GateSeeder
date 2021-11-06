@@ -11,7 +11,7 @@ void seeding(const ap_uint<32> h_m[H_SIZE], const ap_uint<32> loc_stra_m[LS_SIZE
 #pragma HLS INTERFACE mode = m_axi port = locs_o depth = 5000 bundle = locs_o // OUT_SIZE TODO
 //#pragma HLS INTERFACE mode = ap_ovld port = locs_o                            // OUT_SIZE TODO
 #pragma HLS INTERFACE mode = s_axilite port = locs_lo
-//#pragma HLS INTERFACE mode = ap_ovld port = locs_lo
+	//#pragma HLS INTERFACE mode = ap_ovld port = locs_lo
 
 #pragma HLS dataflow
 	base_t read[READ_LEN];

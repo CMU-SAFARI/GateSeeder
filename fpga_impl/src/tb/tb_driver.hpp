@@ -1,7 +1,7 @@
 #ifndef TB_DRIVER_HPP
 #define TB_DRIVER_HPP
 
-#include "seeding.hpp"
+#include "../hw/seeding.hpp"
 #include <fstream>
 #include <stdint.h>
 #include <vector>
