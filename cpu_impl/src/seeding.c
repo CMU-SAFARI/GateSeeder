@@ -5,8 +5,7 @@
 #include <string.h>
 #define LOCATION_BUFFER_SIZE 200000
 
-void seeding(index_t idx, char *read, const size_t len, const unsigned int w, const unsigned int k,
-             const unsigned int b, const unsigned int min_t, const unsigned int loc_r, location_v *locs) {
+void seeding(index_t idx, char *read, location_v *locs) {
 	min_stra_v p; // Buffer which stores the minimizers and their strand
 	p.n = 0;
 	extract_minimizers(read, &p);
@@ -71,7 +70,7 @@ void seeding(index_t idx, char *read, const size_t len, const unsigned int w, co
 	size_t n = location_buffer_len[1 - p.n % 2];
 	// Adjacency test
 	locs->n = 0;
-	if (n >= min_t) {
+	if (n >= 3) {
 		buffer_t *buffer = (buffer_t *)malloc(sizeof(buffer_t) * n);
 		for (size_t i = 0; i < n; i++) {
 			buffer[i].location = location_buffer[1 - p.n % 2][i] & (UINT32_MAX - 1);
@@ -81,11 +80,11 @@ void seeding(index_t idx, char *read, const size_t len, const unsigned int w, co
 		size_t loc_counter  = 1;
 		size_t loc_offset   = 1;
 		size_t init_loc_idx = 0;
-		while (init_loc_idx < n - min_t + 1) {
-			if (buffer[init_loc_idx + loc_offset].location - buffer[init_loc_idx].location < loc_r) {
+		while (init_loc_idx < n - MIN_T + 1) {
+			if (buffer[init_loc_idx + loc_offset].location - buffer[init_loc_idx].location < LOC_R) {
 				if (buffer[init_loc_idx + loc_offset].strand == buffer[init_loc_idx].strand) {
 					loc_counter++;
-					if (loc_counter == min_t) {
+					if (loc_counter == MIN_T) {
 						loc_buffer[locs->n] = buffer[init_loc_idx].location;
 						locs->n++;
 						init_loc_idx++;

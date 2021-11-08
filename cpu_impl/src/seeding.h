@@ -1,12 +1,14 @@
 #ifndef SEEDING_H
 #define SEEDING_H
 
-#include "index.h"
+#include "parse.h"
 #include <stdint.h>
 #define READ_LEN 100
 #define W 12
 #define K 18
 #define B 26
+#define MIN_T 3
+#define LOC_R 150
 
 typedef struct {
 	size_t n;
@@ -14,16 +16,9 @@ typedef struct {
 } location_v;
 
 typedef struct {
-	size_t n;
-	char **a;
-	char **name;
-} read_v;
-
-typedef struct {
 	uint32_t location;
 	uint8_t strand;
 } buffer_t;
 
-void seeding(index_t idx, char *read, const size_t len, const unsigned int w, const unsigned int k,
-             const unsigned int b, const unsigned int min_t, const unsigned int loc_r, location_v *locs);
+void seeding(index_t idx, char *read, location_v *locs);
 #endif
