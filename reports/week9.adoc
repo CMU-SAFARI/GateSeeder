@@ -4,7 +4,7 @@
 
 * Finish the  kernel
 * Start working on the host program
-* Start optimized CPU implementation
+* Start optimization of the CPU implementation
 
 == Achievements
 
