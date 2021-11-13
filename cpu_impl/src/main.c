@@ -48,21 +48,12 @@ int main(int argc, char *argv[]) {
 	parse_fastq(fp_fastq, &reads);
 	fprintf(stderr, "reads `%s` parsed\n", argv[optind]);
 	fputs("\t SEEDING STARTS\n", stderr);
-	float startTime = (float)clock() / CLOCKS_PER_SEC;
-	for (size_t i = 0; i < reads.n; i++) {
-		location_v locs;
-		seeding(idx, reads.a[i], &locs);
-		for (size_t j = 0; j < locs.n; j++) {
-			if (j == 0) {
-				printf("%u", locs.a[0]);
-			} else {
-				printf("\t%u", locs.a[j]);
-			}
-		}
-		puts("");
-	}
-	float endTime = (float)clock() / CLOCKS_PER_SEC;
+	struct timespec start, finish;
+	clock_gettime(CLOCK_MONOTONIC, &start);
+	read_seeding(idx, reads);
+	clock_gettime(CLOCK_MONOTONIC, &finish);
 	fputs("\t SEEDING IS OVER\n", stderr);
-	fprintf(stderr, "Time: %f sec\n", endTime - startTime);
+	fprintf(stderr, "Time: %f sec\n",
+	        finish.tv_sec - start.tv_sec + (finish.tv_nsec - start.tv_nsec) / 1000000000.0);
 	return 0;
 }

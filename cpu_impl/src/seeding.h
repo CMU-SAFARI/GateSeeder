@@ -9,6 +9,8 @@
 #define B 26
 #define MIN_T 3
 #define LOC_R 150
+#define LOCATION_BUFFER_SIZE 200000
+#define NB_THREADS 8
 
 typedef struct {
 	size_t n;
@@ -20,5 +22,18 @@ typedef struct {
 	uint8_t strand;
 } buffer_t;
 
-void seeding(index_t idx, char *read, location_v *locs);
+#ifdef MULTI_THREAD
+typedef struct {
+	index_t idx;
+	read_v reads;
+	size_t start;
+	size_t end;
+} thread_param_t;
+#endif
+
+void read_seeding(const index_t idx, const read_v reads);
+#ifdef MULTI_THREAD
+void *thread_read_seeding(void *arg);
+#endif
+void seeding(const index_t idx, const char *read, location_v *locs);
 #endif

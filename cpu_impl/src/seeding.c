@@ -1,11 +1,50 @@
 #include "seeding.h"
 #include "extraction.h"
-#include <assert.h>
+#include <pthread.h>
 #include <stdlib.h>
-#include <string.h>
-#define LOCATION_BUFFER_SIZE 200000
 
-void seeding(index_t idx, char *read, location_v *locs) {
+#ifdef MULTI_THREAD
+void read_seeding(const index_t idx, const read_v reads) {
+	pthread_t threads[NB_THREADS];
+	thread_param_t params[NB_THREADS];
+	for (size_t i = 0; i < NB_THREADS; i++) {
+		params[i].idx   = idx;
+		params[i].reads = reads;
+		params[i].start = i * reads.n / NB_THREADS;
+		params[i].end   = (i + 1) * reads.n / NB_THREADS;
+		pthread_create(&threads[i], NULL, thread_read_seeding, (void *)&params[i]);
+	}
+	for (size_t i = 0; i < NB_THREADS; i++) {
+		pthread_join(threads[i], NULL);
+	}
+}
+
+void *thread_read_seeding(void *arg) {
+	thread_param_t *param = (thread_param_t *)arg;
+	for (size_t i = param->start; i < param->end; i++) {
+		location_v locs;
+		seeding(param->idx, param->reads.a[i], &locs);
+	}
+	return (void *)NULL;
+}
+#else
+void read_seeding(const index_t idx, const read_v reads) {
+	for (size_t i = 0; i < reads.n; i++) {
+		location_v locs;
+		seeding(idx, reads.a[i], &locs);
+		for (size_t j = 0; j < locs.n; j++) {
+			if (j == 0) {
+				printf("%u", locs.a[0]);
+			} else {
+				printf("\t%u", locs.a[j]);
+			}
+		}
+		puts("");
+	}
+}
+#endif
+
+void seeding(const index_t idx, const char *read, location_v *locs) {
 	min_stra_v p; // Buffer which stores the minimizers and their strand
 	p.n = 0;
 	extract_minimizers(read, &p);

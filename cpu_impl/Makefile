@@ -2,7 +2,7 @@ SRC_DIR		:= src
 CC			:= gcc
 
 DEPFLAGS	= -MD -MP
-CFLAGS		= -g -O3 $(DEPFLAGS) -Wall -Werror
+CFLAGS		= -g -O3 $(DEPFLAGS) -Wall -Werror -DMULTI_THREAD
 LDLIBS		= -pthread -lm
 VPATH		= $(SRC_DIR)
 EXE			= seeding
