@@ -37,21 +37,24 @@ void *thread_read_seeding(void *arg) {
 	}
 	return (void *)NULL;
 }
+
 #else
-void read_seeding(const index_t idx, const read_v reads) {
+
+void read_seeding(const index_t idx, const read_v reads, FILE *fp) {
 	for (size_t i = 0; i < reads.n; i++) {
 		location_v locs;
 		seeding(idx, reads.a[i], &locs);
 		for (size_t j = 0; j < locs.n; j++) {
 			if (j == 0) {
-				printf("%u", locs.a[0]);
+				fprintf(fp, "%u", locs.a[0]);
 			} else {
-				printf("\t%u", locs.a[j]);
+				fprintf(fp, "\t%u", locs.a[j]);
 			}
 		}
-		puts("");
+		fputs("\n", fp);
 	}
 }
+
 #endif
 
 void seeding(const index_t idx, const char *read, location_v *locs) {

@@ -15,6 +15,7 @@ int main(int argc, char *argv[]) {
 #ifdef MULTI_THREAD
 	FILE *fp_o[NB_THREADS];
 #else
+	FILE *fp_o;
 #endif
 	while ((option = getopt(argc, argv, "i:o:")) != -1) {
 		switch (option) {
@@ -29,10 +30,10 @@ int main(int argc, char *argv[]) {
 				idx_flag = 1;
 				break;
 			case 'o':
+				strcpy(fp_name, optarg);
 #ifdef MULTI_THREAD
 				for (unsigned i = 0; i < NB_THREADS; i++) {
 					char name_buf[200];
-					strcpy(fp_name, optarg);
 					sprintf(name_buf, "%s_%u.dat", fp_name, i);
 					fp_o[i] = fopen(name_buf, "w");
 					if (fp_o[i] == NULL) {
@@ -41,6 +42,13 @@ int main(int argc, char *argv[]) {
 					}
 				}
 #else
+				char name_buf[200];
+				sprintf(name_buf, "%s.dat", fp_name);
+				fp_o = fopen(name_buf, "w");
+				if (fp_o == NULL) {
+					fprintf(stderr, "Error: cannot open `%s`\n", fp_name);
+					return 1;
+				}
 #endif
 				o_flag = 1;
 				break;
@@ -76,9 +84,8 @@ int main(int argc, char *argv[]) {
 		printf("\t * %s_%u.dat written\n", fp_name, i);
 	}
 #else
+	printf("\t * %s.dat written\n", fp_name);
 #endif
-
-	clock_gettime(CLOCK_MONOTONIC, &finish);
 	puts("\t SEEDING FINISHED");
 	printf("Time: %f sec\n", finish.tv_sec - start.tv_sec + (finish.tv_nsec - start.tv_nsec) / 1000000000.0);
 	return 0;

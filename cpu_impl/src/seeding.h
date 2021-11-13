@@ -35,8 +35,12 @@ typedef struct {
 
 void read_seeding(const index_t idx, const read_v reads, FILE *fp[NB_THREADS]);
 void *thread_read_seeding(void *arg);
+
 #else
-void read_seeding(const index_t idx, const read_v reads);
+
+void read_seeding(const index_t idx, const read_v reads, FILE *fp);
+
 #endif
+
 void seeding(const index_t idx, const char *read, location_v *locs);
 #endif
