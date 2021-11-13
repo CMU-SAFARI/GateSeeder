@@ -14,67 +14,47 @@ void seeding(index_t idx, char *read, location_v *locs) {
 	                                                   // the locations and the
 	                                                   // corresponding strand
 	size_t location_buffer_len[2] = {0};
-	uint32_t mem_buffer[2][2000]; // Buffers used to store the locations(and the
-	                              // corresponding strand) returned by the index
-	uint16_t mem_buffer_len[2];
+	size_t sel                    = 0;
 
-	for (size_t i = 0; i <= p.n; i++) {
-		unsigned char sel = i % 2;
-		// Query the locations and the strands from the index and store them
-		// into one of mem_buffer
-		if (i != p.n) {
-			size_t mem_buffer_i = 0;
-			uint32_t minimizer  = p.a[i].minimizer;
-			uint32_t min        = (minimizer == 0) ? 0 : idx.h[minimizer - 1];
-			uint32_t max        = idx.h[minimizer];
-			mem_buffer_len[sel] = max - min;
-			for (uint32_t j = min; j < max; j++) {
-				mem_buffer[sel][mem_buffer_i] = idx.location[j] ^ p.a[i].strand;
-				mem_buffer_i++;
-			}
-		}
-		// Merge the previously loaded mem_buffer with one of the
-		// location_buffer in the other location_buffer
-		if (i != 0) {
-			size_t loc_i = 0;
-			size_t mem_i = 0;
-			size_t len   = 0;
-			while (loc_i < location_buffer_len[sel] && mem_i < mem_buffer_len[1 - sel]) {
-				if (location_buffer[sel][loc_i] <= mem_buffer[1 - sel][mem_i]) {
-					location_buffer[1 - sel][len] = location_buffer[sel][loc_i];
-					len++;
-					loc_i++;
-				} else {
-					location_buffer[1 - sel][len] = mem_buffer[1 - sel][mem_i];
-					len++;
-					mem_i++;
-				}
-			}
-			if (loc_i == location_buffer_len[sel]) {
-				while (mem_i != mem_buffer_len[1 - sel]) {
-					location_buffer[1 - sel][len] = mem_buffer[1 - sel][mem_i];
-					len++;
-					mem_i++;
-				}
+	for (size_t i = 0; i < p.n; i++) {
+		uint32_t minimizer           = p.a[i].minimizer;
+		uint32_t min                 = (minimizer == 0) ? 0 : idx.h[minimizer - 1];
+		uint32_t max                 = idx.h[minimizer];
+		size_t loc_j                 = 0;
+		size_t mem_j                 = min;
+		location_buffer_len[1 - sel] = 0;
+		while (loc_j < location_buffer_len[sel] && mem_j < max) {
+			uint32_t mem_location = idx.location[mem_j] ^ p.a[i].strand;
+			if (location_buffer[sel][loc_j] <= mem_location) {
+				location_buffer[1 - sel][location_buffer_len[1 - sel]] = location_buffer[sel][loc_j];
+				loc_j++;
 			} else {
-				while (loc_i != location_buffer_len[sel]) {
-					location_buffer[1 - sel][len] = location_buffer[sel][loc_i];
-					len++;
-					loc_i++;
-				}
+				location_buffer[1 - sel][location_buffer_len[1 - sel]] = mem_location;
+				mem_j++;
 			}
-			location_buffer_len[1 - sel] = len;
+			location_buffer_len[1 - sel]++;
 		}
+		while (loc_j < location_buffer_len[sel]) {
+			location_buffer[1 - sel][location_buffer_len[1 - sel]] = location_buffer[sel][loc_j];
+			loc_j++;
+			location_buffer_len[1 - sel]++;
+		}
+		while (mem_j < max) {
+			location_buffer[1 - sel][location_buffer_len[1 - sel]] = idx.location[mem_j] ^ p.a[i].strand;
+			mem_j++;
+			location_buffer_len[1 - sel]++;
+		}
+		sel = 1 - sel;
 	}
 
-	size_t n = location_buffer_len[1 - p.n % 2];
 	// Adjacency test
-	locs->n = 0;
+	size_t n = location_buffer_len[sel];
+	locs->n  = 0;
 	if (n >= 3) {
-		buffer_t *buffer = (buffer_t *)malloc(sizeof(buffer_t) * n);
+		buffer_t buffer[LOCATION_BUFFER_SIZE];
 		for (size_t i = 0; i < n; i++) {
-			buffer[i].location = location_buffer[1 - p.n % 2][i] & (UINT32_MAX - 1);
-			buffer[i].strand   = location_buffer[1 - p.n % 2][i] & 1;
+			buffer[i].location = location_buffer[sel][i] & (UINT32_MAX - 1);
+			buffer[i].strand   = location_buffer[sel][i] & 1;
 		}
 		uint32_t loc_buffer[LOCATION_BUFFER_SIZE];
 		size_t loc_counter  = 1;
@@ -99,9 +79,8 @@ void seeding(index_t idx, char *read, location_v *locs) {
 			}
 			loc_offset++;
 		}
-		free(buffer);
 
-		// Store the solution
+		// Store the locations
 		locs->a = (uint32_t *)malloc(locs->n * sizeof(uint32_t));
 		for (size_t i = 0; i < locs->n; i++) {
 			locs->a[i] = loc_buffer[i];

@@ -28,11 +28,11 @@ static inline uint64_t hash64(uint64_t key) {
 void extract_minimizers(const char *read, min_stra_v *p) {
 
 	uint64_t kmer[2] = {0, 0};
-	min_stra_reg_t buff[256]; // size:  w
-	unsigned int l = 0;       // l counts the number of bases and is reset to 0 each
-	                          // time there is an ambiguous base
+	min_stra_reg_t buff[256];
+	unsigned int l = 0; // l counts the number of bases and is reset to 0 each
+	                    // time there is an ambiguous base
 
-	size_t buff_pos         = 0; // size: log2(size(buff)) + 1
+	size_t buff_pos         = 0;
 	unsigned int min_pos    = 0;
 	min_stra_reg_t min_reg  = {.minimizer = UINT64_MAX, .strand = 0};
 	unsigned char min_saved = 0;
@@ -121,7 +121,6 @@ void extract_minimizers(const char *read, min_stra_v *p) {
 		}
 		buff_pos = (buff_pos == W - 1) ? 0 : buff_pos + 1;
 	}
-
 	if (min_reg.minimizer != UINT64_MAX && !min_saved) {
 		push_min_stra(p, min_reg.minimizer, min_reg.strand);
 	}

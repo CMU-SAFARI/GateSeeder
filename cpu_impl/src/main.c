@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
 	parse_fastq(fp_fastq, &reads);
 	fprintf(stderr, "reads `%s` parsed\n", argv[optind]);
 	fputs("\t SEEDING STARTS\n", stderr);
-	float startTime = (float) clock()/CLOCKS_PER_SEC;
+	float startTime = (float)clock() / CLOCKS_PER_SEC;
 	for (size_t i = 0; i < reads.n; i++) {
 		location_v locs;
 		seeding(idx, reads.a[i], &locs);
@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
 		}
 		puts("");
 	}
-	float endTime = (float) clock()/CLOCKS_PER_SEC;
+	float endTime = (float)clock() / CLOCKS_PER_SEC;
 	fputs("\t SEEDING IS OVER\n", stderr);
 	fprintf(stderr, "Time: %f sec\n", endTime - startTime);
 	return 0;
