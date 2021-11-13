@@ -1,25 +1,21 @@
 #include "parse.h"
 #include "seeding.h"
 #include "unistd.h"
+#include <stdio.h>
 #include <time.h>
 
 int main(int argc, char *argv[]) {
 	int option;
-	exp_loc_v loc;
 	index_t idx;
-	FILE *fp_dat = NULL;
-	FILE *fp_idx = NULL;
-	while ((option = getopt(argc, argv, "t:i:")) != -1) {
+	FILE *fp_idx;
+	char idx_flag = 0;
+	char o_flag   = 0;
+#ifdef MULTI_THREAD
+	FILE *fp_o[NB_THREADS];
+#else
+#endif
+	while ((option = getopt(argc, argv, "i:o:")) != -1) {
 		switch (option) {
-			case 't':
-				fp_dat = fopen(optarg, "r");
-				if (fp_dat == NULL) {
-					fprintf(stderr, "Error: cannot open `%s`\n", optarg);
-					return 1;
-				}
-				parse_dat(fp_dat, &loc);
-				fprintf(stderr, "golden model `%s` parsed\n", optarg);
-				break;
 			case 'i':
 				fp_idx = fopen(optarg, "rb");
 				if (fp_idx == NULL) {
@@ -28,11 +24,31 @@ int main(int argc, char *argv[]) {
 				}
 				parse_index(fp_idx, &idx);
 				fprintf(stderr, "index `%s` parsed\n", optarg);
+				idx_flag = 1;
+				break;
+			case 'o':
+#ifdef MULTI_THREAD
+				for (unsigned i = 0; i < NB_THREADS; i++) {
+					char name_buf[200];
+					sprintf(name_buf, "%s_%u.dat", optarg, i);
+					fp_o[i] = fopen(name_buf, "w");
+					if (fp_o[i] == NULL) {
+						fprintf(stderr, "Error: cannot open `%s`\n", optarg);
+						return 1;
+					}
+				}
+#else
+#endif
+				o_flag = 1;
 				break;
 		}
 	}
-	if (fp_idx == NULL) {
-		fprintf(stderr, "Error: expected index file (`-i`)");
+	if (!idx_flag) {
+		fputs("Error: expected index file (with `-i` option)\n", stderr);
+		return 1;
+	}
+	if (!o_flag) {
+		fputs("Error: expected output file (with `-o` option)\n", stderr);
 		return 1;
 	}
 	if (optind >= argc) {
@@ -50,7 +66,12 @@ int main(int argc, char *argv[]) {
 	fputs("\t SEEDING STARTS\n", stderr);
 	struct timespec start, finish;
 	clock_gettime(CLOCK_MONOTONIC, &start);
-	read_seeding(idx, reads);
+
+#ifdef MULTI_THREAD
+	read_seeding(idx, reads, fp_o);
+#else
+#endif
+
 	clock_gettime(CLOCK_MONOTONIC, &finish);
 	fputs("\t SEEDING IS OVER\n", stderr);
 	fprintf(stderr, "Time: %f sec\n",

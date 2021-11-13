@@ -15,9 +15,9 @@ void parse_dat(FILE *fp, exp_loc_v *loc) {
 	fread(buffer, sizeof(char), BUFFER_SIZE, fp);
 	if (!feof(fp)) {
 		fputs("Reading error: buffer too small\n", stderr);
-		fclose(fp);
 		exit(3);
 	}
+	fclose(fp);
 	loc->n               = 0;
 	loc->loc             = NULL;
 	uint32_t *loc_buffer = NULL;
@@ -96,7 +96,6 @@ void parse_index(FILE *fp, index_t *idx) {
 	fread(&eof, sizeof(uint8_t), 1, fp);
 	if (!feof(fp)) {
 		fputs("Reading error: wrong file format\n", stderr);
-		fclose(fp);
 		exit(3);
 	}
 
@@ -114,9 +113,9 @@ void parse_fastq(FILE *fp, read_v *reads) {
 	fread(read_buffer, sizeof(char), BUFFER_SIZE, fp);
 	if (!feof(fp)) {
 		fputs("Reading error: buffer too small\n", stderr);
-		fclose(fp);
 		exit(3);
 	}
+	fclose(fp);
 
 	reads->n    = 0;
 	reads->a    = NULL;
@@ -185,6 +184,5 @@ void parse_fastq(FILE *fp, read_v *reads) {
 		i++;
 	}
 	free(read_buffer);
-	fclose(fp);
 	return;
 }

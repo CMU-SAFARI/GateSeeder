@@ -1,10 +1,11 @@
 #include "seeding.h"
 #include "extraction.h"
-#include <pthread.h>
 #include <stdlib.h>
 
 #ifdef MULTI_THREAD
-void read_seeding(const index_t idx, const read_v reads) {
+#include <pthread.h>
+
+void read_seeding(const index_t idx, const read_v reads, FILE *fp[NB_THREADS]) {
 	pthread_t threads[NB_THREADS];
 	thread_param_t params[NB_THREADS];
 	for (size_t i = 0; i < NB_THREADS; i++) {
@@ -12,6 +13,7 @@ void read_seeding(const index_t idx, const read_v reads) {
 		params[i].reads = reads;
 		params[i].start = i * reads.n / NB_THREADS;
 		params[i].end   = (i + 1) * reads.n / NB_THREADS;
+		params[i].fp    = fp[i];
 		pthread_create(&threads[i], NULL, thread_read_seeding, (void *)&params[i]);
 	}
 	for (size_t i = 0; i < NB_THREADS; i++) {
@@ -24,6 +26,14 @@ void *thread_read_seeding(void *arg) {
 	for (size_t i = param->start; i < param->end; i++) {
 		location_v locs;
 		seeding(param->idx, param->reads.a[i], &locs);
+		for (size_t j = 0; j < locs.n; j++) {
+			if (j == 0) {
+				fprintf(param->fp, "%u", locs.a[0]);
+			} else {
+				fprintf(param->fp, "\t%u", locs.a[j]);
+			}
+		}
+		fputs("\n", param->fp);
 	}
 	return (void *)NULL;
 }
