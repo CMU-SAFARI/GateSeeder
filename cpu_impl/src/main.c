@@ -87,6 +87,7 @@ int main(int argc, char *argv[]) {
 	printf("\t * %s.dat written\n", fp_name);
 #endif
 	puts("\t SEEDING FINISHED");
-	printf("Time: %f sec\n", finish.tv_sec - start.tv_sec + (finish.tv_nsec - start.tv_nsec) / 1000000000.0);
+	printf("EXECUTION TIME: %f sec\n",
+	       finish.tv_sec - start.tv_sec + (finish.tv_nsec - start.tv_nsec) / 1000000000.0);
 	return 0;
 }

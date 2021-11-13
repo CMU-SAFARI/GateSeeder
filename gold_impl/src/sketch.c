@@ -50,8 +50,6 @@ static inline int tq_shift(tiny_queue_t *q) {
  * @param len    length of $str
  * @param w      find a minimizer for every $w consecutive k-mers
  * @param k      k-mer size
- * @param rid    reference ID; will be copied to the output $p array
- * @param is_hpc homopolymer-compressed or not
  * @param p      minimizers
  *               p->a[i].x = kMer<<8 | kmerSpan
  *               p->a[i].y = rid<<32 | lastPos<<1 | strand
@@ -60,7 +58,8 @@ static inline int tq_shift(tiny_queue_t *q) {
  * the bottom strand. Callers may want to set "p->n = 0"; otherwise results are
  * appended to p
  */
-void mm_sketch(void *km, const char *str, unsigned int len, int w, int k, const unsigned int b, mm72_v *p) {
+void mm_sketch(void *km, const char *str, unsigned int len, int w, int k, const unsigned int b, mm72_v *p,
+               uint32_t offset) {
 	uint64_t shift1 = 2 * (k - 1), mask = (1ULL << 2 * k) - 1, kmer[2] = {0, 0};
 	uint64_t mask1    = (1ULL << b) - 1;
 	uint64_t last_loc = UINT64_MAX;
@@ -94,7 +93,7 @@ void mm_sketch(void *km, const char *str, unsigned int len, int w, int k, const 
 		} else {
 			if (l >= w + k - 1 && min.x != UINT64_MAX) {
 				val.minimizer = (min.x >> 8) & mask1;
-				val.location  = min.y >> 1;
+				val.location  = (min.y >> 1) + offset;
 				last_loc      = min.y;
 				val.strand    = min.y & 1;
 				kv_push(mm72_t, km, *p, val);
@@ -110,14 +109,14 @@ void mm_sketch(void *km, const char *str, unsigned int len, int w, int k, const 
 			for (j = buf_pos + 1; j < w; ++j)
 				if (min.x == buf[j].x && buf[j].y != min.y) {
 					val.minimizer = (buf[j].x >> 8) & mask1;
-					val.location  = buf[j].y >> 1;
+					val.location  = (buf[j].y >> 1) + offset;
 					val.strand    = buf[j].y & 1;
 					kv_push(mm72_t, km, *p, val);
 				}
 			for (j = 0; j < buf_pos; ++j)
 				if (min.x == buf[j].x && buf[j].y != min.y) {
 					val.minimizer = (buf[j].x >> 8) & mask1;
-					val.location  = buf[j].y >> 1;
+					val.location  = (buf[j].y >> 1) + offset;
 					val.strand    = buf[j].y & 1;
 					kv_push(mm72_t, km, *p, val);
 				}
@@ -125,7 +124,7 @@ void mm_sketch(void *km, const char *str, unsigned int len, int w, int k, const 
 		if (info.x <= min.x) { // a new minimum; then write the old min
 			if (l >= w + k && min.x != UINT64_MAX) {
 				val.minimizer = (min.x >> 8) & mask1;
-				val.location  = min.y >> 1;
+				val.location  = (min.y >> 1) + offset;
 				val.strand    = min.y & 1;
 				kv_push(mm72_t, km, *p, val);
 			}
@@ -133,7 +132,7 @@ void mm_sketch(void *km, const char *str, unsigned int len, int w, int k, const 
 		} else if (buf_pos == min_pos) { // old min has moved outside the window
 			if (l >= w + k - 1 && min.x != UINT64_MAX) {
 				val.minimizer = (min.x >> 8) & mask1;
-				val.location  = min.y >> 1;
+				val.location  = (min.y >> 1) + offset;
 				val.strand    = min.y & 1;
 				kv_push(mm72_t, km, *p, val);
 			}
@@ -151,14 +150,14 @@ void mm_sketch(void *km, const char *str, unsigned int len, int w, int k, const 
 				                                     // the output is sorted
 					if (min.x == buf[j].x && min.y != buf[j].y) {
 						val.minimizer = (buf[j].x >> 8) & mask1;
-						val.location  = buf[j].y >> 1;
+						val.location  = (buf[j].y >> 1) + offset;
 						val.strand    = buf[j].y & 1;
 						kv_push(mm72_t, km, *p, val);
 					}
 				for (j = 0; j <= buf_pos; ++j)
 					if (min.x == buf[j].x && min.y != buf[j].y) {
 						val.minimizer = (buf[j].x >> 8) & mask1;
-						val.location  = buf[j].y >> 1;
+						val.location  = (buf[j].y >> 1) + offset;
 						val.strand    = buf[j].y & 1;
 						kv_push(mm72_t, km, *p, val);
 					}
@@ -168,7 +167,7 @@ void mm_sketch(void *km, const char *str, unsigned int len, int w, int k, const 
 	}
 	if (min.x != UINT64_MAX && min.y != last_loc) {
 		val.minimizer = (min.x >> 8) & mask1;
-		val.location  = min.y >> 1;
+		val.location  = (min.y >> 1) + offset;
 		val.strand    = min.y & 1;
 		kv_push(mm72_t, km, *p, val);
 	}

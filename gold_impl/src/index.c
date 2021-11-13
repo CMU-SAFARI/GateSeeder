@@ -338,7 +338,7 @@ void parse_sketch(FILE *fp, const unsigned int w, const unsigned int k, const un
 
 		if (c == '>') {
 			if (chromo_len > 0) {
-				mm_sketch(0, dna_buffer, chromo_len, w, k, b, p);
+				mm_sketch(0, dna_buffer, chromo_len, w, k, b, p, dna_len);
 				dna_len += chromo_len;
 				chromo_len = 0;
 			}
@@ -364,7 +364,7 @@ void parse_sketch(FILE *fp, const unsigned int w, const unsigned int k, const un
 	free(read_buffer);
 	fclose(fp);
 	if (chromo_len > 0) {
-		mm_sketch(0, dna_buffer, chromo_len, w, k, b, p);
+		mm_sketch(0, dna_buffer, chromo_len, w, k, b, p, dna_len);
 		dna_len += chromo_len;
 	}
 
