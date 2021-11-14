@@ -1,0 +1,10 @@
+# ERR240727_1.fastq, 4093747 reads, 100 bases
+# full, k18, w12, f2000, b26
+# min_t3, loc_r150
+# Intel(R) Core(TM) i5-1035G1
+
+"baseline"	63.93
+"2 THDs"	36.43
+"4 THDs"	23.46
+"6 THDs"	19.69
+"8 THDs"	17.25
