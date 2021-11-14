@@ -1,0 +1,19 @@
+= Week 10
+
+== TO DO
+
+* Generate the Bitstream
+* Implement the host program
+* Check the performances of TaPaSCo
+* Finish the CPU implementation
+
+== Achievements
+
+* CPU implementation done
+
+== Results
+
+.4093747 reads, 100 bases, full DNA, k18, w12, f2000, b26, min_t3, loc_r150, Intel(R) Core(TM) i5-1035G1
+image::../img/week10/cpu_impl.svg[../img/week10/cpu_impl.svg]
+
+== Questions
