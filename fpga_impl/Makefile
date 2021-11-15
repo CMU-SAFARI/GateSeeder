@@ -17,9 +17,9 @@ OBJS_TB			= $(SRCS_TB:$(SRC_TB_DIR)/%.cpp=%.o)
 
 XO				= seeding.xo
 
-FASTQ			:= ../res/illumina_3.fastq
+FASTQ			:= ../res/illumina_1000.fastq
 BIN 			:= ../res/chr1_k18_w12_f700_b26.bin
-DAT				:= ../res/illumina_3_chr1_k18_w12_f700_b26_m3_l150.dat
+DAT				:= ../res/illumina_1000_chr1_k18_w12_f700_b26_m3_l150.dat
 
 $(XO): $(SRCS_HW)
 	vitis_hls -f scripts/impl.tcl

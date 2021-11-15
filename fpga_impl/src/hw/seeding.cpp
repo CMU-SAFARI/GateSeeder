@@ -16,16 +16,20 @@ void seeding(const ap_uint<32> h_m[H_SIZE], const ap_uint<32> loc_stra_m[LS_SIZE
 #pragma HLS dataflow
 	base_t read[READ_LEN];
 	min_stra_b_t p[MIN_STRA_SIZE];
-	ap_uint<MIN_STRA_SIZE_LOG> p_l;
+	ap_uint<1> p_en[MIN_STRA_SIZE];
+	// ap_uint<MIN_STRA_SIZE_LOG> p_l;
 	ap_uint<32> locs[OUT_SIZE];
 	ap_uint<OUT_SIZE_LOG> locs_l;
+	ap_uint<1> locs_en[OUT_SIZE];
 #pragma HLS STREAM variable = read
-#pragma HLS STREAM variable = p
-#pragma HLS STREAM variable = locs
+#pragma HLS STREAM variable = p depth = 2
+#pragma HLS STREAM variable = p_en depth = 2
+#pragma HLS STREAM variable = locs depth = 2
+#pragma HLS STREAM variable = locs_en depth = 2
 	read_read(read_i, read);
-	extract_minimizers(read, p, p_l);
-	get_locations(p, p_l, h_m, loc_stra_m, locs, locs_l);
-	write_locations(locs, locs_l, locs_o, locs_lo);
+	extract_minimizers(read, p, p_en);
+	get_locations(p, p_en, h_m, loc_stra_m, locs, locs_l, locs_en);
+	write_locations(locs, locs_en, locs_l, locs_o, locs_lo);
 }
 
 void read_read(const base_t *read_i, base_t *read_o) {
@@ -37,8 +41,9 @@ LOOP_read_read:
 	}
 }
 
-void get_locations(const min_stra_b_t *p_i, const ap_uint<MIN_STRA_SIZE_LOG> p_li, const ap_uint<32> *h_m,
-                   const ap_uint<32> *loc_stra_m, ap_uint<32> *locs_o, ap_uint<OUT_SIZE_LOG> &locs_lo) {
+void get_locations(const min_stra_b_t *p_i, const ap_uint<1> *p_en_i, const ap_uint<32> *h_m,
+                   const ap_uint<32> *loc_stra_m, ap_uint<32> *locs_o, ap_uint<OUT_SIZE_LOG> &locs_lo,
+                   ap_uint<1> *locs_en_o) {
 	ap_uint<32> loc_stra1[LOCATION_BUFFER_SIZE];
 	ap_uint<32> loc_stra2[LOCATION_BUFFER_SIZE];
 	ap_uint<LOCATION_BUFFER_SIZE_LOG> loc_stra1_l(0);
@@ -47,20 +52,29 @@ void get_locations(const min_stra_b_t *p_i, const ap_uint<MIN_STRA_SIZE_LOG> p_l
 	ap_uint<32> buf2[F];
 	ap_uint<F_LOG> buf1_l;
 	ap_uint<F_LOG> buf2_l;
+	ap_uint<1> flag;
 LOOP_get_locations:
-	for (size_t i = 0; i < p_li / 2; i++) {
-#pragma HLS loop_tripcount min = 0 max = 50 // READ_LEN / 2
-		read_locations(p_i[2 * i], buf1, buf1_l, h_m, loc_stra_m);
-		merge_locations(loc_stra1, loc_stra1_l, buf1, buf1_l, loc_stra2, loc_stra2_l);
-		read_locations(p_i[2 * i + 1], buf2, buf2_l, h_m, loc_stra_m);
-		merge_locations(loc_stra2, loc_stra2_l, buf2, buf2_l, loc_stra1, loc_stra1_l);
+	for (size_t i = 0; i < READ_LEN / 2; i++) {
+		//#pragma HLS loop_tripcount min = 0 max = 50 // READ_LEN / 2
+		if (p_en_i[2 * i]) {
+			read_locations(p_i[2 * i], buf1, buf1_l, h_m, loc_stra_m);
+			merge_locations(loc_stra1, loc_stra1_l, buf1, buf1_l, loc_stra2, loc_stra2_l);
+			flag = 0;
+		} else {
+			break;
+		}
+		if (p_en_i[2 * i + 1]) {
+			read_locations(p_i[2 * i + 1], buf2, buf2_l, h_m, loc_stra_m);
+			merge_locations(loc_stra2, loc_stra2_l, buf2, buf2_l, loc_stra1, loc_stra1_l);
+			flag = 1;
+		} else {
+			break;
+		}
 	}
-	if (p_li % 2) {
-		read_locations(p_i[p_li - 1], buf1, buf1_l, h_m, loc_stra_m);
-		merge_locations(loc_stra1, loc_stra1_l, buf1, buf1_l, loc_stra2, loc_stra2_l);
-		adjacency_test(loc_stra2, loc_stra2_l, locs_o, locs_lo);
+	if (flag) {
+		adjacency_test(loc_stra1, loc_stra1_l, locs_o, locs_lo, locs_en_o);
 	} else {
-		adjacency_test(loc_stra1, loc_stra1_l, locs_o, locs_lo);
+		adjacency_test(loc_stra2, loc_stra2_l, locs_o, locs_lo, locs_en_o);
 	}
 }
 
@@ -117,12 +131,12 @@ LOOP_merge_fisrt_part:
 }
 
 void adjacency_test(const ap_uint<32> *loc_stra_i, const ap_uint<LOCATION_BUFFER_SIZE_LOG> loc_stra_li,
-                    ap_uint<32> *locs_o, ap_uint<OUT_SIZE_LOG> &locs_lo) {
+                    ap_uint<32> *locs_o, ap_uint<OUT_SIZE_LOG> &locs_lo, ap_uint<1> *locs_en_o) {
 	ap_uint<32> buf1[MIN_T_1];
 	ap_uint<32> buf2[MIN_T_1];
 	ap_uint<MIN_T_LOG> c1(0);
 	ap_uint<MIN_T_LOG> c2(0);
-	locs_lo = 0;
+	ap_uint<OUT_SIZE_LOG> locs_l(0);
 LOOP_adjacency_test:
 	for (size_t i = 0; i < loc_stra_li; i++) {
 #pragma HLS PIPELINE II        = 1
@@ -131,8 +145,9 @@ LOOP_adjacency_test:
 		if (loc[0]) {
 			if (c1 == MIN_T_1) {
 				if (loc - buf1[0] < LOC_R) {
-					locs_o[locs_lo] = (buf1[0].range(31, 1), ap_uint<1>(0));
-					locs_lo++;
+					locs_o[locs_l]    = (buf1[0].range(31, 1), ap_uint<1>(0));
+					locs_en_o[locs_l] = 1;
+					locs_l++;
 				}
 			} else {
 				c1++;
@@ -144,8 +159,9 @@ LOOP_adjacency_test:
 		} else {
 			if (c2 == MIN_T_1) {
 				if (loc - buf2[0] < LOC_R) {
-					locs_o[locs_lo] = buf2[0];
-					locs_lo++;
+					locs_o[locs_l]    = buf2[0];
+					locs_en_o[locs_l] = 1;
+					locs_l++;
 				}
 			} else {
 				c2++;
@@ -156,15 +172,20 @@ LOOP_adjacency_test:
 			buf2[MIN_T_1 - 1] = loc;
 		}
 	}
+	locs_lo           = locs_l;
+	locs_en_o[locs_l] = 0;
 }
 
-void write_locations(const ap_uint<32> *locs_i, const ap_uint<OUT_SIZE_LOG> locs_li, ap_uint<32> *locs_o,
-                     ap_uint<OUT_SIZE_LOG> *locs_lo) {
+void write_locations(const ap_uint<32> *locs_i, const ap_uint<1> *locs_en_i, const ap_uint<OUT_SIZE_LOG> locs_li,
+                     ap_uint<32> *locs_o, ap_uint<OUT_SIZE_LOG> *locs_lo) {
 LOOP_write_locs:
-	for (size_t i = 0; i < locs_li; i++) {
-#pragma HLS PIPELINE II        = 1
-#pragma HLS loop_tripcount min = 0 max = 5000 // OUT_SIZE
-		locs_o[i] = locs_i[i];
+	for (size_t i = 0; i < OUT_SIZE; i++) {
+#pragma HLS PIPELINE II = 1
+		if (locs_en_i[i]) {
+			locs_o[i] = locs_i[i];
+		} else {
+			break;
+		}
 	}
 	*locs_lo = locs_li;
 }

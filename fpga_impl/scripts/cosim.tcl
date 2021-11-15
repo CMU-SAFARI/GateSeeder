@@ -1,6 +1,6 @@
 source scripts/vitis_hls.tcl
-set FASTQ illumina_20.fastq
-set DAT illumina_20_chr1_k18_w12_f700_b26_m3_l150.dat
+set FASTQ illumina_10.fastq
+set DAT illumina_10_chr1_k18_w12_f700_b26_m3_l150.dat
 set BIN chr1_k18_w12_f700_b26.bin
 add_files -cflags "-O3" -tb "src/tb/tb_top.cpp src/tb/tb_driver.cpp"
 add_files -tb "../res/$FASTQ"
