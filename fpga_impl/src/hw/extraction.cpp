@@ -24,6 +24,7 @@ void extract_minimizers(const base_t *read_i, min_stra_b_t *p_o, ap_uint<MIN_STR
 	min_stra_t min_reg = {MAX_KMER, 0};
 	ap_uint<1> min_saved(0);
 	ap_uint<1> same_min(0);
+	min_stra_b_t p[MIN_STRA_SIZE];
 LOOP_extract_minimizer:
 	for (size_t i = 0; i < READ_LEN; ++i) {
 		base_t c            = read_i[i];
@@ -43,7 +44,7 @@ LOOP_extract_minimizer:
 			}
 		} else {
 			if (l >= W + K - 1) {
-				push_min_stra(p_o, p_lo, min_reg);
+				push_min_stra(p, p_o, p_lo, min_reg);
 				min_saved = 1;
 			}
 			l = 0;
@@ -51,13 +52,13 @@ LOOP_extract_minimizer:
 		buff[buff_pos] = hash_reg;
 		if (l == W + K - 1) {
 			if (same_min) {
-				push_min_stra(p_o, p_lo, (min_stra_t){min_reg.minimizer, !min_reg.strand});
+				push_min_stra(p, p_o, p_lo, (min_stra_t){min_reg.minimizer, !min_reg.strand});
 				same_min = 0;
 			}
 		}
 		if (hash_reg.minimizer <= min_reg.minimizer) {
 			if (l >= W + K) {
-				push_min_stra(p_o, p_lo, min_reg);
+				push_min_stra(p, p_o, p_lo, min_reg);
 			} else if (l < W + K - 1 && hash_reg.minimizer == min_reg.minimizer &&
 			           hash_reg.strand != min_reg.strand) {
 				same_min = 1;
@@ -69,7 +70,7 @@ LOOP_extract_minimizer:
 			min_saved = 0;
 		} else if (buff_pos == min_pos) {
 			if (l >= W + K - 1) {
-				push_min_stra(p_o, p_lo, min_reg);
+				push_min_stra(p, p_o, p_lo, min_reg);
 			}
 			min_reg.minimizer     = MAX_KMER;
 			ap_uint<1> same_min_w = 0;
@@ -92,17 +93,17 @@ LOOP_extract_minimizer:
 				}
 			}
 			if (same_min_w && l >= W + K - 1) {
-				push_min_stra(p_o, p_lo, (min_stra_t){min_reg.minimizer, !min_reg.strand});
+				push_min_stra(p, p_o, p_lo, (min_stra_t){min_reg.minimizer, !min_reg.strand});
 			}
 		}
 		buff_pos = (buff_pos == W - 1) ? 0 : buff_pos.to_uint() + 1;
 	}
 	if (min_reg.minimizer != MAX_KMER && !min_saved) {
-		push_min_stra(p_o, p_lo, min_reg);
+		push_min_stra(p, p_o, p_lo, min_reg);
 	}
 }
 
-void push_min_stra(min_stra_b_t *p, ap_uint<MIN_STRA_SIZE_LOG> &p_l, min_stra_t val) {
+void push_min_stra(min_stra_b_t *p, min_stra_b_t *p_o, ap_uint<MIN_STRA_SIZE_LOG> &p_l, min_stra_t val) {
 	min_stra_b_t min_stra = {val.minimizer, val.strand};
 	ap_uint<1> flag(1);
 	ap_uint<MIN_STRA_SIZE_LOG> i(0);
@@ -116,6 +117,7 @@ LOOP_push_min_stra:
 		}
 	}
 	if (flag) {
+		p_o[p_l] = min_stra;
 		p_l++;
 	}
 }

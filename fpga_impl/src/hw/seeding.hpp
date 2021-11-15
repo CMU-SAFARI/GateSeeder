@@ -4,13 +4,15 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wall"
 #pragma GCC diagnostic ignored "-Wuninitialized"
+#pragma GCC diagnostic ignored "-Wint-in-bool-context"
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #include "ap_int.h"
 #pragma GCC diagnostic pop
 
 #include <stdint.h>
 
-#define H_SIZE 67108864  // chrom1_w12_k18_f500_b26
-#define LS_SIZE 33594136 // chrom1_w12_k18_f500_b26
+#define H_SIZE 67108864  // chrom1_w12_k18_f700_b26
+#define LS_SIZE 33872860 // chrom1_w12_k18_f700_b26
 #define W 12
 #define W_LOG 4
 #define K 18

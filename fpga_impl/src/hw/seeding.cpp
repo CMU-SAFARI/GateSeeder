@@ -4,13 +4,13 @@
 
 void seeding(const ap_uint<32> h_m[H_SIZE], const ap_uint<32> loc_stra_m[LS_SIZE], const base_t read_i[READ_LEN],
              ap_uint<32> *locs_o, ap_uint<OUT_SIZE_LOG> *locs_lo) {
-#pragma HLS INTERFACE mode = m_axi port = h_m bundle = h_m
-#pragma HLS INTERFACE mode = m_axi port = loc_stra_m bundle = loc_stra_m
-#pragma HLS INTERFACE mode = m_axi port = read_i bundle = read_i
+#pragma HLS INTERFACE m_axi port = h_m bundle = h_m
+#pragma HLS INTERFACE m_axi port = loc_stra_m bundle = loc_stra_m
+#pragma HLS INTERFACE m_axi port = read_i bundle = read_i
 //#pragma HLS INTERFACE mode = ap_hs port = read_i
-#pragma HLS INTERFACE mode = m_axi port = locs_o depth = 5000 bundle = locs_o // OUT_SIZE TODO
-//#pragma HLS INTERFACE mode = ap_ovld port = locs_o                            // OUT_SIZE TODO
-#pragma HLS INTERFACE mode = m_axi port = locs_lo
+#pragma HLS INTERFACE m_axi port = locs_o depth = 5000 bundle = locs_o // OUT_SIZE TODO
+//#pragma HLS INTERFACE mode = ap_ovld port = locs_o
+#pragma HLS INTERFACE m_axi port = locs_lo bundle = locs_lo
 	//#pragma HLS INTERFACE mode = ap_ovld port = locs_lo
 
 #pragma HLS dataflow
@@ -19,14 +19,13 @@ void seeding(const ap_uint<32> h_m[H_SIZE], const ap_uint<32> loc_stra_m[LS_SIZE
 	ap_uint<MIN_STRA_SIZE_LOG> p_l;
 	ap_uint<32> locs[OUT_SIZE];
 	ap_uint<OUT_SIZE_LOG> locs_l;
-#pragma HLS STREAM variable        = read
-#pragma HLS ARRAY_RESHAPE variable = p type = complete dim = 1
-#pragma HLS STREAM variable = p type = fifo depth = 2
-#pragma HLS STREAM variable                       = locs
-        read_read(read_i, read);
-        extract_minimizers(read, p, p_l);
-        get_locations(p, p_l, h_m, loc_stra_m, locs, locs_l);
-        write_locations(locs, locs_l, locs_o, locs_lo);
+#pragma HLS STREAM variable = read
+#pragma HLS STREAM variable = p
+#pragma HLS STREAM variable = locs
+	read_read(read_i, read);
+	extract_minimizers(read, p, p_l);
+	get_locations(p, p_l, h_m, loc_stra_m, locs, locs_l);
+	write_locations(locs, locs_l, locs_o, locs_lo);
 }
 
 void read_read(const base_t *read_i, base_t *read_o) {
