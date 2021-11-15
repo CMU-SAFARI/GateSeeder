@@ -39,5 +39,8 @@ format:
 clean:
 	$(RM) -r vitis_hls *.o *.d $(XO) $(SIM)
 
-.PHONY: vitis format clean sim cosim
+kernel:
+	tapasco -v --KernelDir ./tapasco hls seeding -p xupvvh
+
+.PHONY: vitis format clean sim cosim kernel
 -include $(wildcard *.d)
