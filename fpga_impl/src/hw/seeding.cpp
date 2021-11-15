@@ -52,34 +52,33 @@ void get_locations(const min_stra_b_t *p_i, const ap_uint<1> *p_en_i, const ap_u
 	ap_uint<32> buf2[F];
 	ap_uint<F_LOG> buf1_l;
 	ap_uint<F_LOG> buf2_l;
-	ap_uint<1> flag;
+	ap_uint<1> flag = 0;
 LOOP_get_locations:
-	for (size_t i = 0; i < READ_LEN / 2; i++) {
+	for (size_t i = 0; i < READ_LEN; i += 2) {
 		//#pragma HLS loop_tripcount min = 0 max = 50 // READ_LEN / 2
-		if (p_en_i[2 * i]) {
-			read_locations(p_i[2 * i], buf1, buf1_l, h_m, loc_stra_m);
+		if (!p_en_i[i]) break;
+		if (p_en_i[i + 1]) {
+			read_locations(p_i[i], buf1, buf1_l, h_m, loc_stra_m);
+			read_locations(p_i[i + 1], buf2, buf2_l, h_m, loc_stra_m);
 			merge_locations(loc_stra1, loc_stra1_l, buf1, buf1_l, loc_stra2, loc_stra2_l);
-			flag = 0;
-		} else {
-			break;
-		}
-		if (p_en_i[2 * i + 1]) {
-			read_locations(p_i[2 * i + 1], buf2, buf2_l, h_m, loc_stra_m);
 			merge_locations(loc_stra2, loc_stra2_l, buf2, buf2_l, loc_stra1, loc_stra1_l);
-			flag = 1;
 		} else {
+			flag = 1;
+			read_locations(p_i[i], buf1, buf1_l, h_m, loc_stra_m);
+			merge_locations(loc_stra1, loc_stra1_l, buf1, buf1_l, loc_stra2, loc_stra2_l);
 			break;
 		}
 	}
 	if (flag) {
-		adjacency_test(loc_stra1, loc_stra1_l, locs_o, locs_lo, locs_en_o);
-	} else {
 		adjacency_test(loc_stra2, loc_stra2_l, locs_o, locs_lo, locs_en_o);
+	} else {
+		adjacency_test(loc_stra1, loc_stra1_l, locs_o, locs_lo, locs_en_o);
 	}
 }
 
 void read_locations(const min_stra_b_t min_stra_i, ap_uint<32> *buf_o, ap_uint<F_LOG> &buf_lo, const ap_uint<32> *h_m,
                     const ap_uint<32> *loc_stra_m) {
+#pragma HLS INLINE OFF
 	ap_uint<32> minimizer = min_stra_i.minimizer;
 	ap_uint<32> min       = minimizer ? h_m[minimizer - 1].to_uint() : 0;
 	ap_uint<32> max       = h_m[minimizer];
