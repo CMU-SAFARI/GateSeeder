@@ -1,0 +1,12 @@
+{
+	"Name": "seeding",
+	"TopFunction": "seeding",
+	"Version": "0.1",
+	"Files": ["../src/hw/seeding.cpp", "../src/hw/extraction.cpp"],
+	"Id": 1998,
+	"Arguments": [{"Name": "h_m", "Passing": "by reference"},
+		{"Name": "loc_stra_m", "Passing": "by reference"},
+		{"Name": "read_i", "Passing": "by reference"},
+		{"Name": "locs_o", "Passing": "by reference"},
+		{"Name": "locs_lo", "Passing": "by reference"}]
+}

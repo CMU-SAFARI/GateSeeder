@@ -48,10 +48,9 @@ struct min_stra_b_t {
 };
 
 void seeding(const ap_uint<32> h[H_SIZE], const ap_uint<32> location[LS_SIZE], const base_t *read_i,
-             ap_uint<32> *locs_o, ap_uint<OUT_SIZE_LOG> *locs_len_o);
+             ap_uint<32> *locs_o);
 void get_locations(const min_stra_b_t *p_i, const ap_uint<1> *p_en_i, const ap_uint<32> *h_m,
-                   const ap_uint<32> *loc_stra_m, ap_uint<32> *locs_o, ap_uint<OUT_SIZE_LOG> &locs_lo,
-                   ap_uint<1> *locs_en_o);
+                   const ap_uint<32> *loc_stra_m, ap_uint<32> *locs_o, ap_uint<1> *locs_en_o);
 void read_read(const base_t *read_i, base_t *read_o);
 void read_locations(const min_stra_b_t min_stra_i, ap_uint<32> *buf_o, ap_uint<F_LOG> &buf_lo, const ap_uint<32> *h_m,
                     const ap_uint<32> *loc_stra_m);
@@ -59,7 +58,6 @@ void merge_locations(const ap_uint<32> *loc_stra_i, const ap_uint<LOCATION_BUFFE
                      const ap_uint<32> *buf_i, const ap_uint<F_LOG> buf_li, ap_uint<32> *loc_stra_o,
                      ap_uint<LOCATION_BUFFER_SIZE_LOG> &loc_stra_lo);
 void adjacency_test(const ap_uint<32> *loc_stra_i, const ap_uint<LOCATION_BUFFER_SIZE_LOG> loc_stra_li,
-                    ap_uint<32> *locs_o, ap_uint<OUT_SIZE_LOG> &locs_lo, ap_uint<1> *locs_en_o);
-void write_locations(const ap_uint<32> *locs_i, const ap_uint<1> *locs_en_i, const ap_uint<OUT_SIZE_LOG> locs_li,
-                     ap_uint<32> *locs_o, ap_uint<OUT_SIZE_LOG> *locs_lo);
+                    ap_uint<32> *locs_o, ap_uint<1> *locs_en_o);
+void write_locations(const ap_uint<32> *locs_i, const ap_uint<1> *locs_en_i, ap_uint<32> *locs_o);
 #endif
