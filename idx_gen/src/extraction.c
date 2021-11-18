@@ -20,13 +20,13 @@ static inline uint64_t hash64(uint64_t key, uint64_t mask) {
 	return key;
 }
 
-static inline void push_min_loc_stra(min_loc_stra_v *p, const kmer_loc_stra_t min, uint32_t mask) {
-	p->a[p->n] = (min_loc_stra_t){min.kmer & mask, min.loc, min.stra};
+static inline void push_min_loc_stra(min_loc_stra_v *p, const kmer_loc_stra_t min, uint32_t mask, uint32_t offset) {
+	p->a[p->n] = (min_loc_stra_t){min.kmer & mask, min.loc + offset, min.stra};
 	p->n++;
 }
 
-void indexing(const char *dna, unsigned int len, unsigned int w, unsigned int k, const unsigned int b,
-              min_loc_stra_v *p, uint32_t offset) {
+void extract_minimizers(const char *dna, unsigned int len, unsigned int w, unsigned int k, const unsigned int b,
+                        min_loc_stra_v *p, uint32_t offset) {
 	uint64_t shift1          = 2 * (k - 1);
 	uint64_t mask            = (1ULL << 2 * k) - 1;
 	uint64_t kmer[2]         = {0, 0};
@@ -57,7 +57,7 @@ void indexing(const char *dna, unsigned int len, unsigned int w, unsigned int k,
 			}
 		} else {
 			if (l >= w + k - 1) {
-				push_min_loc_stra(p, min, mask1);
+				push_min_loc_stra(p, min, mask1, offset);
 			}
 			l = 0;
 		}
@@ -69,22 +69,22 @@ void indexing(const char *dna, unsigned int len, unsigned int w, unsigned int k,
 			// stored yet
 			for (size_t j = buf_pos + 1; j < w; ++j)
 				if (min.kmer == buf[j].kmer && buf[j].loc != min.loc) {
-					push_min_loc_stra(p, buf[j], mask1);
+					push_min_loc_stra(p, buf[j], mask1, offset);
 				}
 			for (size_t j = 0; j < buf_pos; ++j)
 				if (min.kmer == buf[j].kmer && buf[j].loc != min.loc) {
-					push_min_loc_stra(p, buf[j], mask1);
+					push_min_loc_stra(p, buf[j], mask1, offset);
 				}
 		}
 		if (info.kmer <= min.kmer) { // a new minimum; then write the old min
 			if (l >= w + k) {
-				push_min_loc_stra(p, min, mask1);
+				push_min_loc_stra(p, min, mask1, offset);
 			}
 			min     = info;
 			min_pos = buf_pos;
 		} else if (buf_pos == min_pos) { // old min has moved outside the window
 			if (l >= w + k - 1) {
-				push_min_loc_stra(p, min, mask1);
+				push_min_loc_stra(p, min, mask1, offset);
 			}
 			min.kmer = UINT64_MAX;
 			for (size_t j = buf_pos + 1; j < w; ++j) {
@@ -103,12 +103,12 @@ void indexing(const char *dna, unsigned int len, unsigned int w, unsigned int k,
 			if (l >= w + k - 1) {
 				for (size_t j = buf_pos + 1; j < w; ++j) {
 					if (min.kmer == buf[j].kmer && min.loc != buf[j].loc) {
-						push_min_loc_stra(p, buf[j], mask1);
+						push_min_loc_stra(p, buf[j], mask1, offset);
 					}
 				}
 				for (size_t j = 0; j <= buf_pos; ++j) {
 					if (min.kmer == buf[j].kmer && min.loc != buf[j].loc) {
-						push_min_loc_stra(p, buf[j], mask1);
+						push_min_loc_stra(p, buf[j], mask1, offset);
 					}
 				}
 			}
@@ -116,6 +116,6 @@ void indexing(const char *dna, unsigned int len, unsigned int w, unsigned int k,
 		buf_pos = (buf_pos == w - 1) ? 0 : buf_pos + 1;
 	}
 	if (min.kmer != UINT64_MAX && min.loc != last_loc) {
-		push_min_loc_stra(p, min, mask1);
+		push_min_loc_stra(p, min, mask1, offset);
 	}
 }

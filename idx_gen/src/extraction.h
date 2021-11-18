@@ -21,7 +21,7 @@ typedef struct {
 	min_loc_stra_t *a;
 } min_loc_stra_v;
 
-void indexing(const char *dna, unsigned int len, unsigned int w, unsigned int k, const unsigned int b,
-              min_loc_stra_v *p, uint32_t offset);
+void extract_minimizers(const char *dna, unsigned int len, unsigned int w, unsigned int k, const unsigned int b,
+                        min_loc_stra_v *p, uint32_t offset);
 
 #endif
