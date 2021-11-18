@@ -51,7 +51,9 @@ $(CORE): $(SRCS_HW)
 
 $(COMPOSE): $(CORE)
 	$(RM) -r $(COMPOSE)
-	tapasco $(TAPFLAGS) --coreDir $(CORE) --compositionDir $(COMPOSE) compose [seeding x 1] @ 150 Mhz -p $(PLATFORM) --effortLevel $(EFFORT)
+	tapasco --configFile tapasco/config.json
+
+	#tapasco $(TAPFLAGS) --coreDir $(CORE) --compositionDir $(COMPOSE) compose [seeding x 1] @ 150 Mhz -p $(PLATFORM) --effortLevel $(EFFORT) --skipSynthesis --deleteProjects false
 
 clean:
 	$(RM) -r vitis_hls *.o *.d $(XO) $(SIM) $(CORE) $(COMPOSE)

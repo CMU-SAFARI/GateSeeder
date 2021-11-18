@@ -77,7 +77,6 @@ void extract_minimizers(const char *read, min_stra_v *p) {
 			           hash_reg.strand != min_reg.strand) {
 				same_min = 1;
 			} else {
-				// same_min_count = 0;
 				same_min = 0;
 			}
 			min_reg   = hash_reg;
