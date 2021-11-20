@@ -43,4 +43,29 @@ int main(int argc, char *argv[]) {
 				exit(3);
 		}
 	}
+
+	if (optind + 1 >= argc) {
+		fputs("Error: USAGE\t indexdna [option]* <DNA FILE> <OUTPUT NAME>\n", stderr);
+		exit(3);
+	}
+
+	FILE *in_fp = fopen(argv[optind], "r");
+	if (in_fp == NULL) {
+		fprintf(stderr, "Error: cannot open `%s`\n", argv[optind]);
+		exit(1);
+	}
+
+	FILE *out_fp = fopen(argv[optind + 1], "wb");
+	if (out_fp == NULL) {
+		fprintf(stderr, "Error: cannot open `%s`\n", argv[optind + 1]);
+		exit(1);
+	}
+
+	index_t idx;
+	printf("Info: w = %u, k = %u, f = %u & b = %u\n", w, k, f, b);
+	create_index(in_fp, w, k, f, b, &idx);
+	fwrite(&(idx.n), sizeof(idx.n), 1, out_fp);
+	fwrite(idx.h, sizeof(idx.h[0]), idx.n, out_fp);
+	fwrite(idx.loc, sizeof(idx.loc[0]), idx.m, out_fp);
+	printf("Info: Binary file `%s` written\n", argv[optind + 1]);
 }

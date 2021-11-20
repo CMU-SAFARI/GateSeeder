@@ -5,12 +5,15 @@ DEPFLAGS	= -MD -MP
 CFLAGS		= -g -O3 $(DEPFLAGS) -Wall -Werror
 LDLIBS		= -pthread -lm
 VPATH		= $(SRC_DIR)
-EXE			= index
+EXE			= indexdna
 
 SRCS		= $(wildcard $(SRC_DIR)/*.c)
 OBJS		= $(SRCS:$(SRC_DIR)/%.c=%.o)
 
 all: $(EXE)
+
+run: $(EXE)
+	./$(EXE) ../res/GCF_000001405.39_GRCh38.p13_genomic.fna test
 
 $(EXE): $(OBJS)
 	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
@@ -21,5 +24,5 @@ format:
 clean:
 	$(RM) *.o $(EXE) *.d
 
-.PHONY: clean format all
+.PHONY: clean format all run
 -include $(wildcard *.d)

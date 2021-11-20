@@ -1,6 +1,7 @@
 *.d
 *.o
 main
+indexdna
 seeding
 sim.x
 fpga_impl/vitis_hls

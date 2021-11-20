@@ -1,31 +1,35 @@
 #include "indexing.h"
-#include "extraction.h"
 #define BUFFER_SIZE 4294967296
 #define P_SIZE 536870912
 
+#include <math.h>
+#include <pthread.h>
+#include <stdlib.h>
+#define NB_THREADS 6
+
 static inline unsigned char compare(min_loc_stra_t left, min_loc_stra_t right) { return (left.min) <= (right.min); }
 
-void create_index(FILE *fp, const unsigned int w, const unsigned int k, const unsigned int filter_threshold,
-                  const unsigned int b, cindex_t *idx) {
+void create_index(FILE *fp, const unsigned int w, const unsigned int k, const unsigned int f, const unsigned int b,
+                  index_t *idx) {
 	min_loc_stra_v p;
 
 	// Parse & extract
 	parse_extract(fp, w, k, b, &p);
 
 	// Sort p
-	sort(p);
+	sort(&p);
 	printf("Info: Array sorted\n");
 
 	// Write the data in the struct & filter out the most frequent minimizers
-	idx->h        = (uint32_t *)malloc(sizeof(uint32_t) * (1 << b));
-	idx->location = (uint32_t *)malloc(sizeof(uint32_t) * p->n);
-	if (idx->h == NULL || idx->location == NULL) {
+	idx->h   = (uint32_t *)malloc(sizeof(uint32_t) * (1 << b));
+	idx->loc = (uint32_t *)malloc(sizeof(uint32_t) * p.n);
+	if (idx->h == NULL || idx->loc == NULL) {
 		fputs("Memory error\n", stderr);
 		exit(2);
 	}
 
 	unsigned int diff_counter   = 0;
-	uint32_t index              = p->a[0].minimizer;
+	uint32_t index              = p.a[0].min;
 	unsigned int freq_counter   = 0;
 	unsigned int filter_counter = 0;
 	size_t pos                  = 0;
@@ -35,14 +39,14 @@ void create_index(FILE *fp, const unsigned int w, const unsigned int k, const un
 		idx->h[i] = 0;
 	}
 
-	for (size_t i = 1; i < p->n; i++) {
-		if (index == p->a[i].minimizer) {
+	for (size_t i = 1; i < p.n; i++) {
+		if (index == p.a[i].min) {
 			freq_counter++;
 		} else {
-			if (freq_counter < filter_threshold) {
+			if (freq_counter < f) {
 				diff_counter++;
 				for (size_t j = pos; j < i; j++) {
-					idx->location[l] = (p->a[j].location & (UINT32_MAX - 1)) | p->a[j].strand;
+					idx->loc[l] = (p.a[j].loc & (UINT32_MAX - 1)) | p.a[j].stra;
 					l++;
 				}
 			} else {
@@ -50,16 +54,16 @@ void create_index(FILE *fp, const unsigned int w, const unsigned int k, const un
 			}
 			pos          = i;
 			freq_counter = 0;
-			while (index != p->a[i].minimizer) {
+			while (index != p.a[i].min) {
 				idx->h[index] = l;
 				index++;
 			}
 		}
 	}
-	if (freq_counter < filter_threshold) {
+	if (freq_counter < f) {
 		diff_counter++;
-		for (size_t j = pos; j < p->n; j++) {
-			idx->location[l] = (p->a[j].location & (UINT32_MAX - 1)) | p->a[j].strand;
+		for (size_t j = pos; j < p.n; j++) {
+			idx->loc[l] = (p.a[j].loc & (UINT32_MAX - 1)) | p.a[j].stra;
 			l++;
 		}
 	} else {
@@ -70,7 +74,7 @@ void create_index(FILE *fp, const unsigned int w, const unsigned int k, const un
 		idx->h[i] = l;
 	}
 
-	kv_destroy(*p);
+	free(p.a);
 	printf("Info: Number of ignored minimizers: %u\n", filter_counter);
 	printf("Info: Number of distinct minimizers: %u\n", diff_counter);
 	idx->n              = 1 << b;
@@ -181,4 +185,104 @@ void parse_extract(FILE *fp, const unsigned int w, const unsigned int k, const u
 	}
 	free(p->a);
 	p->a = a;
+}
+
+void sort(min_loc_stra_v *p) {
+	pthread_t threads[NB_THREADS];
+	thread_param_t params[NB_THREADS];
+	for (size_t i = 0; i < NB_THREADS; i++) {
+		params[i].p = p;
+		params[i].i = i;
+		pthread_create(&threads[i], NULL, thread_merge_sort, (void *)&params[i]);
+	}
+
+	for (size_t i = 0; i < NB_THREADS; i++) {
+		pthread_join(threads[i], NULL);
+	}
+	final_merge(p->a, p->n, 0, NB_THREADS);
+}
+
+void *thread_merge_sort(void *arg) {
+	thread_param_t *param = (thread_param_t *)arg;
+	size_t l              = param->i * param->p->n / NB_THREADS;
+	size_t r              = (param->i + 1) * param->p->n / NB_THREADS - 1;
+	if (l < r) {
+		size_t m = l + (r - l) / 2;
+		merge_sort(param->p->a, l, m);
+		merge_sort(param->p->a, m + 1, r);
+		merge(param->p->a, l, m, r);
+	}
+	return (void *)NULL;
+}
+
+void merge_sort(min_loc_stra_t *a, size_t l, size_t r) {
+	if (l < r) {
+		size_t m = l + (r - l) / 2;
+		merge_sort(a, l, m);
+		merge_sort(a, m + 1, r);
+		merge(a, l, m, r);
+	}
+}
+
+void final_merge(min_loc_stra_t *a, size_t n, size_t l, size_t r) {
+	if (r == l + 2) {
+		merge(a, l * n / NB_THREADS, (l + 1) * n / NB_THREADS - 1, r * n / NB_THREADS - 1);
+	}
+
+	else if (r > l + 2) {
+		size_t m = (r + l) / 2;
+		final_merge(a, n, l, m);
+		final_merge(a, n, m, r);
+		merge(a, l * n / NB_THREADS, m * n / NB_THREADS - 1, r * n / NB_THREADS - 1);
+	}
+}
+
+void merge(min_loc_stra_t *a, size_t l, size_t m, size_t r) {
+	size_t i, j;
+	size_t n1 = m - l + 1;
+	size_t n2 = r - m;
+
+	min_loc_stra_t *L = (min_loc_stra_t *)malloc(n1 * sizeof(min_loc_stra_t));
+	min_loc_stra_t *R = (min_loc_stra_t *)malloc(n2 * sizeof(min_loc_stra_t));
+	if (L == NULL || R == NULL) {
+		fputs("Memory error\n", stderr);
+		exit(2);
+	}
+
+	for (i = 0; i < n1; i++) {
+		L[i] = a[l + i];
+	}
+	for (j = 0; j < n2; j++) {
+		R[j] = a[m + 1 + j];
+	}
+
+	i        = 0;
+	j        = 0;
+	size_t k = l;
+
+	while (i < n1 && j < n2) {
+		if (compare(L[i], R[j])) {
+			a[k] = L[i];
+			i++;
+		} else {
+			a[k] = R[j];
+			j++;
+		}
+		k++;
+	}
+
+	while (i < n1) {
+		a[k] = L[i];
+		i++;
+		k++;
+	}
+
+	while (j < n2) {
+		a[k] = R[j];
+		j++;
+		k++;
+	}
+
+	free(L);
+	free(R);
 }
