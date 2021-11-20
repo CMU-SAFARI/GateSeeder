@@ -1,9 +1,12 @@
 #include "indexing.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <unistd.h>
 
 int main(int argc, char *argv[]) {
+	struct timespec start, finish;
+	clock_gettime(CLOCK_MONOTONIC, &start);
 	unsigned int w = 12;
 	unsigned int k = 18;
 	unsigned int f = 700;
@@ -68,4 +71,8 @@ int main(int argc, char *argv[]) {
 	fwrite(idx.h, sizeof(idx.h[0]), idx.n, out_fp);
 	fwrite(idx.loc, sizeof(idx.loc[0]), idx.m, out_fp);
 	printf("Info: Binary file `%s` written\n", argv[optind + 1]);
+	clock_gettime(CLOCK_MONOTONIC, &finish);
+	printf("EXECUTION TIME: %f sec\n",
+	       finish.tv_sec - start.tv_sec + (finish.tv_nsec - start.tv_nsec) / 1000000000.0);
+	return 0;
 }

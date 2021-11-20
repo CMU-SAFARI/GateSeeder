@@ -1,11 +1,11 @@
 #include "indexing.h"
-#define BUFFER_SIZE 4294967296
-#define P_SIZE 536870912
-
 #include <math.h>
 #include <pthread.h>
 #include <stdlib.h>
-#define NB_THREADS 6
+
+#define NB_THREADS 8
+#define BUFFER_SIZE 4294967296
+#define P_SIZE 536870912
 
 static inline unsigned char compare(min_loc_stra_t left, min_loc_stra_t right) { return (left.min) <= (right.min); }
 
@@ -180,6 +180,10 @@ void parse_extract(FILE *fp, const unsigned int w, const unsigned int k, const u
 	printf("Info: Indexed DNA length: %lu bases\n", dna_len);
 	printf("Info: Number of (minimizer, location, strand): %lu\n", p->n);
 	min_loc_stra_t *a = (min_loc_stra_t *)malloc(sizeof(min_loc_stra_t) * p->n);
+	if (a == NULL) {
+		fputs("Memory error\n", stderr);
+		exit(2);
+	}
 	for (size_t i = 0; i < p->n; i++) {
 		a[i] = p->a[i];
 	}
