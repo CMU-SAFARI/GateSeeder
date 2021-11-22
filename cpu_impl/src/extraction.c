@@ -26,7 +26,6 @@ static inline uint64_t hash64(uint64_t key) {
 }
 
 void extract_minimizers(const char *read, min_stra_v *p) {
-
 	uint64_t kmer[2] = {0, 0};
 	min_stra_reg_t buff[256];
 	unsigned int l = 0; // l counts the number of bases and is reset to 0 each
@@ -39,7 +38,7 @@ void extract_minimizers(const char *read, min_stra_v *p) {
 	unsigned char same_min  = 0;
 
 	for (size_t i = 0; i < READ_LEN; ++i) {
-		unsigned char c         = seq_nt4_table[(uint8_t)read[i]]; // should be removed
+		unsigned char c         = seq_nt4_table[(uint8_t)read[i]];
 		min_stra_reg_t hash_reg = {.minimizer = UINT64_MAX, .strand = 0};
 		if (c < 4) {                                             // not an ambiguous base
 			kmer[0] = (kmer[0] << 2 | c) & MASK;             // forward k-mer

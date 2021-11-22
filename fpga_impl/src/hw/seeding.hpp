@@ -18,8 +18,7 @@
 #define K 18
 #define MAX_KMER 0xfffffffff
 #define B 26
-#define F 700
-#define AVG_LOC 7 // TODO
+#define F 1000
 #define F_LOG 10
 #define MIN_T 3
 #define MIN_T_1 (MIN_T - 1)
@@ -27,12 +26,12 @@
 #define LOC_R 150
 #define READ_LEN 100
 #define READ_LEN_LOG 7
-#define LOCATION_BUFFER_SIZE 70000  // TODO
-#define LOCATION_BUFFER_SIZE_LOG 17 // TODO
+#define LOCATION_BUFFER_SIZE 40000
+#define LOCATION_BUFFER_SIZE_LOG 16
 #define OUT_SIZE 5000
 #define OUT_SIZE_LOG 13
-#define MIN_STRA_SIZE 100   // TODO
-#define MIN_STRA_SIZE_LOG 7 // TODO
+#define MIN_STRA_SIZE 40
+#define MIN_STRA_SIZE_LOG 6
 #define END_MINIMIZER ((min_stra_b_t){0, 0, 0})
 #define END_LOCATION 0xffffffff
 

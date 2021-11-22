@@ -46,7 +46,7 @@ core:
 	tapasco --configFile $(TAPASCO_DIR)/hls.json
 
 compose:
-	tapasco --configFile $(TAPSCO_DIR)/compose.json
+	tapasco --configFile $(TAPASCO_DIR)/compose.json
 
 clean:
 	$(RM) -r vitis_hls *.o *.d $(XO) $(SIM) $(CORE) $(COMPOSE)

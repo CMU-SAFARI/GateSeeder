@@ -26,7 +26,6 @@ void read_read(const base_t *read_i, base_t *read_o) {
 LOOP_read_read:
 	for (size_t i = 0; i < READ_LEN; i++) {
 #pragma HLS PIPELINE II        = 1
-#pragma HLS loop_tripcount min = 100 max = 100 // READ_LEN
 		read_o[i] = read_i[i];
 	}
 }
@@ -46,7 +45,7 @@ void get_locations(const min_stra_b_t *p_i, const ap_uint<32> *h_m, const ap_uin
 	if (min_stra_buf.valid == 1) {
 		read_locations(min_stra_buf, buf1, buf1_l, h_m, loc_stra_m);
 	LOOP_get_locations:
-		for (size_t i = 0; i < READ_LEN; i += 2) {
+		for (size_t i = 0; i < MIN_STRA_SIZE; i += 2) {
 			min_stra_buf = p_i[i + 1];
 			if (min_stra_buf.valid == 0) {
 				flag = 1;
@@ -82,7 +81,7 @@ void read_locations(const min_stra_b_t min_stra_i, ap_uint<32> *buf_o, ap_uint<F
 LOOP_read_locations:
 	for (size_t j = 0; j < buf_lo; j++) {
 #pragma HLS PIPELINE II        = 1
-#pragma HLS loop_tripcount min = 0 max = 500 avg = 5 // F & AVG_LOC
+#pragma HLS loop_tripcount min = 0 max = 1000 // F
 		buf_o[j] = loc_stra_m[min + j] ^ min_stra_i.strand;
 	}
 }
@@ -96,7 +95,7 @@ void merge_locations(const ap_uint<32> *loc_stra_i, const ap_uint<LOCATION_BUFFE
 LOOP_merge_fisrt_part:
 	while (loc_stra_j < loc_stra_li && buf_j < buf_li) {
 #pragma HLS PIPELINE II        = 1
-#pragma HLS loop_tripcount min = 0 max = 500 // F
+#pragma HLS loop_tripcount min = 0 max = 1000 // F
 		if (loc_stra_i[loc_stra_j] <= buf_i[buf_j]) {
 			loc_stra_o[loc_stra_lo] = loc_stra_i[loc_stra_j];
 			loc_stra_j++;
@@ -110,7 +109,7 @@ LOOP_merge_fisrt_part:
 	LOOP_merge_second_part:
 		for (; buf_j < buf_li; buf_j++) {
 #pragma HLS PIPELINE II        = 1
-#pragma HLS loop_tripcount min = 0 max = 500 // F
+#pragma HLS loop_tripcount min = 0 max = 1000 // F
 			loc_stra_o[loc_stra_lo] = buf_i[buf_j];
 			loc_stra_lo++;
 		}
@@ -135,7 +134,7 @@ void adjacency_test(const ap_uint<32> *loc_stra_i, const ap_uint<LOCATION_BUFFER
 LOOP_adjacency_test:
 	for (size_t i = 0; i < loc_stra_li; i++) {
 #pragma HLS PIPELINE II        = 1
-#pragma HLS loop_tripcount min = 0 max = 70000 // LOCATION_BUFFER_SIZE
+#pragma HLS loop_tripcount min = 0 max = 40000 // LOCATION_BUFFER_SIZE
 		ap_uint<32> loc = loc_stra_i[i];
 		if (loc[0]) {
 			if (c1 == MIN_T_1) {

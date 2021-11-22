@@ -110,8 +110,7 @@ void push_min_stra(min_stra_b_t *p, min_stra_b_t *p_o, ap_uint<MIN_STRA_SIZE_LOG
 	ap_uint<MIN_STRA_SIZE_LOG> i(0);
 	p[p_l] = min_stra;
 LOOP_push_min_stra:
-	for (size_t i = 0; i < READ_LEN; i++) {
-#pragma HLS loop_tripcount min = 0 max = 100 // READ_LEN
+	for (size_t i = 0; i < MIN_STRA_SIZE; i++) {
 #pragma HLS unroll
 		if (p[i] == min_stra && i < p_l) {
 			flag = 0;
