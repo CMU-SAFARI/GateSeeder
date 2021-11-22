@@ -11,8 +11,9 @@ int main(int argc, char *argv[]) {
 	unsigned int k = 18;
 	unsigned int f = 700;
 	unsigned int b = 26;
+	char p         = 0;
 	int option;
-	while ((option = getopt(argc, argv, ":w:k:f:b:")) != -1) {
+	while ((option = getopt(argc, argv, ":w:k:f:b:p:")) != -1) {
 		switch (option) {
 			case 'w':
 				w = atoi(optarg);
@@ -37,6 +38,9 @@ int main(int argc, char *argv[]) {
 					fputs("Error: `b` needs to be less than or equal to 32\n", stderr);
 					exit(4);
 				}
+				break;
+			case 'p':
+				p = 1;
 				break;
 			case ':':
 				fprintf(stderr, "Error: '%c' requires a value\n", optopt);
@@ -64,13 +68,20 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	}
 
-	index_t idx;
 	printf("Info: w = %u, k = %u, f = %u & b = %u\n", w, k, f, b);
-	create_index(in_fp, w, k, f, b, &idx);
-	fwrite(&(idx.n), sizeof(idx.n), 1, out_fp);
-	fwrite(idx.h, sizeof(idx.h[0]), idx.n, out_fp);
-	fwrite(idx.loc, sizeof(idx.loc[0]), idx.m, out_fp);
-	printf("Info: Binary file `%s` written\n", argv[optind + 1]);
+	if (p) {
+		puts("Info: Partioning enabled");
+		index_t *idx = NULL;
+		create_index_part(in_fp, w, k, f, b, idx);
+	} else {
+		puts("Info: Partioning disabled");
+		index_t idx;
+		create_index(in_fp, w, k, f, b, &idx);
+		fwrite(&(idx.n), sizeof(idx.n), 1, out_fp);
+		fwrite(idx.h, sizeof(idx.h[0]), idx.n, out_fp);
+		fwrite(idx.loc, sizeof(idx.loc[0]), idx.m, out_fp);
+		printf("Info: Binary file `%s` written\n", argv[optind + 1]);
+	}
 	clock_gettime(CLOCK_MONOTONIC, &finish);
 	printf("EXECUTION TIME: %f sec\n",
 	       finish.tv_sec - start.tv_sec + (finish.tv_nsec - start.tv_nsec) / 1000000000.0);

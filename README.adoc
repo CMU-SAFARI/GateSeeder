@@ -5,7 +5,8 @@ FPGA Genome Indexing &amp; Seeding (Julien Eudine)
 == TO DO
 
 * Host implementation
-* Multi threaded CPU implementation
+* Optimize size of the buffers
+* Implementation for a variable read length
 
 == CPU implementation
 

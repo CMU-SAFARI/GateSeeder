@@ -51,7 +51,7 @@ $(CORE): $(SRCS_HW)
 
 $(COMPOSE): $(CORE)
 	$(RM) -r $(COMPOSE)
-	tapasco --configFile tapasco/config.json
+	tapasco --maxThreads 4 --configFile tapasco/config.json
 
 	#tapasco $(TAPFLAGS) --coreDir $(CORE) --compositionDir $(COMPOSE) compose [seeding x 1] @ 150 Mhz -p $(PLATFORM) --effortLevel $(EFFORT) --skipSynthesis --deleteProjects false
 
