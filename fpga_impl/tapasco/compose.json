@@ -1,0 +1,41 @@
+{
+	"ArchDir" : "/opt/tapasco/vivado/arch",
+	"PlatformDir" : "/opt/tapasco/vivado/platform",
+	"KernelDir" : "tapasco",
+	"CoreDir" : "core",
+	"CompositionDir" : "compose",
+	"Slurm" : false,
+	"Parallel" : true,
+	"MaxThreads" : 8,
+	"Verbose" : "verbose",
+	"Jobs" : [ {
+		"Job" : "Compose",
+		"Composition" : {
+			"Composition" : [ {
+				"Kernel" : "seeding",
+				"Count" : 2
+			} ]
+		},
+		"Design Frequency" : 200,
+		"Implementation" : "Vivado",
+		"Platforms" : [ "xupvvh" ],
+		"Features" : [{
+			"Feature": "HBM",
+			"Properties" :{
+				"hbm0": {
+					"ID": "seeding",
+					"Count": "2",
+					"Interfaces": "m_axi_maxi_h_m"
+				},
+				"hbm1": {
+					"ID": "seeding",
+					"Count": "2",
+					"Interfaces": "m_axi_maxi_loc_stra_m"
+				},
+				"enabled": "true"
+			}
+		}],
+		"EffortLevel" : "aggressive_performance",
+		"DeleteProjects" : false
+	}]
+}

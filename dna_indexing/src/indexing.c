@@ -6,7 +6,7 @@
 #define NB_THREADS 8
 #define BUFFER_SIZE 4294967296
 #define P_SIZE 536870912
-#define MEM_BLOCK_SIZE 67108864
+#define MEM_SECTION_SIZE 67108864
 
 static inline unsigned char compare(min_loc_stra_t left, min_loc_stra_t right) { return (left.min) <= (right.min); }
 
@@ -32,16 +32,16 @@ void create_index_part(FILE *fp, const unsigned int w, const unsigned int k, con
 	idx->n = 0;
 	min_loc_stra_v p_block[16];
 	size_t counter    = 0;
-	p_block[idx->n].a = (min_loc_stra_t *)malloc(sizeof(min_loc_stra_t) * MEM_BLOCK_SIZE);
+	p_block[idx->n].a = (min_loc_stra_t *)malloc(sizeof(min_loc_stra_t) * MEM_SECTION_SIZE);
 	if (p_block[idx->n].a == NULL) {
 		fputs("Memory error\n", stderr);
 		exit(2);
 	}
 	for (size_t i = 0; i < p.n; i++) {
-		if (counter == MEM_BLOCK_SIZE) {
-			p_block[idx->n].n = MEM_BLOCK_SIZE;
+		if (counter == MEM_SECTION_SIZE) {
+			p_block[idx->n].n = MEM_SECTION_SIZE;
 			idx->n++;
-			p_block[idx->n].a = (min_loc_stra_t *)malloc(sizeof(min_loc_stra_t) * MEM_BLOCK_SIZE);
+			p_block[idx->n].a = (min_loc_stra_t *)malloc(sizeof(min_loc_stra_t) * MEM_SECTION_SIZE);
 			if (p_block[idx->n].a == NULL) {
 				fputs("Memory error\n", stderr);
 				exit(2);
@@ -62,7 +62,7 @@ void create_index_part(FILE *fp, const unsigned int w, const unsigned int k, con
 
 	// Sort & build index p_blocks
 	for (size_t i = 0; i < idx->n; i++) {
-		printf("\tMEMORY BLOCK %lu\n", i);
+		printf("\tMEMORY SECTION %lu\n", i);
 		sort(&p_block[i]);
 		puts("Info: Array sorted");
 		build_index(p_block[i], f, b, &idx->a[i]);

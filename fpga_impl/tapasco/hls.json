@@ -1,0 +1,17 @@
+{
+	"ArchDir" : "/opt/tapasco/vivado/arch",
+	"PlatformDir" : "/opt/tapasco/vivado/platform",
+	"KernelDir" : ".",
+	"CoreDir" : "core",
+	"CompositionDir" : "/opt/tapasco/compose",
+	"Slurm" : false,
+	"Parallel" : true,
+	"MaxThreads" : 8,
+	"Verbose" : "verbose",
+	"Jobs" : [ {
+		"Job" : "HighLevelSynthesis",
+		"Implementation" : "VivadoHLS",
+		"Platforms" : [ "xupvvh" ],
+		"Kernels" : [ "seeding" ]
+	} ]
+}

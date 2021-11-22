@@ -105,7 +105,7 @@ LOOP_extract_minimizer:
 }
 
 void push_min_stra(min_stra_b_t *p, min_stra_b_t *p_o, ap_uint<MIN_STRA_SIZE_LOG> &p_l, min_stra_t val) {
-	min_stra_b_t min_stra = {val.minimizer, val.strand};
+	min_stra_b_t min_stra = {val.minimizer, val.strand, 1};
 	ap_uint<1> flag(1);
 	ap_uint<MIN_STRA_SIZE_LOG> i(0);
 	p[p_l] = min_stra;

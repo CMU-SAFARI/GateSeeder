@@ -3,13 +3,11 @@
 #include <stddef.h>
 
 void seeding(const ap_uint<32> h_m[H_SIZE], const ap_uint<32> loc_stra_m[LS_SIZE], const base_t read_i[READ_LEN],
-             ap_uint<32> *locs_o) {
-#pragma HLS INTERFACE m_axi port = h_m bundle = h_m
-#pragma HLS INTERFACE m_axi port = loc_stra_m bundle = loc_stra_m
-#pragma HLS INTERFACE m_axi port = read_i bundle = read_i
-//#pragma HLS INTERFACE mode = ap_hs port = read_i
-#pragma HLS INTERFACE m_axi port = locs_o depth = 5000 bundle = locs_o // OUT_SIZE TODO
-	//#pragma HLS INTERFACE mode = ap_ovld port = locs_o
+             ap_uint<32> locs_o[OUT_SIZE]) {
+	//#pragma HLS INTERFACE m_axi port = h_m bundle = h_m
+	//#pragma HLS INTERFACE m_axi port = loc_stra_m bundle = loc_stra_m
+	//#pragma HLS INTERFACE m_axi port = read_i bundle = read_i
+	//#pragma HLS INTERFACE m_axi port = locs_o depth = 5000 bundle = locs_o // OUT_SIZE TODO
 
 #pragma HLS dataflow
 	base_t read[READ_LEN];
@@ -45,19 +43,19 @@ void get_locations(const min_stra_b_t *p_i, const ap_uint<32> *h_m, const ap_uin
 	ap_uint<F_LOG> buf2_l;
 	ap_uint<1> flag;
 	min_stra_b_t min_stra_buf(p_i[0]);
-	if (min_stra_buf != END_MINIMIZER) {
+	if (min_stra_buf.valid == 1) {
 		read_locations(min_stra_buf, buf1, buf1_l, h_m, loc_stra_m);
 	LOOP_get_locations:
 		for (size_t i = 0; i < READ_LEN; i += 2) {
 			min_stra_buf = p_i[i + 1];
-			if (min_stra_buf == END_MINIMIZER) {
+			if (min_stra_buf.valid == 0) {
 				flag = 1;
 				break;
 			}
 			merge_locations(loc_stra1, loc_stra1_l, buf1, buf1_l, loc_stra2, loc_stra2_l);
 			read_locations(min_stra_buf, buf2, buf2_l, h_m, loc_stra_m);
 			min_stra_buf = p_i[i + 2];
-			if (min_stra_buf == END_MINIMIZER) {
+			if (min_stra_buf.valid == 0) {
 				flag = 0;
 				break;
 			}

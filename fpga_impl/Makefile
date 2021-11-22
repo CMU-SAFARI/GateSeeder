@@ -2,12 +2,7 @@ HLS_ROOT		?= /opt/xilinx/Vitis_HLS/2020.2
 
 SRC_HW_DIR		:= src/hw
 SRC_TB_DIR		:= src/tb
-
-CORE			:= core
-COMPOSE			:= compose
-PLATFORM		:= xupvvh
-EFFORT			:= fastest
-TAPFLAGS		= -v --KernelDir tapasco --parallel
+TAPASCO_DIR		:= tapasco
 
 CXX				:= g++
 DEPFLAGS		= -MD -MP
@@ -43,20 +38,18 @@ $(SIM): $(OBJS_HW) $(OBJS_TB)
 format:
 	clang-format -i $(SRC_HW_DIR)/*.cpp $(SRC_HW_DIR)/*.hpp $(SRC_TB_DIR)/*.cpp $(SRC_TB_DIR)/*.hpp
 
-bitstream: $(COMPOSE)
+bitstream:
+	make core
+	make compose
 
-$(CORE): $(SRCS_HW)
-	$(RM) -r $(CORE)
-	tapasco $(TAPFLAGS) --coreDir $(CORE) hls seeding -p $(PLATFORM)
+core:
+	tapasco --configFile $(TAPASCO_DIR)/hls.json
 
-$(COMPOSE): $(CORE)
-	$(RM) -r $(COMPOSE)
-	tapasco --maxThreads 4 --configFile tapasco/config.json
-
-	#tapasco $(TAPFLAGS) --coreDir $(CORE) --compositionDir $(COMPOSE) compose [seeding x 1] @ 150 Mhz -p $(PLATFORM) --effortLevel $(EFFORT) --skipSynthesis --deleteProjects false
+compose:
+	tapasco --configFile $(TAPSCO_DIR)/compose.json
 
 clean:
 	$(RM) -r vitis_hls *.o *.d $(XO) $(SIM) $(CORE) $(COMPOSE)
 
-.PHONY: vitis format clean sim cosim bitstream
+.PHONY: vitis format clean sim cosim bitstream core compose
 -include $(wildcard *.d)
