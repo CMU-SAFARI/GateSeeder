@@ -17,50 +17,56 @@ void create_index(FILE *fp, const unsigned int w, const unsigned int k, const un
 	parse_extract(fp, w, k, b, &p);
 	// Sort p
 	sort(&p);
-	printf("Info: Array sorted\n");
+	puts("Info: Array sorted");
 	// Write the data in the struct & filter out the most frequent minimizers
 	build_index(p, f, b, idx);
 	return;
 }
 
 void create_index_part(FILE *fp, const unsigned int w, const unsigned int k, const unsigned int f, const unsigned int b,
-                       index_t *idx) {
+                       index_v *idx) {
 	min_loc_stra_v p;
-
 	// Parse & extract
 	parse_extract(fp, w, k, b, &p);
-
 	// Partition p
-	size_t n_block = 0;
+	idx->n = 0;
 	min_loc_stra_v p_block[16];
-	size_t counter     = 0;
-	p_block[n_block].a = (min_loc_stra_t *)malloc(sizeof(min_loc_stra_t) * MEM_BLOCK_SIZE);
-	if (p_block[n_block].a == NULL) {
+	size_t counter    = 0;
+	p_block[idx->n].a = (min_loc_stra_t *)malloc(sizeof(min_loc_stra_t) * MEM_BLOCK_SIZE);
+	if (p_block[idx->n].a == NULL) {
 		fputs("Memory error\n", stderr);
 		exit(2);
 	}
 	for (size_t i = 0; i < p.n; i++) {
 		if (counter == MEM_BLOCK_SIZE) {
-			n_block++;
-			p_block[n_block].a = (min_loc_stra_t *)malloc(sizeof(min_loc_stra_t) * MEM_BLOCK_SIZE);
-			if (p_block[n_block].a == NULL) {
+			p_block[idx->n].n = MEM_BLOCK_SIZE;
+			idx->n++;
+			p_block[idx->n].a = (min_loc_stra_t *)malloc(sizeof(min_loc_stra_t) * MEM_BLOCK_SIZE);
+			if (p_block[idx->n].a == NULL) {
 				fputs("Memory error\n", stderr);
 				exit(2);
 			}
 			counter = 0;
 		}
-		p_block[n_block].a[counter] = p.a[i];
+		p_block[idx->n].a[counter] = p.a[i];
 		counter++;
 	}
-	n_block++;
-	printf("Info: Number of memory blocks: %lu\n", n_block);
-
-	// Sort p
-	for (size_t i = 0; i < n_block; i++) {
-		sort(&p_block[i]);
+	p_block[idx->n].n = counter;
+	idx->n++;
+	printf("Info: Number of memory blocks: %lu\n", idx->n);
+	idx->a = (index_t *)malloc(sizeof(index_t) * idx->n);
+	if (idx->a == NULL) {
+		fputs("Memory error\n", stderr);
+		exit(2);
 	}
-	printf("Info: Array(s) sorted\n");
-	idx = NULL;
+
+	// Sort & build index p_blocks
+	for (size_t i = 0; i < idx->n; i++) {
+		printf("\tMEMORY BLOCK %lu\n", i);
+		sort(&p_block[i]);
+		puts("Info: Array sorted");
+		build_index(p_block[i], f, b, &idx->a[i]);
+	}
 }
 
 void build_index(min_loc_stra_v p, const unsigned int f, const unsigned int b, index_t *idx) {

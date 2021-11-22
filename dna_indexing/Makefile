@@ -13,7 +13,7 @@ OBJS		= $(SRCS:$(SRC_DIR)/%.c=%.o)
 all: $(EXE)
 
 run: $(EXE)
-	./$(EXE) -k 18 -w 12 -b 26 -f 1000 ../res/GCF_000001405.39_GRCh38.p13_genomic.fna ../res/full_k18_w12_f1000_b26.bin
+	./$(EXE) -k 18 -w 12 -b 26 -f 1000 -p ../res/GCF_000001405.39_GRCh38.p13_genomic.fna test
 
 $(EXE): $(OBJS)
 	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@

@@ -12,6 +12,11 @@ typedef struct {
 } index_t;
 
 typedef struct {
+	size_t n;
+	index_t *a;
+} index_v;
+
+typedef struct {
 	min_loc_stra_v *p;
 	unsigned int i;
 } thread_param_t;
@@ -19,7 +24,7 @@ typedef struct {
 void create_index(FILE *fp, const unsigned int w, const unsigned int k, const unsigned int f, const unsigned int b,
                   index_t *idx);
 void create_index_part(FILE *fp, const unsigned int w, const unsigned int k, const unsigned int f, const unsigned int b,
-                       index_t *idx);
+                       index_v *idx);
 void build_index(min_loc_stra_v p, const unsigned int f, const unsigned int b, index_t *idx);
 void parse_extract(FILE *fp, const unsigned int w, const unsigned int k, const unsigned int b, min_loc_stra_v *p);
 void sort(min_loc_stra_v *p);
