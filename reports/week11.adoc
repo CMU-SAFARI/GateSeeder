@@ -11,7 +11,7 @@
 
 * Partitioning of the index to fit into the memory sections
 ** Enables a more accurate filtering of the minimizers with a lot of locations
-** Not need to replace the LSB of the location by the strand ({location, strand} fits on 32 bits)
+** Not need to replace the LSbit of the location by the strand ({location, strand} fits on 32 bits)
 
 image::../img/week11/schematic.png[../img/week11/schematic.png]
 
