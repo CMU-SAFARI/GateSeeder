@@ -67,30 +67,14 @@ int main(int argc, char *argv[]) {
 
 	printf("Info: w = %u, k = %u, f = %u & b = %u\n", w, k, f, b);
 	if (p) {
-		/*
 		puts("Info: Partioning enabled");
-		index_v idx;
-		create_index_part(fp_in, w, k, f, b, &idx);
-		for (size_t i = 0; i < idx.n; i++) {
-		        char name_buf[200];
-		        sprintf(name_buf, "%s_%lu.bin", argv[optind + 1], i);
-		        FILE *out_fp = fopen(name_buf, "wb");
-		        if (out_fp == NULL) {
-		                fprintf(stderr, "Error: cannot open `%s`\n", argv[optind + 1]);
-		                exit(1);
-		        }
-		        fwrite(&(idx.a[i].n), sizeof(idx.a[i].n), 1, out_fp);
-		        fwrite(idx.a[i].h, sizeof(idx.a[i].h[0]), idx.n, out_fp);
-		        fwrite(idx.a[i].loc, sizeof(idx.a[i].loc[0]), idx.a[i].m, out_fp);
-		        printf("Info: Binary file `%s` written\n", name_buf);
-		}
-		*/
+		create_index_part(fd_in, w, k, f, b, argv[optind + 1]);
 	} else {
 		char name_buf[200];
 		sprintf(name_buf, "%s.bin", argv[optind + 1]);
 		FILE *fp_out = fopen(name_buf, "wb");
 		if (fp_out == NULL) {
-			err(1, "open %s", name_buf);
+			err(1, "fopen %s", name_buf);
 		}
 		puts("Info: Partioning disabled");
 		index_t idx;

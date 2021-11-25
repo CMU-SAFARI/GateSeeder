@@ -2,14 +2,20 @@
 #include <err.h>
 #include <math.h>
 #include <pthread.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/mman.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
-#define NB_THREADS 8
+#define NB_THREADS 10
 #define MEM_SECTION_SIZE 67108864
 
-static inline unsigned char compare(min_loc_stra_t left, min_loc_stra_t right) { return (left.min) <= (right.min); }
+static inline unsigned char compare(min_loc_stra_t left, min_loc_stra_t right) { return left.min <= right.min; }
+
+static inline int compare_part(const void *p1, const void *p2) {
+	return ((min_loc_stra_t *)p1)->min <= ((min_loc_stra_t *)p2)->min;
+}
 
 void create_index(int fd, const unsigned int w, const unsigned int k, const unsigned int f, const unsigned int b,
                   index_t *idx) {
@@ -24,48 +30,120 @@ void create_index(int fd, const unsigned int w, const unsigned int k, const unsi
 	return;
 }
 
-void create_index_part(FILE *fp, const unsigned int w, const unsigned int k, const unsigned int f, const unsigned int b,
-                       index_v *idx) {
+void create_index_part(int fd, const unsigned int w, const unsigned int k, const unsigned int f, const unsigned int b,
+                       const char *name) {
+	pthread_t threads[NB_THREADS];
+	thread_index_t params[NB_THREADS];
 	min_loc_stra_v p;
+	struct stat statbuf;
+	if (fstat(fd, &statbuf) == -1) {
+		err(1, "fstat");
+	}
+	off_t size        = statbuf.st_size;
+	char *file_buffer = (char *)mmap(NULL, size, PROT_READ, MAP_SHARED | MAP_POPULATE, fd, 0);
+	if (file_buffer == MAP_FAILED) {
+		err(1, "mmap");
+	}
+
 	p.n = 0;
-	// Parse & extract
-	// parse_extract(fp, w, k, b, &p);
-	// Partition p
-	idx->n = 0;
-	min_loc_stra_v p_block[16];
-	size_t counter    = 0;
-	p_block[idx->n].a = (min_loc_stra_t *)malloc(sizeof(min_loc_stra_t) * MEM_SECTION_SIZE);
-	if (p_block[idx->n].a == NULL) {
-		err(1, "malloc");
-	}
-	for (size_t i = 0; i < p.n; i++) {
-		if (counter == MEM_SECTION_SIZE) {
-			p_block[idx->n].n = MEM_SECTION_SIZE;
-			idx->n++;
-			p_block[idx->n].a = (min_loc_stra_t *)malloc(sizeof(min_loc_stra_t) * MEM_SECTION_SIZE);
-			if (p_block[idx->n].a == NULL) {
-				err(1, "malloc");
-			}
-			counter = 0;
-		}
-		p_block[idx->n].a[counter] = p.a[i];
-		counter++;
-	}
-	p_block[idx->n].n = counter;
-	idx->n++;
-	printf("Info: Number of memory blocks: %lu\n", idx->n);
-	idx->a = (index_t *)malloc(sizeof(index_t) * idx->n);
-	if (idx->a == NULL) {
+	p.a = (min_loc_stra_t *)malloc(sizeof(min_loc_stra_t) * 5 * size / (2 * (w + 1)));
+	if (p.a == NULL) {
 		err(1, "malloc");
 	}
 
-	// Sort & build index p_blocks
-	for (size_t i = 0; i < idx->n; i++) {
-		printf("\tMEMORY SECTION %lu\n", i);
-		sort(&p_block[i]);
-		puts("Info: Array sorted");
-		build_index(p_block[i], f, b, &idx->a[i]);
+	char *dna_buffer = (char *)malloc(size);
+	if (dna_buffer == NULL) {
+		err(1, "malloc");
 	}
+
+	size_t i          = 0;
+	size_t dna_len    = 0;
+	size_t chromo_len = 0;
+
+	size_t counter   = 0;
+	size_t initial   = 0;
+	size_t thread_id = 0;
+	while (1) {
+		char c = file_buffer[i];
+		if (c == '>') {
+			if (chromo_len > 0) {
+				extract_minimizers(dna_buffer, chromo_len, w, k, b, &p, dna_len);
+				dna_len += chromo_len;
+				chromo_len = 0;
+				if (p.n - initial > MEM_SECTION_SIZE) {
+					params[thread_id].p    = (min_loc_stra_v){counter, &p.a[initial]};
+					params[thread_id].id   = thread_id;
+					params[thread_id].name = name;
+					params[thread_id].b    = b;
+					params[thread_id].f    = f;
+					pthread_create(&threads[thread_id], NULL, thread_create_index,
+					               (void *)&params[thread_id]);
+					initial = counter + initial;
+					thread_id++;
+				}
+				counter = p.n - initial;
+			}
+			while (c != '\n' && c != 0) {
+				i++;
+				c = file_buffer[i];
+			}
+		} else {
+			while (c != '\n' && c != 0) {
+				dna_buffer[chromo_len] = c;
+				chromo_len++;
+				i++;
+				c = file_buffer[i];
+			}
+		}
+
+		if (c == 0) {
+			break;
+		}
+		i++;
+	}
+
+	munmap(file_buffer, size);
+	if (chromo_len > 0) {
+		extract_minimizers(dna_buffer, chromo_len, w, k, b, &p, dna_len);
+		dna_len += chromo_len;
+		params[thread_id].p    = (min_loc_stra_v){counter, &p.a[initial]};
+		params[thread_id].id   = thread_id;
+		params[thread_id].name = name;
+		params[thread_id].b    = b;
+		params[thread_id].f    = f;
+		pthread_create(&threads[thread_id], NULL, thread_create_index, (void *)&params[thread_id]);
+		initial = counter + initial;
+		thread_id++;
+	}
+	for (size_t i = 0; i < thread_id; i++) {
+		pthread_join(threads[i], NULL);
+	}
+	free(dna_buffer);
+	printf("Info: Indexed DNA length: %lu bases\n", dna_len);
+	printf("Info: Number of (minimizer, location, strand): %lu\n", p.n);
+}
+
+void *thread_create_index(void *arg) {
+	thread_index_t *param = (thread_index_t *)arg;
+	min_loc_stra_v p      = param->p;
+	printf("THREAD %lu, n:%lu\n", param->id, p.n);
+	/*
+	qsort((void *)p.a, p.n, sizeof(min_loc_stra_t), compare_part);
+	printf("Info: Array of MS %lu sorted", param->id);
+	index_t idx;
+	build_index(p, param->f, param->b, &idx);
+	char name_buf[200];
+	sprintf(name_buf, "%s_%lu.bin", param->name, param->id);
+	FILE *fp_out = fopen(name_buf, "wb");
+	if (fp_out == NULL) {
+		err(1, "fopen %s", name_buf);
+	}
+	fwrite(&(idx.n), sizeof(idx.n), 1, fp_out);
+	fwrite(idx.h, sizeof(idx.h[0]), idx.n, fp_out);
+	fwrite(idx.loc, sizeof(idx.loc[0]), idx.m, fp_out);
+	printf("Info: Binary file `%s` written\n", name_buf);
+	*/
+	return NULL;
 }
 
 void build_index(min_loc_stra_v p, const unsigned int f, const unsigned int b, index_t *idx) {
@@ -159,9 +237,11 @@ void build_index(min_loc_stra_v p, const unsigned int f, const unsigned int b, i
 }
 
 void parse_extract(int fd, const unsigned int w, const unsigned int k, const unsigned int b, min_loc_stra_v *p) {
-
-	off_t size = lseek(fd, 0, SEEK_END);
-	lseek(fd, 0, SEEK_SET);
+	struct stat statbuf;
+	if (fstat(fd, &statbuf) == -1) {
+		err(1, "fstat");
+	}
+	off_t size        = statbuf.st_size;
 	char *file_buffer = (char *)mmap(NULL, size, PROT_READ, MAP_SHARED | MAP_POPULATE, fd, 0);
 	if (file_buffer == MAP_FAILED) {
 		err(1, "mmap");
@@ -222,7 +302,7 @@ void parse_extract(int fd, const unsigned int w, const unsigned int k, const uns
 
 void sort(min_loc_stra_v *p) {
 	pthread_t threads[NB_THREADS];
-	thread_param_t params[NB_THREADS];
+	thread_sort_t params[NB_THREADS];
 	for (size_t i = 0; i < NB_THREADS; i++) {
 		params[i].p = p;
 		params[i].i = i;
@@ -236,9 +316,9 @@ void sort(min_loc_stra_v *p) {
 }
 
 void *thread_merge_sort(void *arg) {
-	thread_param_t *param = (thread_param_t *)arg;
-	size_t l              = param->i * param->p->n / NB_THREADS;
-	size_t r              = (param->i + 1) * param->p->n / NB_THREADS - 1;
+	thread_sort_t *param = (thread_sort_t *)arg;
+	size_t l             = param->i * param->p->n / NB_THREADS;
+	size_t r             = (param->i + 1) * param->p->n / NB_THREADS - 1;
 	if (l < r) {
 		size_t m = l + (r - l) / 2;
 		merge_sort(param->p->a, l, m);
