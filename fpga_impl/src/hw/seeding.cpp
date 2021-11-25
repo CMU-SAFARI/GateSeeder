@@ -2,30 +2,40 @@
 #include "extraction.hpp"
 #include <stddef.h>
 
-void seeding(const ap_uint<32> h_m[H_SIZE], const ap_uint<32> loc_stra_m[LS_SIZE], const base_t read_i[READ_LEN],
-             ap_uint<32> locs_o[OUT_SIZE]) {
-	//#pragma HLS INTERFACE m_axi port = h_m bundle = h_m
-	//#pragma HLS INTERFACE m_axi port = loc_stra_m bundle = loc_stra_m
+void seeding(const ap_uint<32> h0_m[H_SIZE], const ap_uint<32> loc_stra0_m[LS_SIZE], const ap_uint<32> h1_m[H_SIZE],
+             const ap_uint<32> loc_stra1_m[LS_SIZE], const base_t read_i[READ_LEN], ap_uint<32> locs0_o[OUT_SIZE],
+             ap_uint<32> locs1_o[OUT_SIZE]) {
+	//#pragma HLS INTERFACE m_axi port = h0_m bundle = h0_m
+	//#pragma HLS INTERFACE m_axi port = loc_stra0_m bundle = loc_stra0_m
+	//#pragma HLS INTERFACE m_axi port = h1_m bundle = h1_m
+	//#pragma HLS INTERFACE m_axi port = loc_stra1_m bundle = loc_stra1_m
 	//#pragma HLS INTERFACE m_axi port = read_i bundle = read_i
-	//#pragma HLS INTERFACE m_axi port = locs_o depth = 5000 bundle = locs_o // OUT_SIZE TODO
+	//#pragma HLS INTERFACE m_axi port = locs0_o depth = 5000 bundle = locs0_o // OUT_SIZE
+	//#pragma HLS INTERFACE m_axi port = locs1_o depth = 5000 bundle = locs1_o // OUT_SIZE
 
 #pragma HLS dataflow
 	base_t read[READ_LEN];
-	min_stra_b_t p[MIN_STRA_SIZE];
-	ap_uint<32> locs[OUT_SIZE];
+	min_stra_b_t p0[MIN_STRA_SIZE];
+	min_stra_b_t p1[MIN_STRA_SIZE];
+	ap_uint<32> locs0[OUT_SIZE];
+	ap_uint<32> locs1[OUT_SIZE];
 #pragma HLS STREAM variable = read
-#pragma HLS STREAM variable = p depth = 2
-#pragma HLS STREAM variable = locs depth = 4
+#pragma HLS STREAM variable = p0    // depth = 2
+#pragma HLS STREAM variable = p1    // depth = 2
+#pragma HLS STREAM variable = locs0 // depth = 4
+#pragma HLS STREAM variable = locs1 // depth = 4
 	read_read(read_i, read);
-	extract_minimizers(read, p);
-	get_locations(p, h_m, loc_stra_m, locs);
-	write_locations(locs, locs_o);
+	extract_minimizers(read, p0, p1);
+	get_locations(p0, h0_m, loc_stra0_m, locs0);
+	get_locations(p1, h1_m, loc_stra1_m, locs1);
+	write_locations(locs0, locs0_o);
+	write_locations(locs1, locs1_o);
 }
 
 void read_read(const base_t *read_i, base_t *read_o) {
 LOOP_read_read:
 	for (size_t i = 0; i < READ_LEN; i++) {
-#pragma HLS PIPELINE II        = 1
+#pragma HLS PIPELINE II = 1
 		read_o[i] = read_i[i];
 	}
 }
