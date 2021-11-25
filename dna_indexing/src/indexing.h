@@ -21,12 +21,12 @@ typedef struct {
 	unsigned int i;
 } thread_param_t;
 
-void create_index(FILE *fp, const unsigned int w, const unsigned int k, const unsigned int f, const unsigned int b,
+void create_index(int fd, const unsigned int w, const unsigned int k, const unsigned int f, const unsigned int b,
                   index_t *idx);
 void create_index_part(FILE *fp, const unsigned int w, const unsigned int k, const unsigned int f, const unsigned int b,
                        index_v *idx);
 void build_index(min_loc_stra_v p, const unsigned int f, const unsigned int b, index_t *idx);
-void parse_extract(FILE *fp, const unsigned int w, const unsigned int k, const unsigned int b, min_loc_stra_v *p);
+void parse_extract(int fd, const unsigned int w, const unsigned int k, const unsigned int b, min_loc_stra_v *p);
 void sort(min_loc_stra_v *p);
 void *thread_merge_sort(void *arg);
 void merge_sort(min_loc_stra_t *a, size_t l, size_t r);

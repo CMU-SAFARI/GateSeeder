@@ -1,6 +1,10 @@
 #include "indexing.h"
+#include <err.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <sys/mman.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -56,44 +60,53 @@ int main(int argc, char *argv[]) {
 		exit(3);
 	}
 
-	FILE *in_fp = fopen(argv[optind], "r");
-	if (in_fp == NULL) {
-		fprintf(stderr, "Error: cannot open `%s`\n", argv[optind]);
-		exit(1);
+	int fd_in = open(argv[optind], O_RDONLY);
+	if (fd_in == -1) {
+		err(1, "open %s", argv[optind]);
 	}
 
 	printf("Info: w = %u, k = %u, f = %u & b = %u\n", w, k, f, b);
 	if (p) {
+		/*
 		puts("Info: Partioning enabled");
 		index_v idx;
-		create_index_part(in_fp, w, k, f, b, &idx);
+		create_index_part(fp_in, w, k, f, b, &idx);
 		for (size_t i = 0; i < idx.n; i++) {
-			char name_buf[200];
-			sprintf(name_buf, "%s_%lu.bin", argv[optind + 1], i);
-			FILE *out_fp = fopen(name_buf, "wb");
-			if (out_fp == NULL) {
-				fprintf(stderr, "Error: cannot open `%s`\n", argv[optind + 1]);
-				exit(1);
-			}
-			fwrite(&(idx.a[i].n), sizeof(idx.a[i].n), 1, out_fp);
-			fwrite(idx.a[i].h, sizeof(idx.a[i].h[0]), idx.n, out_fp);
-			fwrite(idx.a[i].loc, sizeof(idx.a[i].loc[0]), idx.a[i].m, out_fp);
-			printf("Info: Binary file `%s` written\n", name_buf);
+		        char name_buf[200];
+		        sprintf(name_buf, "%s_%lu.bin", argv[optind + 1], i);
+		        FILE *out_fp = fopen(name_buf, "wb");
+		        if (out_fp == NULL) {
+		                fprintf(stderr, "Error: cannot open `%s`\n", argv[optind + 1]);
+		                exit(1);
+		        }
+		        fwrite(&(idx.a[i].n), sizeof(idx.a[i].n), 1, out_fp);
+		        fwrite(idx.a[i].h, sizeof(idx.a[i].h[0]), idx.n, out_fp);
+		        fwrite(idx.a[i].loc, sizeof(idx.a[i].loc[0]), idx.a[i].m, out_fp);
+		        printf("Info: Binary file `%s` written\n", name_buf);
 		}
+		*/
 	} else {
 		char name_buf[200];
 		sprintf(name_buf, "%s.bin", argv[optind + 1]);
-		FILE *out_fp = fopen(name_buf, "wb");
-		if (out_fp == NULL) {
-			fprintf(stderr, "Error: cannot open `%s`\n", argv[optind + 1]);
-			exit(1);
+		int fd_out = open(name_buf, O_RDWR | O_TRUNC | O_CREAT, 0644);
+		if (fd_out == -1) {
+			err(1, "open %s", name_buf);
 		}
 		puts("Info: Partioning disabled");
 		index_t idx;
-		create_index(in_fp, w, k, f, b, &idx);
-		fwrite(&(idx.n), sizeof(idx.n), 1, out_fp);
-		fwrite(idx.h, sizeof(idx.h[0]), idx.n, out_fp);
-		fwrite(idx.loc, sizeof(idx.loc[0]), idx.m, out_fp);
+		create_index(fd_in, w, k, f, b, &idx);
+		ftruncate(fd_out, sizeof(idx.n) + sizeof(idx.h[0]) * idx.n + sizeof(idx.loc[0]) * idx.m);
+		char *dst = mmap(0, sizeof(idx.n) + sizeof(idx.h[0]) * idx.n + sizeof(idx.loc[0]) * idx.m, PROT_WRITE,
+		                 MAP_SHARED, fd_out, 0);
+		if (dst == MAP_FAILED) {
+			err(1, "mmap");
+		}
+		memcpy(dst, &(idx.n), sizeof(idx.n));
+		memcpy(dst, idx.h, sizeof(idx.h[0]) * idx.n);
+		memcpy(dst, idx.loc, sizeof(idx.loc[0]) * idx.m);
+		// fwrite(&(idx.n), sizeof(idx.n), 1, out_fp);
+		// fwrite(idx.h, sizeof(idx.h[0]), idx.n, out_fp);
+		// fwrite(idx.loc, sizeof(idx.loc[0]), idx.m, out_fp);
 		printf("Info: Binary file `%s` written\n", name_buf);
 	}
 	clock_gettime(CLOCK_MONOTONIC, &finish);

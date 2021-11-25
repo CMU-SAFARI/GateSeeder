@@ -1,20 +1,21 @@
 #include "indexing.h"
+#include <err.h>
 #include <math.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <sys/mman.h>
+#include <unistd.h>
 
 #define NB_THREADS 8
-#define BUFFER_SIZE 4294967296
-#define P_SIZE 536870912
 #define MEM_SECTION_SIZE 67108864
 
 static inline unsigned char compare(min_loc_stra_t left, min_loc_stra_t right) { return (left.min) <= (right.min); }
 
-void create_index(FILE *fp, const unsigned int w, const unsigned int k, const unsigned int f, const unsigned int b,
+void create_index(int fd, const unsigned int w, const unsigned int k, const unsigned int f, const unsigned int b,
                   index_t *idx) {
 	min_loc_stra_v p;
 	// Parse & extract
-	parse_extract(fp, w, k, b, &p);
+	parse_extract(fd, w, k, b, &p);
 	// Sort p
 	sort(&p);
 	puts("Info: Array sorted");
@@ -26,16 +27,16 @@ void create_index(FILE *fp, const unsigned int w, const unsigned int k, const un
 void create_index_part(FILE *fp, const unsigned int w, const unsigned int k, const unsigned int f, const unsigned int b,
                        index_v *idx) {
 	min_loc_stra_v p;
+	p.n = 0;
 	// Parse & extract
-	parse_extract(fp, w, k, b, &p);
+	// parse_extract(fp, w, k, b, &p);
 	// Partition p
 	idx->n = 0;
 	min_loc_stra_v p_block[16];
 	size_t counter    = 0;
 	p_block[idx->n].a = (min_loc_stra_t *)malloc(sizeof(min_loc_stra_t) * MEM_SECTION_SIZE);
 	if (p_block[idx->n].a == NULL) {
-		fputs("Memory error\n", stderr);
-		exit(2);
+		err(1, "malloc");
 	}
 	for (size_t i = 0; i < p.n; i++) {
 		if (counter == MEM_SECTION_SIZE) {
@@ -43,8 +44,7 @@ void create_index_part(FILE *fp, const unsigned int w, const unsigned int k, con
 			idx->n++;
 			p_block[idx->n].a = (min_loc_stra_t *)malloc(sizeof(min_loc_stra_t) * MEM_SECTION_SIZE);
 			if (p_block[idx->n].a == NULL) {
-				fputs("Memory error\n", stderr);
-				exit(2);
+				err(1, "malloc");
 			}
 			counter = 0;
 		}
@@ -56,8 +56,7 @@ void create_index_part(FILE *fp, const unsigned int w, const unsigned int k, con
 	printf("Info: Number of memory blocks: %lu\n", idx->n);
 	idx->a = (index_t *)malloc(sizeof(index_t) * idx->n);
 	if (idx->a == NULL) {
-		fputs("Memory error\n", stderr);
-		exit(2);
+		err(1, "malloc");
 	}
 
 	// Sort & build index p_blocks
@@ -73,8 +72,7 @@ void build_index(min_loc_stra_v p, const unsigned int f, const unsigned int b, i
 	idx->h   = (uint32_t *)malloc(sizeof(uint32_t) * (1 << b));
 	idx->loc = (uint32_t *)malloc(sizeof(uint32_t) * p.n);
 	if (idx->h == NULL || idx->loc == NULL) {
-		fputs("Memory error\n", stderr);
-		exit(2);
+		err(1, "malloc");
 	}
 
 	unsigned int diff_counter   = 0;
@@ -160,31 +158,24 @@ void build_index(min_loc_stra_v p, const unsigned int f, const unsigned int b, i
 	       (float)empty_counter / idx->n * 100);
 }
 
-void parse_extract(FILE *fp, const unsigned int w, const unsigned int k, const unsigned int b, min_loc_stra_v *p) {
+void parse_extract(int fd, const unsigned int w, const unsigned int k, const unsigned int b, min_loc_stra_v *p) {
+
+	off_t size = lseek(fd, 0, SEEK_END);
+	lseek(fd, 0, SEEK_SET);
+	char *file_buffer = (char *)mmap(NULL, size, PROT_READ, MAP_SHARED | MAP_POPULATE, fd, 0);
+	if (file_buffer == MAP_FAILED) {
+		err(1, "mmap");
+	}
+
 	p->n = 0;
-	p->a = (min_loc_stra_t *)malloc(sizeof(min_loc_stra_t) * P_SIZE);
+	p->a = (min_loc_stra_t *)malloc(sizeof(min_loc_stra_t) * 5 * size / (2 * (w + 1)));
 	if (p->a == NULL) {
-		fputs("Memory error\n", stderr);
-		exit(2);
+		err(1, "malloc");
 	}
 
-	char *read_buffer = (char *)malloc(sizeof(char) * BUFFER_SIZE);
-	if (read_buffer == NULL) {
-		fputs("Memory error\n", stderr);
-		exit(2);
-	}
-
-	char *dna_buffer = (char *)malloc(sizeof(char) * BUFFER_SIZE);
+	char *dna_buffer = (char *)malloc(size);
 	if (dna_buffer == NULL) {
-		fputs("Memory error\n", stderr);
-		exit(2);
-	}
-
-	fread(read_buffer, sizeof(char), BUFFER_SIZE, fp);
-	if (!feof(fp)) {
-		fputs("Reading error: buffer too small\n", stderr);
-		fclose(fp);
-		exit(3);
+		err(1, "malloc");
 	}
 
 	size_t i          = 0;
@@ -192,7 +183,7 @@ void parse_extract(FILE *fp, const unsigned int w, const unsigned int k, const u
 	size_t chromo_len = 0;
 
 	while (1) {
-		char c = read_buffer[i];
+		char c = file_buffer[i];
 
 		if (c == '>') {
 			if (chromo_len > 0) {
@@ -202,14 +193,14 @@ void parse_extract(FILE *fp, const unsigned int w, const unsigned int k, const u
 			}
 			while (c != '\n' && c != 0) {
 				i++;
-				c = read_buffer[i];
+				c = file_buffer[i];
 			}
 		} else {
 			while (c != '\n' && c != 0) {
 				dna_buffer[chromo_len] = c;
 				chromo_len++;
 				i++;
-				c = read_buffer[i];
+				c = file_buffer[i];
 			}
 		}
 
@@ -219,8 +210,7 @@ void parse_extract(FILE *fp, const unsigned int w, const unsigned int k, const u
 		i++;
 	}
 
-	free(read_buffer);
-	fclose(fp);
+	munmap(file_buffer, size);
 	if (chromo_len > 0) {
 		extract_minimizers(dna_buffer, chromo_len, w, k, b, p, dna_len);
 		dna_len += chromo_len;
@@ -228,16 +218,6 @@ void parse_extract(FILE *fp, const unsigned int w, const unsigned int k, const u
 	free(dna_buffer);
 	printf("Info: Indexed DNA length: %lu bases\n", dna_len);
 	printf("Info: Number of (minimizer, location, strand): %lu\n", p->n);
-	min_loc_stra_t *a = (min_loc_stra_t *)malloc(sizeof(min_loc_stra_t) * p->n);
-	if (a == NULL) {
-		fputs("Memory error\n", stderr);
-		exit(2);
-	}
-	for (size_t i = 0; i < p->n; i++) {
-		a[i] = p->a[i];
-	}
-	free(p->a);
-	p->a = a;
 }
 
 void sort(min_loc_stra_v *p) {
@@ -298,8 +278,7 @@ void merge(min_loc_stra_t *a, size_t l, size_t m, size_t r) {
 	min_loc_stra_t *L = (min_loc_stra_t *)malloc(n1 * sizeof(min_loc_stra_t));
 	min_loc_stra_t *R = (min_loc_stra_t *)malloc(n2 * sizeof(min_loc_stra_t));
 	if (L == NULL || R == NULL) {
-		fputs("Memory error\n", stderr);
-		exit(2);
+		err(1, "malloc");
 	}
 
 	for (i = 0; i < n1; i++) {
