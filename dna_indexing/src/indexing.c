@@ -1,4 +1,5 @@
 #include "indexing.h"
+#include "sort.h"
 #include <err.h>
 #include <math.h>
 #include <pthread.h>
@@ -8,10 +9,10 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#define NB_THREADS 10
+#ifndef NB_THREADS
+#define NB_THREADS 8
+#endif
 #define MEM_SECTION_SIZE 67108864
-
-static inline unsigned char compare(min_loc_stra_t left, min_loc_stra_t right) { return left.min <= right.min; }
 
 void create_index(int fd, const unsigned int w, const unsigned int k, const unsigned int f, const unsigned int b,
                   index_t *idx) {
@@ -145,22 +146,20 @@ void *thread_create_index(void *arg) {
 	thread_index_t *param = (thread_index_t *)arg;
 	min_loc_stra_v p      = param->p;
 	printf("thread: %lu p.n: %lu\n", param->id, p.n);
-	merge_sort(p.a, 0, p.n);
+	merge_sort(p.a, 0, p.n - 1);
 	printf("Info: Array of MS %lu sorted\n", param->id);
 	index_t idx;
 	build_index(p, param->f, param->b, &idx);
-	/*
 	char name_buf[200];
 	sprintf(name_buf, "%s_%lu.bin", param->name, param->id);
 	FILE *fp_out = fopen(name_buf, "wb");
 	if (fp_out == NULL) {
-	        err(1, "fopen %s", name_buf);
+		err(1, "fopen %s", name_buf);
 	}
 	fwrite(&(idx.n), sizeof(idx.n), 1, fp_out);
 	fwrite(idx.h, sizeof(idx.h[0]), idx.n, fp_out);
 	fwrite(idx.loc, sizeof(idx.loc[0]), idx.m, fp_out);
 	printf("Info: Binary file `%s` written\n", name_buf);
-	*/
 	return NULL;
 }
 
@@ -181,48 +180,49 @@ void build_index(min_loc_stra_v p, const unsigned int f, const unsigned int b, i
 		idx->h[i] = 0;
 	}
 
+	/*
 	printf("min: %u, max: %u\n", index, p.a[p.n - 1].min);
 	for (size_t i = 1; i < p.n; i++) {
-		if (p.a[i - 1].min > p.a[i].min) {
-			printf("error: %lu\n", i);
+	        if (p.a[i - 1].min > p.a[i].min) {
+	                printf("error: %lu, %u\n", i-1, p.a[i - 1].min);
+	        }
+	}
+	*/
+	for (size_t i = 1; i < p.n; i++) {
+		if (index == p.a[i].min) {
+			freq_counter++;
+		} else {
+			if (freq_counter < f) {
+				diff_counter++;
+				for (size_t j = pos; j < i; j++) {
+					idx->loc[l] = (p.a[j].loc & (UINT32_MAX - 1)) | p.a[j].stra;
+					l++;
+				}
+			} else {
+				filter_counter++;
+			}
+			pos          = i;
+			freq_counter = 0;
+			while (index != p.a[i].min) {
+				idx->h[index] = l;
+				index++;
+			}
 		}
 	}
-	/*
-	for (size_t i = 1; i < p.n; i++) {
-	        if (index == p.a[i].min) {
-	                freq_counter++;
-	        } else {
-	                if (freq_counter < f) {
-	                        diff_counter++;
-	                        for (size_t j = pos; j < i; j++) {
-	                                idx->loc[l] = (p.a[j].loc & (UINT32_MAX - 1)) | p.a[j].stra;
-	                                l++;
-	                        }
-	                } else {
-	                        filter_counter++;
-	                }
-	                pos          = i;
-	                freq_counter = 0;
-	                while (index != p.a[i].min) {
-	                        idx->h[index] = l;
-	                        index++;
-	                }
-	        }
-	}
 	if (freq_counter < f) {
-	        diff_counter++;
-	        for (size_t j = pos; j < p.n; j++) {
-	                idx->loc[l] = (p.a[j].loc & (UINT32_MAX - 1)) | p.a[j].stra;
-	                l++;
-	        }
+		diff_counter++;
+		for (size_t j = pos; j < p.n; j++) {
+			idx->loc[l] = (p.a[j].loc & (UINT32_MAX - 1)) | p.a[j].stra;
+			l++;
+		}
 	} else {
-	        filter_counter++;
+		filter_counter++;
 	}
 	for (size_t i = index; i < (1 << b); i++) {
-	        idx->h[i] = l;
+		idx->h[i] = l;
 	}
 
-	//free(p.a);
+	// free(p.a);
 	printf("Info: Number of ignored minimizers: %u\n", filter_counter);
 	printf("Info: Number of distinct minimizers: %u\n", diff_counter);
 	idx->n              = 1 << b;
@@ -241,14 +241,14 @@ void build_index(min_loc_stra_v p, const unsigned int f, const unsigned int b, i
 	uint32_t j                 = 0;
 	unsigned long sd_counter   = (idx->h[0] - average) * (idx->h[0] - average);
 	for (size_t i = 0; i < idx->n; i++) {
-	        if (i > 0) {
-	                sd_counter += (idx->h[i] - idx->h[i - 1] - average) * (idx->h[i] - idx->h[i - 1] - average);
-	        }
-	        if (idx->h[i] == j) {
-	                empty_counter++;
-	        } else {
-	                j = idx->h[i];
-	        }
+		if (i > 0) {
+			sd_counter += (idx->h[i] - idx->h[i - 1] - average) * (idx->h[i] - idx->h[i - 1] - average);
+		}
+		if (idx->h[i] == j) {
+			empty_counter++;
+		} else {
+			j = idx->h[i];
+		}
 	}
 
 	float sd = sqrtf((float)sd_counter / idx->n);
@@ -257,7 +257,6 @@ void build_index(min_loc_stra_v p, const unsigned int f, const unsigned int b, i
 	       sd);
 	printf("Info: Number of empty entries in the hash-table: %u (%f%%)\n", empty_counter,
 	       (float)empty_counter / idx->n * 100);
-	           */
 }
 
 void parse_extract(int fd, const unsigned int w, const unsigned int k, const unsigned int b, min_loc_stra_v *p) {
@@ -322,103 +321,4 @@ void parse_extract(int fd, const unsigned int w, const unsigned int k, const uns
 	free(dna_buffer);
 	printf("Info: Indexed DNA length: %lu bases\n", dna_len);
 	printf("Info: Number of (minimizer, location, strand): %lu\n", p->n);
-}
-
-void sort(min_loc_stra_v *p) {
-	pthread_t threads[NB_THREADS];
-	thread_sort_t params[NB_THREADS];
-	for (size_t i = 0; i < NB_THREADS; i++) {
-		params[i].p = p;
-		params[i].i = i;
-		pthread_create(&threads[i], NULL, thread_merge_sort, (void *)&params[i]);
-	}
-
-	for (size_t i = 0; i < NB_THREADS; i++) {
-		pthread_join(threads[i], NULL);
-	}
-	final_merge(p->a, p->n, 0, NB_THREADS);
-}
-
-void *thread_merge_sort(void *arg) {
-	thread_sort_t *param = (thread_sort_t *)arg;
-	size_t l             = param->i * param->p->n / NB_THREADS;
-	size_t r             = (param->i + 1) * param->p->n / NB_THREADS - 1;
-	if (l < r) {
-		size_t m = l + (r - l) / 2;
-		merge_sort(param->p->a, l, m);
-		merge_sort(param->p->a, m + 1, r);
-		merge(param->p->a, l, m, r);
-	}
-	return (void *)NULL;
-}
-
-void merge_sort(min_loc_stra_t *a, size_t l, size_t r) {
-	if (l < r) {
-		size_t m = l + (r - l) / 2;
-		merge_sort(a, l, m);
-		merge_sort(a, m + 1, r);
-		merge(a, l, m, r);
-	}
-}
-
-void final_merge(min_loc_stra_t *a, size_t n, size_t l, size_t r) {
-	if (r == l + 2) {
-		merge(a, l * n / NB_THREADS, (l + 1) * n / NB_THREADS - 1, r * n / NB_THREADS - 1);
-	}
-
-	else if (r > l + 2) {
-		size_t m = (r + l) / 2;
-		final_merge(a, n, l, m);
-		final_merge(a, n, m, r);
-		merge(a, l * n / NB_THREADS, m * n / NB_THREADS - 1, r * n / NB_THREADS - 1);
-	}
-}
-
-void merge(min_loc_stra_t *a, size_t l, size_t m, size_t r) {
-	size_t i, j;
-	size_t n1 = m - l + 1;
-	size_t n2 = r - m;
-
-	min_loc_stra_t *L = (min_loc_stra_t *)malloc(n1 * sizeof(min_loc_stra_t));
-	min_loc_stra_t *R = (min_loc_stra_t *)malloc(n2 * sizeof(min_loc_stra_t));
-	if (L == NULL || R == NULL) {
-		err(1, "malloc");
-	}
-
-	for (i = 0; i < n1; i++) {
-		L[i] = a[l + i];
-	}
-	for (j = 0; j < n2; j++) {
-		R[j] = a[m + 1 + j];
-	}
-
-	i        = 0;
-	j        = 0;
-	size_t k = l;
-
-	while (i < n1 && j < n2) {
-		if (compare(L[i], R[j])) {
-			a[k] = L[i];
-			i++;
-		} else {
-			a[k] = R[j];
-			j++;
-		}
-		k++;
-	}
-
-	while (i < n1) {
-		a[k] = L[i];
-		i++;
-		k++;
-	}
-
-	while (j < n2) {
-		a[k] = R[j];
-		j++;
-		k++;
-	}
-
-	free(L);
-	free(R);
 }
