@@ -74,27 +74,39 @@ void parse_dat(int fd, exp_loc_v *loc) {
 }
 
 void parse_index(FILE *fp, index_t *idx) {
-	fread(&idx->n, sizeof(uint32_t), 1, fp);
+	size_t ret = fread(&idx->n, sizeof(uint32_t), 1, fp);
+	if (ret != 1) {
+		fprintf(stderr, "fread() failed: %zu\n", ret);
+		exit(EXIT_FAILURE);
+	}
 
 	idx->h = (uint32_t *)malloc(sizeof(uint32_t) * idx->n);
 	if (idx->h == NULL) {
 		err(1, "malloc");
 	}
-	fread(idx->h, sizeof(uint32_t), idx->n, fp);
+	ret = fread(idx->h, sizeof(uint32_t), idx->n, fp);
+	if (ret != idx->n) {
+		fprintf(stderr, "fread() failed: %zu\n", ret);
+		exit(EXIT_FAILURE);
+	}
 	idx->m = idx->h[idx->n - 1];
 
 	idx->location = (uint32_t *)malloc(sizeof(uint32_t) * idx->m);
 	if (idx->location == NULL) {
 		err(1, "malloc");
 	}
-	fread(idx->location, sizeof(uint32_t), idx->m, fp);
+	ret = fread(idx->location, sizeof(uint32_t), idx->m, fp);
+	if (ret != idx->m) {
+		fprintf(stderr, "fread() failed: %zu\n", ret);
+		exit(EXIT_FAILURE);
+	}
 
 	// Check if we reached the EOF
 	uint8_t eof;
-	fread(&eof, sizeof(uint8_t), 1, fp);
-	if (!feof(fp)) {
-		fputs("Reading error: wrong file format\n", stderr);
-		exit(3);
+	ret = fread(&eof, sizeof(uint8_t), 1, fp);
+	if (ret != 0 || !feof(fp)) {
+		fprintf(stderr, "fread() failed: %zu\n", ret);
+		exit(EXIT_FAILURE);
 	}
 
 	fclose(fp);
