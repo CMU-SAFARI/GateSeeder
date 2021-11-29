@@ -26,8 +26,8 @@ typedef struct {
 	char **name;
 } read_v;
 
-void parse_dat(FILE *fp, exp_loc_v *loc);
+void parse_dat(int fd, exp_loc_v *loc);
 void parse_index(FILE *fp, index_t *idx);
-void parse_fastq(FILE *fp, read_v *reads);
+void parse_fastq(int fd, read_v *reads);
 
 #endif

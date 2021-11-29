@@ -1,23 +1,23 @@
 #include "parse.h"
 #include "seeding.h"
-#include "stdlib.h"
-#define BUFFER_SIZE 4294967296
 #include <assert.h>
+#include <err.h>
+#include <stdlib.h>
 #include <string.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
 
-void parse_dat(FILE *fp, exp_loc_v *loc) {
-	char *buffer = (char *)malloc(sizeof(char) * BUFFER_SIZE);
-	if (buffer == NULL) {
-		fputs("Memory error\n", stderr);
-		exit(2);
+void parse_dat(int fd, exp_loc_v *loc) {
+	struct stat statbuf;
+	if (fstat(fd, &statbuf) == -1) {
+		err(1, "fstat");
+	}
+	off_t size   = statbuf.st_size;
+	char *buffer = (char *)mmap(NULL, size, PROT_READ, MAP_SHARED | MAP_POPULATE, fd, 0);
+	if (buffer == MAP_FAILED) {
+		err(1, "mmap");
 	}
 
-	fread(buffer, sizeof(char), BUFFER_SIZE, fp);
-	if (!feof(fp)) {
-		fputs("Reading error: buffer too small\n", stderr);
-		exit(3);
-	}
-	fclose(fp);
 	loc->n               = 0;
 	loc->loc             = NULL;
 	uint32_t *loc_buffer = NULL;
@@ -62,7 +62,7 @@ void parse_dat(FILE *fp, exp_loc_v *loc) {
 				loc_buffer[loc_buffer_n - 1] = strtoul(num, NULL, 10);
 				break;
 			case 0:
-				free(buffer);
+				munmap(buffer, size);
 				return;
 			default:
 				num[num_i] = c;
@@ -78,16 +78,14 @@ void parse_index(FILE *fp, index_t *idx) {
 
 	idx->h = (uint32_t *)malloc(sizeof(uint32_t) * idx->n);
 	if (idx->h == NULL) {
-		fputs("Memory error\n", stderr);
-		exit(2);
+		err(1, "malloc");
 	}
 	fread(idx->h, sizeof(uint32_t), idx->n, fp);
 	idx->m = idx->h[idx->n - 1];
 
 	idx->location = (uint32_t *)malloc(sizeof(uint32_t) * idx->m);
 	if (idx->location == NULL) {
-		fputs("Memory error\n", stderr);
-		exit(2);
+		err(1, "malloc");
 	}
 	fread(idx->location, sizeof(uint32_t), idx->m, fp);
 
@@ -103,19 +101,16 @@ void parse_index(FILE *fp, index_t *idx) {
 	return;
 }
 
-void parse_fastq(FILE *fp, read_v *reads) {
-	char *read_buffer = (char *)malloc(sizeof(char) * BUFFER_SIZE);
-	if (read_buffer == NULL) {
-		fputs("Memory error\n", stderr);
-		exit(2);
+void parse_fastq(int fd, read_v *reads) {
+	struct stat statbuf;
+	if (fstat(fd, &statbuf) == -1) {
+		err(1, "fstat");
 	}
-
-	fread(read_buffer, sizeof(char), BUFFER_SIZE, fp);
-	if (!feof(fp)) {
-		fputs("Reading error: buffer too small\n", stderr);
-		exit(3);
+	off_t size        = statbuf.st_size;
+	char *read_buffer = (char *)mmap(NULL, size, PROT_READ, MAP_SHARED | MAP_POPULATE, fd, 0);
+	if (read_buffer == MAP_FAILED) {
+		err(1, "mmap");
 	}
-	fclose(fp);
 
 	reads->n    = 0;
 	reads->a    = NULL;
@@ -147,20 +142,17 @@ void parse_fastq(FILE *fp, read_v *reads) {
 			reads->n++;
 			reads->a = (char **)realloc(reads->a, reads->n * sizeof(char *));
 			if (reads->a == NULL) {
-				fputs("Memory error\n", stderr);
-				exit(2);
+				err(1, "realloc");
 			}
 
 			reads->name = (char **)realloc(reads->name, reads->n * sizeof(char *));
 			if (reads->name == NULL) {
-				fputs("Memory error\n", stderr);
-				exit(2);
+				err(1, "realloc");
 			}
 
 			reads->a[reads->n - 1] = (char *)malloc(READ_LEN * sizeof(char));
 			if (reads->a[reads->n - 1] == NULL) {
-				fputs("Memory error\n", stderr);
-				exit(2);
+				err(1, "malloc");
 			}
 			for (size_t j = 0; j < READ_LEN; j++) {
 				i++;
@@ -169,8 +161,7 @@ void parse_fastq(FILE *fp, read_v *reads) {
 
 			reads->name[reads->n - 1] = (char *)malloc(100 * sizeof(char));
 			if (reads->name[reads->n - 1] == NULL) {
-				fputs("Memory error\n", stderr);
-				exit(2);
+				err(1, "realloc");
 			}
 			strcpy(reads->name[reads->n - 1], name_buffer);
 			i++;
@@ -183,6 +174,6 @@ void parse_fastq(FILE *fp, read_v *reads) {
 		}
 		i++;
 	}
-	free(read_buffer);
+	munmap(read_buffer, size);
 	return;
 }

@@ -27,9 +27,8 @@ void create_index(int fd, const unsigned int w, const unsigned int k, const unsi
 	return;
 }
 
-void create_index_part(int fd, const unsigned int w, const unsigned int k, const unsigned int f, const unsigned int b,
+void create_index_part(int fd, const unsigned int w, const unsigned int k, const unsigned int f, const unsigned int b, const unsigned int t,
                        const char *name) {
-	unsigned t = 150;
 	pthread_t threads[NB_THREADS];
 	thread_index_t params[NB_THREADS];
 	min_loc_stra_v p;

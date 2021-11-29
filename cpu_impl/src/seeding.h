@@ -11,7 +11,9 @@
 #define LOC_R 150
 #define LOCATION_BUFFER_SIZE 200000
 #ifdef MULTI_THREAD
+#ifndef NB_THREADS
 #define NB_THREADS 8
+#endif
 #endif
 
 typedef struct {

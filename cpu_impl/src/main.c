@@ -1,6 +1,8 @@
 #include "parse.h"
 #include "seeding.h"
 #include "unistd.h"
+#include <err.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
@@ -37,8 +39,7 @@ int main(int argc, char *argv[]) {
 					sprintf(name_buf, "%s_%u.dat", fp_name, i);
 					fp_o[i] = fopen(name_buf, "w");
 					if (fp_o[i] == NULL) {
-						fprintf(stderr, "Error: cannot open `%s`\n", fp_name);
-						return 1;
+						err(1, "fopen %s", name_buf);
 					}
 				}
 #else
@@ -46,8 +47,7 @@ int main(int argc, char *argv[]) {
 				sprintf(name_buf, "%s.dat", fp_name);
 				fp_o = fopen(name_buf, "w");
 				if (fp_o == NULL) {
-					fprintf(stderr, "Error: cannot open `%s`\n", fp_name);
-					return 1;
+					err(1, "fopen %s", name_buf);
 				}
 #endif
 				o_flag = 1;
@@ -66,13 +66,12 @@ int main(int argc, char *argv[]) {
 		fputs("Error: expected fastq file\n", stderr);
 		return 1;
 	}
-	FILE *fp_fastq = fopen(argv[optind], "r");
-	if (fp_fastq == NULL) {
-		fprintf(stderr, "Error: cannot open `%s`\n", argv[optind]);
-		return 1;
+	int fd_fastq = open(argv[optind], O_RDONLY);
+	if (fd_fastq == -1) {
+		err(1, "open");
 	}
 	read_v reads;
-	parse_fastq(fp_fastq, &reads);
+	parse_fastq(fd_fastq, &reads);
 	printf("Info: reads `%s` parsed\n", argv[optind]);
 	puts("\t SEEDING STARTS");
 	struct timespec start, finish;
