@@ -28,8 +28,5 @@ test: $(EXE)
 run: $(EXE)
 	./$^ -i ../res/full_k18_w12_f1000_b26.bin ../res/ERR240727_1.fastq -o /tmp/locs
 
-batch:
-	sbatch -p bio ./run.sh
-
 .PHONY: clean format all run test
 -include $(wildcard *.d)

@@ -1,0 +1,10 @@
+set terminal svg size 800, 600 enhanced font 'Helvetica,18'
+set output "cpu_impl_zoom.svg"
+set title "Execution time of the cpu implementation"
+set ylabel "Time (sec)"
+set xlabel "Number of threads"
+set style fill solid
+set yrange [0:25]
+set xrange [10:60]
+set key noautotitle
+plot 'cpu_impl.dat' u 1:2
