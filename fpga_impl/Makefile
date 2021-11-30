@@ -49,7 +49,7 @@ compose:
 	tapasco --configFile $(TAPASCO_DIR)/compose.json
 
 clean:
-	$(RM) -r vitis_hls *.o *.d $(XO) $(SIM) $(CORE) $(COMPOSE)
+	$(RM) -r vitis_hls *.o *.d $(XO) $(SIM) $(TAPASCO_DIR)/core $(TAPASCO_DIR)/compose
 
 .PHONY: vitis format clean sim cosim bitstream core compose
 -include $(wildcard *.d)

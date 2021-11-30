@@ -16,7 +16,7 @@
 				"Count" : 2
 			} ]
 		},
-		"Design Frequency" : 200,
+		"Design Frequency" : 150,
 		"Implementation" : "Vivado",
 		"Platforms" : [ "xupvvh" ],
 		"Features" : [{
@@ -25,17 +25,27 @@
 				"hbm0": {
 					"ID": "seeding",
 					"Count": "2",
-					"Interfaces": "m_axi_maxi_h_m"
+					"Interfaces": "m_axi_maxi_h0_m"
 				},
 				"hbm1": {
 					"ID": "seeding",
 					"Count": "2",
-					"Interfaces": "m_axi_maxi_loc_stra_m"
+					"Interfaces": "m_axi_maxi_loc_stra0_m"
+				},
+				"hbm2": {
+					"ID": "seeding",
+					"Count": "2",
+					"Interfaces": "m_axi_maxi_h1_m"
+				},
+				"hbm3": {
+					"ID": "seeding",
+					"Count": "2",
+					"Interfaces": "m_axi_maxi_loc_stra1_m"
 				},
 				"enabled": "true"
 			}
 		}],
-		"EffortLevel" : "aggressive_performance",
+		"EffortLevel" : "optimal",
 		"DeleteProjects" : false
 	}]
 }

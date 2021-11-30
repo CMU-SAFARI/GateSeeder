@@ -50,8 +50,9 @@ struct min_stra_b_t {
 	int operator!=(min_stra_b_t x) { return (this->minimizer != x.minimizer || this->strand != x.strand); }
 };
 
-void seeding(const ap_uint<32> h[H_SIZE], const ap_uint<32> location[LS_SIZE], const base_t *read_i,
-             ap_uint<32> locs_o[OUT_SIZE]);
+void seeding(const ap_uint<32> h0_m[H_SIZE], const ap_uint<32> loc_stra0_m[LS_SIZE], const ap_uint<32> h1_m[H_SIZE],
+             const ap_uint<32> loc_stra1_m[LS_SIZE], const base_t read_i[READ_LEN], ap_uint<32> locs0_o[OUT_SIZE],
+             ap_uint<32> locs1_o[OUT_SIZE]);
 void get_locations(const min_stra_b_t *p_i, const ap_uint<32> *h_m, const ap_uint<32> *loc_stra_m, ap_uint<32> *locs_o);
 void read_read(const base_t *read_i, base_t *read_o);
 void read_locations(const min_stra_b_t min_stra_i, ap_uint<32> *buf_o, ap_uint<F_LOG> &buf_lo, const ap_uint<32> *h_m,

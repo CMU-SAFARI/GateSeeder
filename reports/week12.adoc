@@ -16,8 +16,11 @@
 * Use several HBM sections for the FPGA implementation
 * Test the CPU implementation on nexus0 (with 60 CPUs)
 * Smart partition of the Index for FPGA implementation
+* Utility tool to translate reads (FASTQ) into binary (4 bits encoding) (Almost done)
+* Use `mmap` for all the parsing functions (increase the speed)
 
 image::../img/schematic.svg[../img/schematic.svg]
+image::../img/hash_table.svg[../img/hash_table.svg]
 
 == Results
 
