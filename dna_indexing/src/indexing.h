@@ -20,9 +20,11 @@ typedef struct {
 
 void create_index(int fd, const unsigned int w, const unsigned int k, const unsigned int f, const unsigned int b,
                   index_t *idx);
-void create_index_part(int fd, const unsigned int w, const unsigned int k, const unsigned int f, const unsigned int b, const unsigned int t,
-                       const char *name);
+void create_index_part(int fd, const unsigned int w, const unsigned int k, const unsigned int f, const unsigned int b,
+                       const unsigned int t, const char *name);
 void *thread_create_index(void *arg);
 void build_index(min_loc_stra_v p, const unsigned int f, const unsigned int b, index_t *idx);
+void build_index_part(min_loc_stra_v p, const unsigned int f, const unsigned int b, index_t *idx,
+                      const uint32_t offset);
 void parse_extract(int fd, const unsigned int w, const unsigned int k, const unsigned int b, min_loc_stra_v *p);
 #endif

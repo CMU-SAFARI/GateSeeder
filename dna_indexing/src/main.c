@@ -16,8 +16,9 @@ int main(int argc, char *argv[]) {
 	unsigned int f = 700;
 	unsigned int b = 26;
 	char p         = 0;
+	unsigned int t = 150;
 	int option;
-	while ((option = getopt(argc, argv, ":w:k:f:b:p")) != -1) {
+	while ((option = getopt(argc, argv, ":w:k:f:b:pt:")) != -1) {
 		switch (option) {
 			case 'w':
 				w = atoi(optarg);
@@ -46,6 +47,9 @@ int main(int argc, char *argv[]) {
 			case 'p':
 				p = 1;
 				break;
+			case 't':
+				t = atoi(optarg);
+				break;
 			case ':':
 				fprintf(stderr, "Error: option '%c' requires a value\n", optopt);
 				exit(3);
@@ -65,10 +69,10 @@ int main(int argc, char *argv[]) {
 		err(1, "open %s", argv[optind]);
 	}
 
-	printf("Info: w = %u, k = %u, f = %u & b = %u\n", w, k, f, b);
+	printf("Info: w = %u, k = %u, f = %u, b = %u & t = %u\n", w, k, f, b, t);
 	if (p) {
 		puts("Info: Partioning enabled");
-		create_index_part(fd_in, w, k, f, b, argv[optind + 1]);
+		create_index_part(fd_in, w, k, f, b, t, argv[optind + 1]);
 	} else {
 		char name_buf[200];
 		sprintf(name_buf, "%s.bin", argv[optind + 1]);

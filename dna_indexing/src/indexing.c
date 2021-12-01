@@ -27,8 +27,8 @@ void create_index(int fd, const unsigned int w, const unsigned int k, const unsi
 	return;
 }
 
-void create_index_part(int fd, const unsigned int w, const unsigned int k, const unsigned int f, const unsigned int b, const unsigned int t,
-                       const char *name) {
+void create_index_part(int fd, const unsigned int w, const unsigned int k, const unsigned int f, const unsigned int b,
+                       const unsigned int t, const char *name) {
 	pthread_t threads[NB_THREADS];
 	thread_index_t params[NB_THREADS];
 	min_loc_stra_v p;
@@ -64,13 +64,11 @@ void create_index_part(int fd, const unsigned int w, const unsigned int k, const
 		if (c == '>') {
 			if (chromo_len > 0) {
 				extract_minimizers(dna_buffer, chromo_len, w, k, b, &p, dna_len);
-				dna_len += chromo_len;
-				chromo_len = 0;
-				// TODO min mem_size: chromo
 				if (p.n - initial > MEM_SECTION_SIZE) {
 					size_t mem_size = 0;
 					for (size_t j = MEM_SECTION_SIZE; j > 0; j--) {
-						if (p.a[initial + j].loc - p.a[initial + j - 1].loc > t) {
+						if (p.a[initial + j].loc - p.a[initial + j - 1].loc > t ||
+						    p.a[initial + j - 1].loc < dna_len) {
 							mem_size = j;
 							break;
 						}
@@ -85,6 +83,8 @@ void create_index_part(int fd, const unsigned int w, const unsigned int k, const
 					initial = initial + mem_size;
 					thread_id++;
 				}
+				dna_len += chromo_len;
+				chromo_len = 0;
 			}
 			while (c != '\n' && c != 0) {
 				i++;
@@ -145,10 +145,12 @@ void *thread_create_index(void *arg) {
 	thread_index_t *param = (thread_index_t *)arg;
 	min_loc_stra_v p      = param->p;
 	printf("thread: %lu p.n: %lu\n", param->id, p.n);
+	uint32_t offset = p.a[0].loc;
+	printf("Info: Offset of MS %lu: %u\n", param->id, offset);
 	merge_sort(p.a, 0, p.n - 1);
 	printf("Info: Array of MS %lu sorted\n", param->id);
 	index_t idx;
-	build_index(p, param->f, param->b, &idx);
+	build_index_part(p, param->f, param->b, &idx, offset);
 	char name_buf[200];
 	sprintf(name_buf, "%s_%lu.bin", param->name, param->id);
 	FILE *fp_out = fopen(name_buf, "wb");
@@ -179,14 +181,6 @@ void build_index(min_loc_stra_v p, const unsigned int f, const unsigned int b, i
 		idx->h[i] = 0;
 	}
 
-	/*
-	printf("min: %u, max: %u\n", index, p.a[p.n - 1].min);
-	for (size_t i = 1; i < p.n; i++) {
-	        if (p.a[i - 1].min > p.a[i].min) {
-	                printf("error: %lu, %u\n", i-1, p.a[i - 1].min);
-	        }
-	}
-	*/
 	for (size_t i = 1; i < p.n; i++) {
 		if (index == p.a[i].min) {
 			freq_counter++;
@@ -221,7 +215,88 @@ void build_index(min_loc_stra_v p, const unsigned int f, const unsigned int b, i
 		idx->h[i] = l;
 	}
 
-	// free(p.a);
+	free(p.a);
+	printf("Info: Number of ignored minimizers: %u\n", filter_counter);
+	printf("Info: Number of distinct minimizers: %u\n", diff_counter);
+	idx->n              = 1 << b;
+	idx->m              = l;
+	float location_size = (float)idx->m / (1 << 28);
+	float hash_size     = (float)idx->n / (1 << 28);
+	float average       = (float)idx->m / idx->n;
+
+	printf("Info: Number of locations: %u\n", idx->m);
+	printf("Info: Size of the location array: %fGB\n", location_size);
+	printf("Info: Size of the minimizer array: %fGB\n", hash_size);
+	printf("Info: Total size: %fGB\n", location_size + hash_size);
+	printf("Info: Average locations per minimizers: %f\n", average);
+
+	unsigned int empty_counter = 0;
+	uint32_t j                 = 0;
+	unsigned long sd_counter   = (idx->h[0] - average) * (idx->h[0] - average);
+	for (size_t i = 0; i < idx->n; i++) {
+		if (i > 0) {
+			sd_counter += (idx->h[i] - idx->h[i - 1] - average) * (idx->h[i] - idx->h[i - 1] - average);
+		}
+		if (idx->h[i] == j) {
+			empty_counter++;
+		} else {
+			j = idx->h[i];
+		}
+	}
+}
+
+void build_index_part(min_loc_stra_v p, const unsigned int f, const unsigned int b, index_t *idx,
+                      const uint32_t offset) {
+	idx->h   = (uint32_t *)malloc(sizeof(uint32_t) * (1 << b));
+	idx->loc = (uint32_t *)malloc(sizeof(uint32_t) * p.n);
+	if (idx->h == NULL || idx->loc == NULL) {
+		err(1, "malloc");
+	}
+	unsigned int diff_counter   = 0;
+	uint32_t index              = p.a[0].min;
+	unsigned int freq_counter   = 0;
+	unsigned int filter_counter = 0;
+	size_t pos                  = 0;
+	uint32_t l                  = 0;
+
+	for (size_t i = 0; i < index; i++) {
+		idx->h[i] = 0;
+	}
+
+	for (size_t i = 1; i < p.n; i++) {
+		if (index == p.a[i].min) {
+			freq_counter++;
+		} else {
+			if (freq_counter < f) {
+				diff_counter++;
+				for (size_t j = pos; j < i; j++) {
+					idx->loc[l] = (p.a[j].loc - offset) << 1 | p.a[j].stra;
+					l++;
+				}
+			} else {
+				filter_counter++;
+			}
+			pos          = i;
+			freq_counter = 0;
+			while (index != p.a[i].min) {
+				idx->h[index] = l;
+				index++;
+			}
+		}
+	}
+	if (freq_counter < f) {
+		diff_counter++;
+		for (size_t j = pos; j < p.n; j++) {
+			idx->loc[l] = (p.a[j].loc - offset) << 1 | p.a[j].stra;
+			l++;
+		}
+	} else {
+		filter_counter++;
+	}
+	for (size_t i = index; i < (1 << b); i++) {
+		idx->h[i] = l;
+	}
+
 	printf("Info: Number of ignored minimizers: %u\n", filter_counter);
 	printf("Info: Number of distinct minimizers: %u\n", diff_counter);
 	idx->n              = 1 << b;
