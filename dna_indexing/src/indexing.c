@@ -16,17 +16,30 @@
 
 pthread_t threads[NB_THREADS];
 size_t ms_id = 0;
+info_t info[32];
 
 void create_index(int fd, const unsigned int w, const unsigned int k, const unsigned int f, const unsigned int b,
-                  index_t *idx) {
+                  const char *name) {
 	min_loc_stra_v p;
+	index_t idx;
 	// Parse & extract
 	parse_extract(fd, w, k, b, &p);
 	// Sort p
 	sort(&p);
-	puts("Info: Array sorted");
 	// Write the data in the struct & filter out the most frequent minimizers
-	build_index(p, f, b, idx);
+	info[0] = build_index(p, f, b, &idx, 0, 1);
+	char name_buf[200];
+	sprintf(name_buf, "%s.bin", name);
+	FILE *fp_out = fopen(name_buf, "wb");
+	if (fp_out == NULL) {
+		err(1, "fopen %s", name_buf);
+	}
+	fwrite(&(idx.n), sizeof(idx.n), 1, fp_out);
+	fwrite(idx.h, sizeof(idx.h[0]), idx.n, fp_out);
+	fwrite(idx.loc, sizeof(idx.loc[0]), idx.m, fp_out);
+	printf("Info: Binary file `%s` written\n", name_buf);
+	// Write the info file
+	write_info(name, 1);
 	return;
 }
 
@@ -67,8 +80,8 @@ void create_index_part(int fd, const unsigned int w, const unsigned int k, const
 	size_t i          = 0;
 	size_t dna_len    = 0;
 	size_t chromo_len = 0;
+	size_t initial    = 0;
 
-	size_t initial = 0;
 	while (1) {
 		char c = file_buffer[i];
 		if (c == '>') {
@@ -137,18 +150,16 @@ void create_index_part(int fd, const unsigned int w, const unsigned int k, const
 			pthread_join(threads[i], NULL);
 		}
 	}
+	write_info(name, ms_id);
 }
 
 void *thread_create_index(void *arg) {
 	thread_index_t *param = (thread_index_t *)arg;
 	min_loc_stra_v p      = param->p;
-	printf("thread: %lu p.n: %lu\n", param->id, p.n);
-	uint32_t offset = p.a[0].loc;
-	printf("Info: Offset of MS %lu: %u\n", param->id, offset);
+	uint32_t offset       = p.a[0].loc;
 	merge_sort(p.a, 0, p.n - 1);
-	printf("Info: Array of MS %lu sorted\n", param->id);
 	index_t idx;
-	build_index_part(p, param->f, param->b, &idx, offset);
+	info[param->id] = build_index(p, param->f, param->b, &idx, offset, 0);
 	char name_buf[200];
 	sprintf(name_buf, "%s_%lu.bin", param->name, param->id);
 	FILE *fp_out = fopen(name_buf, "wb");
@@ -162,18 +173,18 @@ void *thread_create_index(void *arg) {
 	return NULL;
 }
 
-void build_index(min_loc_stra_v p, const unsigned int f, const unsigned int b, index_t *idx) {
-	idx->h   = (uint32_t *)malloc(sizeof(uint32_t) * (1 << b));
-	idx->loc = (uint32_t *)malloc(sizeof(uint32_t) * p.n);
+info_t build_index(min_loc_stra_v p, const unsigned int f, const unsigned int b, index_t *idx, const uint32_t offset,
+                   char comp) {
+	info_t info = {0, 0, 0, 0, 0, offset};
+	idx->h      = (uint32_t *)malloc(sizeof(uint32_t) * (1 << b));
+	idx->loc    = (uint32_t *)malloc(sizeof(uint32_t) * p.n);
 	if (idx->h == NULL || idx->loc == NULL) {
 		err(1, "malloc");
 	}
-	unsigned int diff_counter   = 0;
-	uint32_t index              = p.a[0].min;
-	unsigned int freq_counter   = 0;
-	unsigned int filter_counter = 0;
-	size_t pos                  = 0;
-	uint32_t l                  = 0;
+	uint32_t index            = p.a[0].min;
+	unsigned int freq_counter = 0;
+	size_t pos                = 0;
+	uint32_t l                = 0;
 
 	for (size_t i = 0; i < index; i++) {
 		idx->h[i] = 0;
@@ -184,13 +195,15 @@ void build_index(min_loc_stra_v p, const unsigned int f, const unsigned int b, i
 			freq_counter++;
 		} else {
 			if (freq_counter < f) {
-				diff_counter++;
+				info.nempty_counter++;
 				for (size_t j = pos; j < i; j++) {
-					idx->loc[l] = (p.a[j].loc & (UINT32_MAX - 1)) | p.a[j].stra;
+					idx->loc[l] =
+					    (comp ? (p.a[j].loc & (UINT32_MAX - 1)) : ((p.a[j].loc - offset) << 1)) |
+					    p.a[j].stra;
 					l++;
 				}
 			} else {
-				filter_counter++;
+				info.filter_counter += freq_counter;
 			}
 			pos          = i;
 			freq_counter = 0;
@@ -201,134 +214,31 @@ void build_index(min_loc_stra_v p, const unsigned int f, const unsigned int b, i
 		}
 	}
 	if (freq_counter < f) {
-		diff_counter++;
+		info.nempty_counter++;
 		for (size_t j = pos; j < p.n; j++) {
-			idx->loc[l] = (p.a[j].loc & (UINT32_MAX - 1)) | p.a[j].stra;
+			idx->loc[l] =
+			    (comp ? (p.a[j].loc & (UINT32_MAX - 1)) : ((p.a[j].loc - offset) << 1)) | p.a[j].stra;
 			l++;
 		}
 	} else {
-		filter_counter++;
+		info.filter_counter += freq_counter;
 	}
 	for (size_t i = index; i < (1 << b); i++) {
 		idx->h[i] = l;
 	}
 
-	free(p.a);
-	printf("Info: Number of ignored minimizers: %u\n", filter_counter);
-	printf("Info: Number of distinct minimizers: %u\n", diff_counter);
-	idx->n              = 1 << b;
-	idx->m              = l;
-	float location_size = (float)idx->m / (1 << 28);
-	float hash_size     = (float)idx->n / (1 << 28);
-	float average       = (float)idx->m / idx->n;
+	idx->n = 1 << b;
+	idx->m = l;
+	info.n = idx->n;
+	info.m = idx->m;
 
-	printf("Info: Number of locations: %u\n", idx->m);
-	printf("Info: Size of the location array: %fGB\n", location_size);
-	printf("Info: Size of the minimizer array: %fGB\n", hash_size);
-	printf("Info: Total size: %fGB\n", location_size + hash_size);
-	printf("Info: Average locations per minimizers: %f\n", average);
-
-	unsigned int empty_counter = 0;
-	uint32_t j                 = 0;
-	unsigned long sd_counter   = (idx->h[0] - average) * (idx->h[0] - average);
-	for (size_t i = 0; i < idx->n; i++) {
-		if (i > 0) {
-			sd_counter += (idx->h[i] - idx->h[i - 1] - average) * (idx->h[i] - idx->h[i - 1] - average);
-		}
-		if (idx->h[i] == j) {
-			empty_counter++;
-		} else {
-			j = idx->h[i];
-		}
+	float average            = (float)idx->m / idx->n;
+	unsigned long sd_counter = (idx->h[0] - average) * (idx->h[0] - average);
+	for (size_t i = 1; i < idx->n; i++) {
+		sd_counter += (idx->h[i] - idx->h[i - 1] - average) * (idx->h[i] - idx->h[i - 1] - average);
 	}
-}
-
-void build_index_part(min_loc_stra_v p, const unsigned int f, const unsigned int b, index_t *idx,
-                      const uint32_t offset) {
-	idx->h   = (uint32_t *)malloc(sizeof(uint32_t) * (1 << b));
-	idx->loc = (uint32_t *)malloc(sizeof(uint32_t) * p.n);
-	if (idx->h == NULL || idx->loc == NULL) {
-		err(1, "malloc");
-	}
-	unsigned int diff_counter   = 0;
-	uint32_t index              = p.a[0].min;
-	unsigned int freq_counter   = 0;
-	unsigned int filter_counter = 0;
-	size_t pos                  = 0;
-	uint32_t l                  = 0;
-
-	for (size_t i = 0; i < index; i++) {
-		idx->h[i] = 0;
-	}
-
-	for (size_t i = 1; i < p.n; i++) {
-		if (index == p.a[i].min) {
-			freq_counter++;
-		} else {
-			if (freq_counter < f) {
-				diff_counter++;
-				for (size_t j = pos; j < i; j++) {
-					idx->loc[l] = (p.a[j].loc - offset) << 1 | p.a[j].stra;
-					l++;
-				}
-			} else {
-				filter_counter++;
-			}
-			pos          = i;
-			freq_counter = 0;
-			while (index != p.a[i].min) {
-				idx->h[index] = l;
-				index++;
-			}
-		}
-	}
-	if (freq_counter < f) {
-		diff_counter++;
-		for (size_t j = pos; j < p.n; j++) {
-			idx->loc[l] = (p.a[j].loc - offset) << 1 | p.a[j].stra;
-			l++;
-		}
-	} else {
-		filter_counter++;
-	}
-	for (size_t i = index; i < (1 << b); i++) {
-		idx->h[i] = l;
-	}
-
-	printf("Info: Number of ignored minimizers: %u\n", filter_counter);
-	printf("Info: Number of distinct minimizers: %u\n", diff_counter);
-	idx->n              = 1 << b;
-	idx->m              = l;
-	float location_size = (float)idx->m / (1 << 28);
-	float hash_size     = (float)idx->n / (1 << 28);
-	float average       = (float)idx->m / idx->n;
-
-	printf("Info: Number of locations: %u\n", idx->m);
-	printf("Info: Size of the location array: %fGB\n", location_size);
-	printf("Info: Size of the minimizer array: %fGB\n", hash_size);
-	printf("Info: Total size: %fGB\n", location_size + hash_size);
-	printf("Info: Average locations per minimizers: %f\n", average);
-
-	unsigned int empty_counter = 0;
-	uint32_t j                 = 0;
-	unsigned long sd_counter   = (idx->h[0] - average) * (idx->h[0] - average);
-	for (size_t i = 0; i < idx->n; i++) {
-		if (i > 0) {
-			sd_counter += (idx->h[i] - idx->h[i - 1] - average) * (idx->h[i] - idx->h[i - 1] - average);
-		}
-		if (idx->h[i] == j) {
-			empty_counter++;
-		} else {
-			j = idx->h[i];
-		}
-	}
-
-	float sd = sqrtf((float)sd_counter / idx->n);
-	printf("Info: Standard deviation of the number of locations per "
-	       "minimizers: %f\n",
-	       sd);
-	printf("Info: Number of empty entries in the hash-table: %u (%f%%)\n", empty_counter,
-	       (float)empty_counter / idx->n * 100);
+	info.sd = sqrtf((float)sd_counter / idx->n);
+	return info;
 }
 
 void parse_extract(int fd, const unsigned int w, const unsigned int k, const unsigned int b, min_loc_stra_v *p) {
@@ -393,4 +303,39 @@ void parse_extract(int fd, const unsigned int w, const unsigned int k, const uns
 	free(dna_buffer);
 	printf("Info: Indexed DNA length: %lu bases\n", dna_len);
 	printf("Info: Number of (minimizer, location, strand): %lu\n", p->n);
+}
+
+void write_info(const char *name, const size_t nb) {
+	char name_buf[200];
+	sprintf(name_buf, "%s_info.csv", name);
+	FILE *fp_info = fopen(name_buf, "w");
+	if (fp_info == NULL) {
+		err(1, "fopen %s", name_buf);
+	}
+	fputs("\"size of the index\"", fp_info);
+	for (size_t i = 0; i < nb; i++) {
+		fprintf(fp_info, ", %lu", info[i].n);
+	}
+	fputs("\n\"number of locations\"", fp_info);
+	for (size_t i = 0; i < nb; i++) {
+		fprintf(fp_info, ", %lu", info[i].m);
+	}
+	fputs("\n\"number of ignored locations\"", fp_info);
+	for (size_t i = 0; i < nb; i++) {
+		fprintf(fp_info, ", %lu", info[i].filter_counter);
+	}
+	fputs("\n\"number of non-empty buckets\"", fp_info);
+	for (size_t i = 0; i < nb; i++) {
+		fprintf(fp_info, ", %lu", info[i].nempty_counter);
+	}
+	fputs("\n\"standard deviation of the number of locations per minimizers\"", fp_info);
+	for (size_t i = 0; i < nb; i++) {
+		fprintf(fp_info, ", %f", info[i].sd);
+	}
+	fputs("\n\"offset(s)\"", fp_info);
+	for (size_t i = 0; i < nb; i++) {
+		fprintf(fp_info, ", %lu", info[i].offset);
+	}
+	fputs("\n", fp_info);
+	printf("Info: Info file `%s` written\n", name_buf);
 }

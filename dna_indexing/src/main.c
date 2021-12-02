@@ -74,19 +74,8 @@ int main(int argc, char *argv[]) {
 		puts("Info: Partioning enabled");
 		create_index_part(fd_in, w, k, f, b, t, argv[optind + 1]);
 	} else {
-		char name_buf[200];
-		sprintf(name_buf, "%s.bin", argv[optind + 1]);
-		FILE *fp_out = fopen(name_buf, "wb");
-		if (fp_out == NULL) {
-			err(1, "fopen %s", name_buf);
-		}
 		puts("Info: Partioning disabled");
-		index_t idx;
-		create_index(fd_in, w, k, f, b, &idx);
-		fwrite(&(idx.n), sizeof(idx.n), 1, fp_out);
-		fwrite(idx.h, sizeof(idx.h[0]), idx.n, fp_out);
-		fwrite(idx.loc, sizeof(idx.loc[0]), idx.m, fp_out);
-		printf("Info: Binary file `%s` written\n", name_buf);
+		create_index(fd_in, w, k, f, b, argv[optind + 1]);
 	}
 	clock_gettime(CLOCK_MONOTONIC, &finish);
 	printf("EXECUTION TIME: %f sec\n",
