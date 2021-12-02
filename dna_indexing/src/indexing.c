@@ -14,6 +14,9 @@
 #endif
 #define MEM_SECTION_SIZE 67108864
 
+pthread_t threads[NB_THREADS];
+size_t ms_id = 0;
+
 void create_index(int fd, const unsigned int w, const unsigned int k, const unsigned int f, const unsigned int b,
                   index_t *idx) {
 	min_loc_stra_v p;
@@ -27,10 +30,18 @@ void create_index(int fd, const unsigned int w, const unsigned int k, const unsi
 	return;
 }
 
+static inline void thread_init(min_loc_stra_v p, const char *name, const unsigned int f, const unsigned int b) {
+	static thread_index_t params[NB_THREADS];
+	size_t thread_id = ms_id % NB_THREADS;
+	if (thread_id >= NB_THREADS) {
+		pthread_join(threads[thread_id], NULL);
+	}
+	params[thread_id] = (thread_index_t){p, ms_id, name, f, b};
+	pthread_create(&threads[thread_id], NULL, thread_create_index, (void *)&params[thread_id]);
+	ms_id++;
+}
 void create_index_part(int fd, const unsigned int w, const unsigned int k, const unsigned int f, const unsigned int b,
                        const unsigned int t, const char *name) {
-	pthread_t threads[NB_THREADS];
-	thread_index_t params[NB_THREADS];
 	min_loc_stra_v p;
 	struct stat statbuf;
 	if (fstat(fd, &statbuf) == -1) {
@@ -57,8 +68,7 @@ void create_index_part(int fd, const unsigned int w, const unsigned int k, const
 	size_t dna_len    = 0;
 	size_t chromo_len = 0;
 
-	size_t initial   = 0;
-	size_t thread_id = 0;
+	size_t initial = 0;
 	while (1) {
 		char c = file_buffer[i];
 		if (c == '>') {
@@ -73,15 +83,8 @@ void create_index_part(int fd, const unsigned int w, const unsigned int k, const
 							break;
 						}
 					}
-					params[thread_id].p    = (min_loc_stra_v){mem_size, &p.a[initial]};
-					params[thread_id].id   = thread_id;
-					params[thread_id].name = name;
-					params[thread_id].b    = b;
-					params[thread_id].f    = f;
-					pthread_create(&threads[thread_id], NULL, thread_create_index,
-					               (void *)&params[thread_id]);
+					thread_init((min_loc_stra_v){mem_size, &p.a[initial]}, name, f, b);
 					initial = initial + mem_size;
-					thread_id++;
 				}
 				dna_len += chromo_len;
 				chromo_len = 0;
@@ -116,28 +119,23 @@ void create_index_part(int fd, const unsigned int w, const unsigned int k, const
 					break;
 				}
 			}
-			params[thread_id].p    = (min_loc_stra_v){mem_size, &p.a[initial]};
-			params[thread_id].id   = thread_id;
-			params[thread_id].name = name;
-			params[thread_id].b    = b;
-			params[thread_id].f    = f;
-			pthread_create(&threads[thread_id], NULL, thread_create_index, (void *)&params[thread_id]);
+			thread_init((min_loc_stra_v){mem_size, &p.a[initial]}, name, f, b);
 			initial = initial + mem_size;
-			thread_id++;
 		}
-		params[thread_id].p    = (min_loc_stra_v){p.n - initial, &p.a[initial]};
-		params[thread_id].id   = thread_id;
-		params[thread_id].name = name;
-		params[thread_id].b    = b;
-		params[thread_id].f    = f;
-		pthread_create(&threads[thread_id], NULL, thread_create_index, (void *)&params[thread_id]);
-		thread_id++;
+		thread_init((min_loc_stra_v){p.n - initial, &p.a[initial]}, name, f, b);
 	}
 	free(dna_buffer);
 	printf("Info: Indexed DNA length: %lu bases\n", dna_len);
 	printf("Info: Number of (minimizer, location, strand): %lu\n", p.n);
-	for (size_t i = 0; i < thread_id; i++) {
-		pthread_join(threads[i], NULL);
+
+	if (ms_id >= NB_THREADS) {
+		for (size_t i = 0; i < NB_THREADS; i++) {
+			pthread_join(threads[i], NULL);
+		}
+	} else {
+		for (size_t i = 0; i < ms_id; i++) {
+			pthread_join(threads[i], NULL);
+		}
 	}
 }
 
