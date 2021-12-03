@@ -2,8 +2,11 @@
 #include "extraction.hpp"
 #include <stddef.h>
 
+const int f                    = F;
+const int location_buffer_size = LOCATION_BUFFER_SIZE;
 #ifdef VARIABLE_LEN
 const int max_read_len = MAX_READ_LEN;
+
 void seeding(const ap_uint<32> h0_m[H_SIZE], const ap_uint<32> loc_stra0_m[LS_SIZE], const ap_uint<32> h1_m[H_SIZE],
              const ap_uint<32> loc_stra1_m[LS_SIZE], const base_t read_i[MAX_READ_LEN], const ap_uint<32> len_i,
              ap_uint<32> locs0_o[OUT_SIZE], ap_uint<32> locs1_o[OUT_SIZE]) {
@@ -120,7 +123,7 @@ void read_locations(const min_stra_b_t min_stra_i, ap_uint<32> *buf_o, ap_uint<F
 LOOP_read_locations:
 	for (size_t j = 0; j < buf_lo; j++) {
 #pragma HLS PIPELINE II        = 1
-#pragma HLS loop_tripcount min = 0 max = 1000 // F
+#pragma HLS loop_tripcount min = 0 max = f
 		buf_o[j] = loc_stra_m[min + j] ^ min_stra_i.strand;
 	}
 }
@@ -134,7 +137,7 @@ void merge_locations(const ap_uint<32> *loc_stra_i, const ap_uint<LOCATION_BUFFE
 LOOP_merge_fisrt_part:
 	while (loc_stra_j < loc_stra_li && buf_j < buf_li) {
 #pragma HLS PIPELINE II        = 1
-#pragma HLS loop_tripcount min = 0 max = 1000 // F
+#pragma HLS loop_tripcount min = 0 max = f
 		if (loc_stra_i[loc_stra_j] <= buf_i[buf_j]) {
 			loc_stra_o[loc_stra_lo] = loc_stra_i[loc_stra_j];
 			loc_stra_j++;
@@ -148,7 +151,7 @@ LOOP_merge_fisrt_part:
 	LOOP_merge_second_part:
 		for (; buf_j < buf_li; buf_j++) {
 #pragma HLS PIPELINE II        = 1
-#pragma HLS loop_tripcount min = 0 max = 1000 // F
+#pragma HLS loop_tripcount min = 0 max = f
 			loc_stra_o[loc_stra_lo] = buf_i[buf_j];
 			loc_stra_lo++;
 		}
@@ -156,7 +159,7 @@ LOOP_merge_fisrt_part:
 	LOOP_merge_third_part:
 		for (; loc_stra_j < loc_stra_li; loc_stra_j++) {
 #pragma HLS PIPELINE II        = 1
-#pragma HLS loop_tripcount min = 0 max = 70000 // LOCATION_BUFFER_SIZE
+#pragma HLS loop_tripcount min = 0 max = location_buffer_size
 			loc_stra_o[loc_stra_lo] = loc_stra_i[loc_stra_j];
 			loc_stra_lo++;
 		}
@@ -165,20 +168,20 @@ LOOP_merge_fisrt_part:
 
 void adjacency_test(const ap_uint<32> *loc_stra_i, const ap_uint<LOCATION_BUFFER_SIZE_LOG> loc_stra_li,
                     ap_uint<32> *locs_o) {
-	ap_uint<32> buf1[MIN_T_1];
-	ap_uint<32> buf2[MIN_T_1];
+	ap_uint<31> buf1[MIN_T_1];
+	ap_uint<31> buf2[MIN_T_1];
 	ap_uint<MIN_T_LOG> c1(0);
 	ap_uint<MIN_T_LOG> c2(0);
 	ap_uint<OUT_SIZE_LOG> locs_l(0);
 LOOP_adjacency_test:
 	for (size_t i = 0; i < loc_stra_li; i++) {
 #pragma HLS PIPELINE II        = 1
-#pragma HLS loop_tripcount min = 0 max = 40000 // LOCATION_BUFFER_SIZE
-		ap_uint<32> loc = loc_stra_i[i];
-		if (loc[0]) {
+#pragma HLS loop_tripcount min = 0 max = location_buffer_size
+		ap_uint<32> loc_stra = loc_stra_i[i];
+		if (loc_stra[0]) {
 			if (c1 == MIN_T_1) {
-				if (loc - buf1[0] < LOC_R) {
-					locs_o[locs_l] = (buf1[0].range(31, 1), ap_uint<1>(0));
+				if (loc_stra.range(31, 1) - buf1[0] < LOC_R) {
+					locs_o[locs_l] = (ap_uint<1>(0), buf1[0]);
 					locs_l++;
 				}
 			} else {
@@ -187,11 +190,11 @@ LOOP_adjacency_test:
 			for (size_t j = 0; j < MIN_T_1 - 1; j++) {
 				buf1[j] = buf1[j + 1];
 			}
-			buf1[MIN_T_1 - 1] = loc;
+			buf1[MIN_T_1 - 1] = loc_stra.range(31, 1);
 		} else {
 			if (c2 == MIN_T_1) {
-				if (loc - buf2[0] < LOC_R) {
-					locs_o[locs_l] = buf2[0];
+				if (loc_stra.range(31, 1) - buf2[0] < LOC_R) {
+					locs_o[locs_l] = (ap_uint<1>(0), buf2[0]);
 					locs_l++;
 				}
 			} else {
@@ -200,7 +203,7 @@ LOOP_adjacency_test:
 			for (size_t j = 0; j < MIN_T_1 - 1; j++) {
 				buf2[j] = buf2[j + 1];
 			}
-			buf2[MIN_T_1 - 1] = loc;
+			buf2[MIN_T_1 - 1] = loc_stra.range(31, 1);
 		}
 	}
 	locs_o[locs_l] = END_LOCATION;
