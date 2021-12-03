@@ -23,15 +23,13 @@ int main(int argc, char *argv[]) {
 			case 'w':
 				w = atoi(optarg);
 				if (w > 255) {
-					fputs("Error: `w` needs to be less than or equal to 255\n", stderr);
-					exit(4);
+					errx(1, "`w` needs to be less than or equal to 255");
 				}
 				break;
 			case 'k':
 				k = atoi(optarg);
 				if (k > 28) {
-					fputs("Error: `k` needs to be less than or equal to 28\n", stderr);
-					exit(4);
+					errx(1, "`k` needs to be less than or equal to 28");
 				}
 				break;
 			case 'f':
@@ -40,8 +38,7 @@ int main(int argc, char *argv[]) {
 			case 'b':
 				b = atoi(optarg);
 				if (b > 32) {
-					fputs("Error: `b` needs to be less than or equal to 32\n", stderr);
-					exit(4);
+					errx(1, "``b` needs to be less than or equal to 32");
 				}
 				break;
 			case 'p':
@@ -51,17 +48,14 @@ int main(int argc, char *argv[]) {
 				t = atoi(optarg);
 				break;
 			case ':':
-				fprintf(stderr, "Error: option '%c' requires a value\n", optopt);
-				exit(3);
+				errx(1, "option '%c' requires a value", optopt);
 			case '?':
-				fprintf(stderr, "Error: unknown option: '%c'\n", optopt);
-				exit(3);
+				errx(1, "unknown option: '%c'", optopt);
 		}
 	}
 
 	if (optind + 1 >= argc) {
-		fputs("Error: USAGE\t indexdna [option]* <DNA FILE> <OUTPUT NAME>\n", stderr);
-		exit(3);
+		errx(1, "USAGE\t indexdna [option]* <DNA FILE> <OUTPUT NAME>");
 	}
 
 	int fd_in = open(argv[optind], O_RDONLY);

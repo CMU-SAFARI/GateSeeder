@@ -7,4 +7,4 @@ sim.x
 fpga_impl/vitis_hls
 fpga_impl/vitis_hls.log
 res/
-*.xo
+fastq2bin
