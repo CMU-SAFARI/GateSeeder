@@ -26,8 +26,14 @@ void extract_minimizers(const base_t *read_i, min_stra_b_t *p0_o, min_stra_b_t *
 	ap_uint<1> same_min(0);
 	min_stra_b_t p[MIN_STRA_SIZE];
 LOOP_extract_minimizer:
+#ifdef VARIABLE_LEN
+	for (size_t i = 0; i < MAX_READ_LEN; ++i) {
+		base_t c = read_i[i];
+		if (c == 0xf) break;
+#else
 	for (size_t i = 0; i < READ_LEN; ++i) {
-		base_t c            = read_i[i];
+		base_t c = read_i[i];
+#endif
 		min_stra_t hash_reg = {MAX_KMER, 0};
 		if (c < 4) {                                                 // not an ambiguous base
 			kmer[0] = (kmer[0] << 2 | c);                        // forward k-mer

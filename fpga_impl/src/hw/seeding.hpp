@@ -24,7 +24,6 @@
 #define MIN_T_1 (MIN_T - 1)
 #define MIN_T_LOG 2
 #define LOC_R 150
-#define READ_LEN 100
 #define READ_LEN_LOG 7
 #define LOCATION_BUFFER_SIZE 40000
 #define LOCATION_BUFFER_SIZE_LOG 16
@@ -34,8 +33,13 @@
 #define MIN_STRA_SIZE_LOG 6
 #define END_MINIMIZER ((min_stra_b_t){0, 0, 0})
 #define END_LOCATION 0xffffffff
+#ifdef VARIABLE_LEN
+#define MAX_READ_LEN 1000
+#else
+#define READ_LEN 100
+#endif
 
-typedef ap_uint<3> base_t;
+typedef ap_uint<4> base_t;
 
 struct min_stra_t {
 	ap_uint<2 * K> minimizer;
@@ -50,11 +54,18 @@ struct min_stra_b_t {
 	int operator!=(min_stra_b_t x) { return (this->minimizer != x.minimizer || this->strand != x.strand); }
 };
 
+#ifdef VARIABLE_LEN
+void seeding(const ap_uint<32> h0_m[H_SIZE], const ap_uint<32> loc_stra0_m[LS_SIZE], const ap_uint<32> h1_m[H_SIZE],
+             const ap_uint<32> loc_stra1_m[LS_SIZE], const base_t read_i[MAX_READ_LEN], const ap_uint<32> len_i,
+             ap_uint<32> locs0_o[OUT_SIZE], ap_uint<32> locs1_o[OUT_SIZE]);
+void read_read(const base_t *read_i, const ap_uint<32> len_i, base_t *read_o);
+#else
 void seeding(const ap_uint<32> h0_m[H_SIZE], const ap_uint<32> loc_stra0_m[LS_SIZE], const ap_uint<32> h1_m[H_SIZE],
              const ap_uint<32> loc_stra1_m[LS_SIZE], const base_t read_i[READ_LEN], ap_uint<32> locs0_o[OUT_SIZE],
              ap_uint<32> locs1_o[OUT_SIZE]);
-void get_locations(const min_stra_b_t *p_i, const ap_uint<32> *h_m, const ap_uint<32> *loc_stra_m, ap_uint<32> *locs_o);
 void read_read(const base_t *read_i, base_t *read_o);
+#endif
+void get_locations(const min_stra_b_t *p_i, const ap_uint<32> *h_m, const ap_uint<32> *loc_stra_m, ap_uint<32> *locs_o);
 void read_locations(const min_stra_b_t min_stra_i, ap_uint<32> *buf_o, ap_uint<F_LOG> &buf_lo, const ap_uint<32> *h_m,
                     const ap_uint<32> *loc_stra_m);
 void merge_locations(const ap_uint<32> *loc_stra_i, const ap_uint<LOCATION_BUFFER_SIZE_LOG> loc_stra_li,

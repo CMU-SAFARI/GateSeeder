@@ -3,7 +3,7 @@
 	"PlatformDir" : "/opt/tapasco/vivado/platform",
 	"KernelDir" : ".",
 	"CoreDir" : "core",
-	"CompositionDir" : "/opt/tapasco/compose",
+	"CompositionDir" : "compose",
 	"Slurm" : false,
 	"Parallel" : true,
 	"MaxThreads" : 8,
@@ -13,5 +13,6 @@
 		"Implementation" : "VivadoHLS",
 		"Platforms" : [ "xupvvh" ],
 		"Kernels" : [ "seeding" ]
-	} ]
+	} ],
+	"CompilerFlags" : "-O3 -Wno-unknown-pragmas -Wno-unused-label -DVARIABLE_LEN"
 }
