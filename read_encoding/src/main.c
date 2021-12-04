@@ -1,4 +1,6 @@
+#include "encoding.h"
 #include <err.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -25,7 +27,18 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (optind + 1 >= argc) {
-		errx(1, "USAGE\t fastq2bin [option]* <FNA FILE> <OUTPUT NAME>");
+		errx(1, "USAGE\t fastq2bin [option]* <FASTQ FILE> <OUTPUT NAME>");
+	}
+
+	int fd_in = open(argv[optind], O_RDONLY);
+	if (fd_in == -1) {
+		err(1, "open %s", argv[optind]);
+	}
+
+	if (l) {
+		encode_const_len(fd_in, l, argv[optind + 1]);
+	} else {
+		encode_var_len(fd_in, argv[optind + 1]);
 	}
 
 	clock_gettime(CLOCK_MONOTONIC, &finish);
