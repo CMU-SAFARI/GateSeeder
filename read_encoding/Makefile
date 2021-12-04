@@ -2,7 +2,7 @@ SRC_DIR		:= src
 CC			:= gcc
 
 DEPFLAGS	= -MD -MP
-CFLAGS		= -g -O3 $(DEPFLAGS) -Wall -Werror
+CFLAGS		= -g -O3 $(DEPFLAGS) -Wall #-Werror
 LDLIBS		=
 VPATH		= $(SRC_DIR)
 EXE			= fastq2bin
@@ -22,7 +22,7 @@ clean:
 	$(RM) *.o $(EXE) *.d
 
 run: $(EXE)
-	./$(EXE) -l 100 ../res/ERR240727_1.fastq /tmp/test
+	./$(EXE) -v -l 1000 ../res/illumina_2.fastq /tmp/test
 
 .PHONY: clean format all run
 -include $(wildcard *.d)

@@ -11,13 +11,17 @@ int main(int argc, char *argv[]) {
 	clock_gettime(CLOCK_MONOTONIC, &start);
 	int option;
 	unsigned l = 0;
-	while ((option = getopt(argc, argv, ":l:")) != -1) {
+	char v     = 0;
+	while ((option = getopt(argc, argv, ":l:v")) != -1) {
 		switch (option) {
 			case 'l':
 				l = atoi(optarg);
 				if (!l) {
 					errx(1, "`l` needs to be greater than 0");
 				}
+				break;
+			case 'v':
+				v = 1;
 				break;
 			case ':':
 				errx(1, "option '%c' requires a value", optopt);
@@ -27,7 +31,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (optind + 1 >= argc) {
-		errx(1, "USAGE\t fastq2bin [option]* <FASTQ FILE> <OUTPUT NAME>");
+		errx(1, "USAGE:\t fastq2bin [option]* <FASTQ FILE> <OUTPUT NAME>");
 	}
 
 	int fd_in = open(argv[optind], O_RDONLY);
@@ -35,10 +39,10 @@ int main(int argc, char *argv[]) {
 		err(1, "open %s", argv[optind]);
 	}
 
-	if (l) {
-		encode_const_len(fd_in, l, argv[optind + 1]);
+	if (v) {
+		encode_var_len(fd_in, l, argv[optind + 1]);
 	} else {
-		encode_var_len(fd_in, argv[optind + 1]);
+		encode_const_len(fd_in, l, argv[optind + 1]);
 	}
 
 	clock_gettime(CLOCK_MONOTONIC, &finish);
