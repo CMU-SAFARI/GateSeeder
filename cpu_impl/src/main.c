@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
 	while ((option = getopt(argc, argv, "i:o:")) != -1) {
 		switch (option) {
 			case 'i':
-				fp_idx = fopen(optarg, "rb");
+				fp_idx = fopen(optarg, "rb"); // TODO use open and mmap
 				if (fp_idx == NULL) {
 					fprintf(stderr, "Error: cannot open `%s`\n", optarg);
 					return 1;
@@ -54,24 +54,16 @@ int main(int argc, char *argv[]) {
 				break;
 		}
 	}
-	if (!idx_flag) {
-		fputs("Error: expected index file (with `-i` option)\n", stderr);
-		return 1;
+
+	if (optind >= argc || !o_flag || !idx_flag) {
+		errx(1, "USAGE:\t seeding -i <INDEX FILE> -o <OUTPUT NAME> <READS FILE>");
 	}
-	if (!o_flag) {
-		fputs("Error: expected output file (with `-o` option)\n", stderr);
-		return 1;
-	}
-	if (optind >= argc) {
-		fputs("Error: expected fastq file\n", stderr);
-		return 1;
-	}
-	int fd_fastq = open(argv[optind], O_RDONLY);
-	if (fd_fastq == -1) {
-		err(1, "open");
+	int fd_reads = open(argv[optind], O_RDONLY);
+	if (fd_reads == -1) {
+		err(1, "open %s", argv[optind]);
 	}
 	read_v reads;
-	parse_fastq(fd_fastq, &reads);
+	parse_reads(fd_reads, &reads);
 	printf("Info: reads `%s` parsed\n", argv[optind]);
 	puts("\t SEEDING STARTS");
 	struct timespec start, finish;

@@ -113,79 +113,20 @@ void parse_index(FILE *fp, index_t *idx) {
 	return;
 }
 
-void parse_fastq(int fd, read_v *reads) {
+void parse_reads(int fd, read_v *reads) {
 	struct stat statbuf;
 	if (fstat(fd, &statbuf) == -1) {
 		err(1, "fstat");
 	}
-	off_t size        = statbuf.st_size;
-	char *read_buffer = (char *)mmap(NULL, size, PROT_READ, MAP_SHARED | MAP_POPULATE, fd, 0);
-	if (read_buffer == MAP_FAILED) {
+	off_t size     = statbuf.st_size;
+	char *read_buf = (char *)mmap(NULL, size, PROT_READ, MAP_SHARED | MAP_POPULATE, fd, 0);
+	if (read_buf == MAP_FAILED) {
 		err(1, "mmap");
 	}
 
-	reads->n    = 0;
-	reads->a    = NULL;
-	reads->name = NULL;
-
-	size_t i              = 0;
-	char name_buffer[100] = {0};
-	unsigned char name_i  = 0;
-
-	for (;;) {
-		char c = read_buffer[i];
-
-		if (c == '@') {
-			i++;
-			c      = read_buffer[i];
-			name_i = 0;
-			while (c != ' ') {
-				name_buffer[name_i] = c;
-				name_i++;
-				i++;
-				c = read_buffer[i];
-			}
-			name_buffer[name_i] = '\0';
-
-			while (c != '\n') {
-				i++;
-				c = read_buffer[i];
-			}
-			reads->n++;
-			reads->a = (char **)realloc(reads->a, reads->n * sizeof(char *));
-			if (reads->a == NULL) {
-				err(1, "realloc");
-			}
-
-			reads->name = (char **)realloc(reads->name, reads->n * sizeof(char *));
-			if (reads->name == NULL) {
-				err(1, "realloc");
-			}
-
-			reads->a[reads->n - 1] = (char *)malloc(READ_LEN * sizeof(char));
-			if (reads->a[reads->n - 1] == NULL) {
-				err(1, "malloc");
-			}
-			for (size_t j = 0; j < READ_LEN; j++) {
-				i++;
-				reads->a[reads->n - 1][j] = read_buffer[i];
-			}
-
-			reads->name[reads->n - 1] = (char *)malloc(100 * sizeof(char));
-			if (reads->name[reads->n - 1] == NULL) {
-				err(1, "realloc");
-			}
-			strcpy(reads->name[reads->n - 1], name_buffer);
-			i++;
-			assert(read_buffer[i] == '\n');
-			i++;
-			assert(read_buffer[i] == '+');
-			i = READ_LEN + i;
-		} else if (c == 0) {
-			break;
-		}
-		i++;
+	reads->n = 2 * size / READ_LEN;
+	reads->a = (char **)malloc(sizeof(char **) * reads->n);
+	for (size_t i = 0; i < reads->n; i++) {
+		reads->a[i] = &read_buf[i * (READ_LEN / 2 + READ_LEN % 2)];
 	}
-	munmap(read_buffer, size);
-	return;
 }

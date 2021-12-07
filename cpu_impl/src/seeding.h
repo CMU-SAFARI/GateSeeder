@@ -3,7 +3,6 @@
 
 #include "parse.h"
 #include <stdint.h>
-#define READ_LEN 100
 #define W 12
 #define K 18
 #define B 26
@@ -13,6 +12,12 @@
 #ifdef MULTI_THREAD
 #ifndef NB_THREADS
 #define NB_THREADS 8
+#endif
+#endif
+
+#ifndef VARAIBLE_LEN
+#ifndef READ_LEN
+#define READ_LEN 100
 #endif
 #endif
 

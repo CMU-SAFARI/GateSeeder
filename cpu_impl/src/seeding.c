@@ -25,7 +25,11 @@ void *thread_read_seeding(void *arg) {
 	thread_param_t *param = (thread_param_t *)arg;
 	for (size_t i = param->start; i < param->end; i++) {
 		location_v locs;
+#ifdef VARIABLE_LEN
+		seeding(param->idx, param->reads.a[i], &locs, size);
+#else
 		seeding(param->idx, param->reads.a[i], &locs);
+#endif
 		for (size_t j = 0; j < locs.n; j++) {
 			if (j == 0) {
 				fprintf(param->fp, "%u", locs.a[0]);
@@ -43,7 +47,11 @@ void *thread_read_seeding(void *arg) {
 void read_seeding(const index_t idx, const read_v reads, FILE *fp) {
 	for (size_t i = 0; i < reads.n; i++) {
 		location_v locs;
-		seeding(idx, reads.a[i], &locs);
+#ifdef VARIABLE_LEN
+		seeding(param->idx, param->reads.a[i], &locs, size);
+#else
+		seeding(param->idx, param->reads.a[i], &locs);
+#endif
 		for (size_t j = 0; j < locs.n; j++) {
 			if (j == 0) {
 				fprintf(fp, "%u", locs.a[0]);
@@ -57,11 +65,17 @@ void read_seeding(const index_t idx, const read_v reads, FILE *fp) {
 
 #endif
 
+#ifdef VARIABLE_LEN
+void seeding(const index_t idx, const char *read, location_v *locs, size_t size) {
+	min_stra_v p; // Buffer which stores the minimizers and their strand
+	p.n = 0;
+	extract_minimizers(read, &p, size);
+#else
 void seeding(const index_t idx, const char *read, location_v *locs) {
 	min_stra_v p; // Buffer which stores the minimizers and their strand
 	p.n = 0;
 	extract_minimizers(read, &p);
-
+#endif
 	uint32_t location_buffer[2][LOCATION_BUFFER_SIZE]; // Buffers which stores
 	                                                   // the locations and the
 	                                                   // corresponding strand

@@ -22,11 +22,8 @@ format:
 clean:
 	$(RM) *.o $(EXE) *.d
 
-test: $(EXE)
-	./$^ -k 18 -w 12 -b 26 -m 3 -l 150 -i ../res/chr1_k18_w12_f700_b26.bin ../res/ERR240727_1.fastq -c ../res/illumina_k18_w12.paf
-
 run: $(EXE)
-	./$^ -i ../res/full_k18_w12_f1000_b26.bin ../res/ERR240727_1.fastq -o /tmp/locs
+	./$^ -j -i ../res/full_k18_w12_f1000_b26.bin ../res/ERR240727_1.bin -o /tmp/locs
 
 .PHONY: clean format all run test
 -include $(wildcard *.d)

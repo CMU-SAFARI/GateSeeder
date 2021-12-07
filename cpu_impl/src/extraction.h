@@ -16,10 +16,14 @@ typedef struct {
 
 typedef struct {
 	size_t n;
-	min_stra_t a[5000];
+	min_stra_t a[5000]; // TODO
 } min_stra_v;
 
+#ifdef VARIABLE_LEN
+void extract_minimizers(const char *read, min_stra_v *p, size_t size);
+#else
 void extract_minimizers(const char *read, min_stra_v *p);
+#endif
 void push_min_stra(min_stra_v *p, uint64_t min, uint8_t stra);
 
 #endif

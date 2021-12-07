@@ -22,7 +22,7 @@ clean:
 	$(RM) *.o $(EXE) *.d
 
 run: $(EXE)
-	./$(EXE) -v -l 1000 ../res/illumina_2.fastq /tmp/test
+	./$(EXE) -l 100 ../res/ERR240727_1.fastq ../res/ERR240727_1
 
 .PHONY: clean format all run
 -include $(wildcard *.d)
