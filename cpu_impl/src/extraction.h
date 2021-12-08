@@ -16,7 +16,7 @@ typedef struct {
 
 typedef struct {
 	size_t n;
-	min_stra_t a[5000]; // TODO
+	min_stra_t a[10000]; // TODO
 } min_stra_v;
 
 #ifdef VARIABLE_LEN

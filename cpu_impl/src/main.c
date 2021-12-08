@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
 #ifdef MULTI_THREAD
 	FILE *fp_o[NB_THREADS];
 #else
-	FILE *fp_o;
+	FILE *fp_o = NULL;
 #endif
 	while ((option = getopt(argc, argv, "i:o:")) != -1) {
 		switch (option) {

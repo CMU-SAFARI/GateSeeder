@@ -23,12 +23,15 @@ void read_seeding(const index_t idx, const read_v reads, FILE *fp[NB_THREADS]) {
 
 void *thread_read_seeding(void *arg) {
 	thread_param_t *param = (thread_param_t *)arg;
+	uint32_t *location_buffer[2];
+	location_buffer[0] = (uint32_t *)malloc(sizeof(uint32_t) * LOCATION_BUFFER_SIZE);
+	location_buffer[1] = (uint32_t *)malloc(sizeof(uint32_t) * LOCATION_BUFFER_SIZE);
 	for (size_t i = param->start; i < param->end; i++) {
 		location_v locs;
 #ifdef VARIABLE_LEN
-		seeding(param->idx, param->reads.a[i], &locs, param->reads.len[i]);
+		seeding(param->idx, param->reads.a[i], &locs, param->reads.len[i], location_buffer);
 #else
-		seeding(param->idx, param->reads.a[i], &locs);
+		seeding(param->idx, param->reads.a[i], &locs, location_buffer);
 #endif
 		for (size_t j = 0; j < locs.n; j++) {
 			if (j == 0) {
@@ -45,12 +48,15 @@ void *thread_read_seeding(void *arg) {
 #else
 
 void read_seeding(const index_t idx, const read_v reads, FILE *fp) {
+	uint32_t *location_buffer[2];
+	location_buffer[0] = (uint32_t *)malloc(sizeof(uint32_t) * LOCATION_BUFFER_SIZE);
+	location_buffer[1] = (uint32_t *)malloc(sizeof(uint32_t) * LOCATION_BUFFER_SIZE);
 	for (size_t i = 0; i < reads.n; i++) {
 		location_v locs;
 #ifdef VARIABLE_LEN
-		seeding(param->idx, param->reads.a[i], &locs, param->reads.len[i]);
+		seeding(idx, reads.a[i], &locs, reads.len[i], location_buffer);
 #else
-		seeding(param->idx, param->reads.a[i], &locs);
+		seeding(idx, reads.a[i], &locs, location_buffer);
 #endif
 		for (size_t j = 0; j < locs.n; j++) {
 			if (j == 0) {
@@ -66,19 +72,16 @@ void read_seeding(const index_t idx, const read_v reads, FILE *fp) {
 #endif
 
 #ifdef VARIABLE_LEN
-void seeding(const index_t idx, const char *read, location_v *locs, size_t len) {
+void seeding(const index_t idx, const char *read, location_v *locs, size_t len, uint32_t *location_buffer[2]) {
 	min_stra_v p; // Buffer which stores the minimizers and their strand
 	p.n = 0;
 	extract_minimizers(read, &p, len);
 #else
-void seeding(const index_t idx, const char *read, location_v *locs) {
+void seeding(const index_t idx, const char *read, location_v *locs, uint32_t *location_buffer[2]) {
 	min_stra_v p; // Buffer which stores the minimizers and their strand
 	p.n = 0;
 	extract_minimizers(read, &p);
 #endif
-	uint32_t location_buffer[2][LOCATION_BUFFER_SIZE]; // Buffers which stores
-	                                                   // the locations and the
-	                                                   // corresponding strand
 	size_t location_buffer_len[2] = {0};
 	size_t sel                    = 0;
 

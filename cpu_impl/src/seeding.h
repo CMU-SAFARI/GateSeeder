@@ -9,7 +9,7 @@
 #define B 26
 #define MIN_T 3
 #define LOC_R 150
-#define LOCATION_BUFFER_SIZE 200000
+#define LOCATION_BUFFER_SIZE 300000
 #ifdef MULTI_THREAD
 #ifndef NB_THREADS
 #define NB_THREADS 8
@@ -51,9 +51,9 @@ void read_seeding(const index_t idx, const read_v reads, FILE *fp);
 #endif
 
 #ifdef VARIABLE_LEN
-void seeding(const index_t idx, const char *read, location_v *locs, size_t len);
+void seeding(const index_t idx, const char *read, location_v *locs, size_t len, uint32_t *location_buffer[2]);
 #else
-void seeding(const index_t idx, const char *read, location_v *locs);
+void seeding(const index_t idx, const char *read, location_v *locs, uint32_t *location_buffer[2]);
 #endif
 
 #endif

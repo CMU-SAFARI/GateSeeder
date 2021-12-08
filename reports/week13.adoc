@@ -1,0 +1,35 @@
+= Week 13
+
+== TO DO
+
+* Variable read length
+* Finish encoding
+
+== Achievements
+
+* `indexdna` updated for partitioning + log info about the index & locations
+* FPGA implementation for variable length
+* CPU implementation for variable length
+* Encoding for variable and constant length (4 bits encoding + bit packing)
+* Tests on the Pacbio dataset
+
+== Results
+
+=== Encoding
+
+[cols="1,1"]
+|===
+|`A` | 0x0
+|`C` | 0x1
+
+|`G` | 0x2
+|`T` | 0x3
+
+|`N` | 0x4
+|`END OF READ` (only for variable length) | 0xf
+|===
+
+== Questions
+
+* Which parameters for long reads (Pacbio: 10kb - 20kb)?
+* Semester project report?
