@@ -1,6 +1,5 @@
 #include "parse.h"
 #include "seeding.h"
-#include <assert.h>
 #include <err.h>
 #include <stdlib.h>
 #include <string.h>
@@ -113,27 +112,27 @@ void parse_reads(int fd, read_v *reads) {
 	for (size_t i = 0; i < size; i++) {
 		if ((read_buf[i] & 0xf) == 0xf) {
 			reads->n++;
-			reads->a = realloc(reads->a, reads->n);
+			reads->a = (char **)realloc(reads->a, reads->n * sizeof(char *));
 			if (reads->a == NULL) {
 				err(1, "realloc");
 			}
 			reads->a[reads->n - 1] = init;
 			init                   = &read_buf[i + 1];
-			reads->len             = realloc(reads->len, reads->n);
+			reads->len             = (size_t *)realloc(reads->len, reads->n * sizeof(size_t));
 			if (reads->len == NULL) {
 				err(1, "realloc");
 			}
 			reads->len[reads->n - 1] = len;
 			len                      = 0;
-		} else if ((read_buf[i] >> 4) == 0xf) {
+		} else if (((read_buf[i] >> 4) & 0xf) == 0xf) {
 			reads->n++;
-			reads->a = realloc(reads->a, reads->n);
+			reads->a = (char **)realloc(reads->a, reads->n * sizeof(char *));
 			if (reads->a == NULL) {
 				err(1, "realloc");
 			}
 			reads->a[reads->n - 1] = init;
 			init                   = &read_buf[i + 1];
-			reads->len             = realloc(reads->len, reads->n);
+			reads->len             = (size_t *)realloc(reads->len, reads->n * sizeof(size_t));
 			if (reads->len == NULL) {
 				err(1, "realloc");
 			}

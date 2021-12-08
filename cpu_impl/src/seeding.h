@@ -3,6 +3,7 @@
 
 #include "parse.h"
 #include <stdint.h>
+#include <stdio.h>
 #define W 12
 #define K 18
 #define B 26

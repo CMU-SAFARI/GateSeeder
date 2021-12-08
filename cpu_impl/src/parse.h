@@ -1,8 +1,8 @@
 #ifndef PARSE_H
 #define PARSE_H
 
+#include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 
 typedef struct {
 	size_t n;
