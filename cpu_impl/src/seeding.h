@@ -49,5 +49,10 @@ void read_seeding(const index_t idx, const read_v reads, FILE *fp);
 
 #endif
 
+#ifdef VARIABLE_LEN
+void seeding(const index_t idx, const char *read, location_v *locs, size_t len);
+#else
 void seeding(const index_t idx, const char *read, location_v *locs);
+#endif
+
 #endif

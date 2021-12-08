@@ -20,7 +20,7 @@ typedef struct {
 } min_stra_v;
 
 #ifdef VARIABLE_LEN
-void extract_minimizers(const char *read, min_stra_v *p, size_t size);
+void extract_minimizers(const char *read, min_stra_v *p, size_t len);
 #else
 void extract_minimizers(const char *read, min_stra_v *p);
 #endif

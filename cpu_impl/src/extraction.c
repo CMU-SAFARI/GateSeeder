@@ -18,7 +18,7 @@ static inline uint64_t hash64(uint64_t key) {
 }
 
 #ifdef VARIABLE_LEN
-void extract_minimizers(const char *read, min_stra_v *p, size_t size) {
+void extract_minimizers(const char *read, min_stra_v *p, size_t len) {
 #else
 void extract_minimizers(const char *read, min_stra_v *p) {
 #endif
@@ -34,7 +34,7 @@ void extract_minimizers(const char *read, min_stra_v *p) {
 	unsigned char same_min  = 0;
 
 #ifdef VARIABLE_LEN
-	for (size_t i = 0; i < size; i++) {
+	for (size_t i = 0; i < len; i++) {
 #else
 	for (size_t i = 0; i < READ_LEN; ++i) {
 #endif

@@ -23,6 +23,9 @@ typedef struct {
 typedef struct {
 	size_t n;
 	char **a;
+#ifdef VARIABLE_LEN
+	size_t *len;
+#endif
 } read_v;
 
 void parse_dat(int fd, exp_loc_v *loc);

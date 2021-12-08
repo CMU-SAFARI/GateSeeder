@@ -123,10 +123,53 @@ void parse_reads(int fd, read_v *reads) {
 	if (read_buf == MAP_FAILED) {
 		err(1, "mmap");
 	}
-
+#ifdef VARIABLE_LEN
+	reads->n   = 0;
+	reads->a   = NULL;
+	reads->len = NULL;
+	size_t len = 0;
+	char *init = read_buf;
+	for (size_t i = 0; i < size; i++) {
+		if ((read_buf[i] & 0xf) == 0xf) {
+			reads->n++;
+			reads->a = realloc(reads->a, reads->n);
+			if (reads->a == NULL) {
+				err(1, "realloc");
+			}
+			reads->a[reads->n - 1] = init;
+			init                   = &read_buf[i + 1];
+			reads->len             = realloc(reads->len, reads->n);
+			if (reads->len == NULL) {
+				err(1, "realloc");
+			}
+			reads->len[reads->n - 1] = len;
+			len                      = 0;
+		} else if ((read_buf[i] >> 4) == 0xf) {
+			reads->n++;
+			reads->a = realloc(reads->a, reads->n);
+			if (reads->a == NULL) {
+				err(1, "realloc");
+			}
+			reads->a[reads->n - 1] = init;
+			init                   = &read_buf[i + 1];
+			reads->len             = realloc(reads->len, reads->n);
+			if (reads->len == NULL) {
+				err(1, "realloc");
+			}
+			reads->len[reads->n - 1] = len + 1;
+			len                      = 0;
+		} else {
+			len += 2;
+		}
+	}
+#else
 	reads->n = 2 * size / READ_LEN;
 	reads->a = (char **)malloc(sizeof(char **) * reads->n);
+	if (reads->a == NULL) {
+		err(1, "malloc");
+	}
 	for (size_t i = 0; i < reads->n; i++) {
 		reads->a[i] = &read_buf[i * (READ_LEN / 2 + READ_LEN % 2)];
 	}
+#endif
 }
