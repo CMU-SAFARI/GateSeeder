@@ -73,44 +73,25 @@ void parse_dat(int fd, exp_loc_v *loc) {
 	}
 }
 
-void parse_index(FILE *fp, index_t *idx) {
-	size_t ret = fread(&idx->n, sizeof(uint32_t), 1, fp);
-	if (ret != 1) {
-		fprintf(stderr, "fread() failed: %zu\n", ret);
-		exit(EXIT_FAILURE);
+void parse_index(int fd, index_t *idx) {
+	struct stat statbuf;
+	if (fstat(fd, &statbuf) == -1) {
+		err(1, "fstat");
 	}
+	off_t size        = statbuf.st_size;
+	uint32_t *idx_buf = (uint32_t *)mmap(NULL, size, PROT_READ, MAP_SHARED | MAP_POPULATE, fd, 0);
+	if (idx_buf == MAP_FAILED) {
+		err(1, "mmap");
+	}
+	idx->n        = idx_buf[0];
+	idx->h        = &idx_buf[1];
+	idx->m        = idx->h[idx->n - 1];
+	idx->location = &idx_buf[idx->n + 1];
 
-	idx->h = (uint32_t *)malloc(sizeof(uint32_t) * idx->n);
-	if (idx->h == NULL) {
-		err(1, "malloc");
+	// Check the consistency of the data
+	if ((((size_t)idx->m + idx->n + 1) << 2) != size) {
+		errx(1, "parse_index");
 	}
-	ret = fread(idx->h, sizeof(uint32_t), idx->n, fp);
-	if (ret != idx->n) {
-		fprintf(stderr, "fread() failed: %zu\n", ret);
-		exit(EXIT_FAILURE);
-	}
-	idx->m = idx->h[idx->n - 1];
-
-	idx->location = (uint32_t *)malloc(sizeof(uint32_t) * idx->m);
-	if (idx->location == NULL) {
-		err(1, "malloc");
-	}
-	ret = fread(idx->location, sizeof(uint32_t), idx->m, fp);
-	if (ret != idx->m) {
-		fprintf(stderr, "fread() failed: %zu\n", ret);
-		exit(EXIT_FAILURE);
-	}
-
-	// Check if we reached the EOF
-	uint8_t eof;
-	ret = fread(&eof, sizeof(uint8_t), 1, fp);
-	if (ret != 0 || !feof(fp)) {
-		fprintf(stderr, "fread() failed: %zu\n", ret);
-		exit(EXIT_FAILURE);
-	}
-
-	fclose(fp);
-	return;
 }
 
 void parse_reads(int fd, read_v *reads) {

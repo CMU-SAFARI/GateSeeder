@@ -29,7 +29,7 @@ typedef struct {
 } read_v;
 
 void parse_dat(int fd, exp_loc_v *loc);
-void parse_index(FILE *fp, index_t *idx);
+void parse_index(int fd, index_t *idx);
 void parse_reads(int fd, read_v *reads);
 
 #endif
