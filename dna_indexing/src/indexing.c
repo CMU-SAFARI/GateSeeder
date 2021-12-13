@@ -271,6 +271,11 @@ void parse_extract(int fd, const unsigned int w, const unsigned int k, const uns
 		char c = file_buffer[i];
 
 		if (c == '>') {
+			char name[20] = {0};
+			for (size_t j = 0; file_buffer[i + 1 + j] != ' '; j++) {
+				name[j] = file_buffer[i + 1 + j];
+			}
+			printf("(\"%s\", %lu),\n", name, dna_len + chromo_len);
 			if (chromo_len > 0) {
 				extract_minimizers(dna_buffer, chromo_len, w, k, b, p, dna_len);
 				dna_len += chromo_len;

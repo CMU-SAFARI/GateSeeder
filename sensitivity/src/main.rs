@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
+mod offset;
 
 fn main() {
 	let path = Path::new("../res/gold_pacbio_10000.paf");
@@ -15,10 +16,13 @@ fn main() {
 		Ok(file) => file,
 	};
 
+	let offset_map = offset::get_offset();
+
 	let reader = BufReader::new(&file_gold);
 	let gold = reader.lines().map(|line| {
 		let line_buf = line.unwrap();
 		let sec: Vec<_> = line_buf.split('\t').collect();
+		let offset: u32 = *offset_map.get(sec[5]).unwrap();
 		Gold {
 			id: sec[0].split('.').collect::<Vec<_>>()[1].parse().unwrap(),
 			strand: match sec[4].chars().collect::<Vec<_>>()[0] {
@@ -26,8 +30,8 @@ fn main() {
 				'-' => false,
 				_ => panic!("parse"),
 			},
-			start: sec[7].parse().unwrap(),
-			end: sec[8].parse().unwrap(),
+			start: sec[7].parse::<u32>().unwrap() + offset,
+			end: sec[8].parse::<u32>().unwrap() + offset,
 			mb: sec[9].parse().unwrap(),
 			tb: sec[10].parse().unwrap(),
 		}
