@@ -8,3 +8,5 @@ fpga_impl/vitis_hls
 fpga_impl/vitis_hls.log
 res/
 fastq2bin
+Cargo.lock
+target/
