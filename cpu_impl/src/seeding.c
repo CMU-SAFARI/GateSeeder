@@ -35,7 +35,7 @@ void *thread_read_seeding(void *arg) {
 		seeding(param->idx, param->reads.a[i], &locs, location_buffer);
 #endif
 		for (size_t j = 0; j < locs.n; j++) {
-			char strand = locs.a[j].strand ? '+' : '-';
+			char strand = locs.a[j].strand ? '-' : '+';
 			if (j == 0) {
 				fprintf(param->fp, "%c.%u", strand, locs.a[0].location);
 			} else {
@@ -62,7 +62,7 @@ void read_seeding(const index_t idx, const read_v reads, FILE *fp) {
 		seeding(idx, reads.a[i], &locs, location_buffer);
 #endif
 		for (size_t j = 0; j < locs.n; j++) {
-			char strand = locs.a[j].strand ? '+' : '-';
+			char strand = locs.a[j].strand ? '-' : '+';
 			if (j == 0) {
 				fprintf(fp, "%c.%u", strand, locs.a[0].location);
 			} else {
@@ -122,13 +122,12 @@ void seeding(const index_t idx, const char *read, location_v *locs, uint32_t *lo
 
 	size_t n = location_buffer_len[sel];
 
-	/*
-	locs->a = (buffer_t *)malloc(n * sizeof(buffer_t));
+	locs->n = n;
 	for (size_t i = 0; i < n; i++) {
-	        locs->a[i] = location_buffer[sel];
+			locs->a[i].location = location_buffer[sel][i] & (UINT32_MAX - 1);
+			locs->a[i].strand   = location_buffer[sel][i] & 1;
 	}
-	*/
-
+	/*
 	// Adjacency test
 	locs->n = 0;
 	if (n >= 3) {
@@ -161,4 +160,5 @@ void seeding(const index_t idx, const char *read, location_v *locs, uint32_t *lo
 			loc_offset++;
 		}
 	}
+	*/
 }

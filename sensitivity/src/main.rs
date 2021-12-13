@@ -10,7 +10,7 @@ fn main() {
 		Ok(file) => file,
 	};
 
-	let path = Path::new("../res/res_pacbio_10000.paf");
+	let path = Path::new("../res/locs_pacbio_10000.dat");
 	let file_res = match File::open(&path) {
 		Err(why) => panic!("open {}: {}", path.display(), why),
 		Ok(file) => file,
@@ -42,19 +42,21 @@ fn main() {
 	gold.for_each(|x| {
 		let line_buf = res[(x.id - 1) as usize].as_ref().unwrap();
 		let mut counter: u32 = 0;
-		line_buf.split('\t').for_each(|loc_stra| {
-			let mut loc_stra = loc_stra.split('.');
-			let stra = match loc_stra.next().unwrap().chars().collect::<Vec<_>>()[0] {
-				'+' => true,
-				'-' => false,
-				_ => panic!("parse"),
-			};
-			let loc: u32 = loc_stra.next().unwrap().parse().unwrap();
-			if stra == x.strand && loc > x.start && loc < x.end {
-				counter += 1;
-			}
-		});
+		if (x.mb as f64) / (x.tb as f64) >= 0.5 {
+			line_buf.split('\t').for_each(|loc_stra| {
+				let mut loc_stra = loc_stra.split('.');
+				let stra = match loc_stra.next().unwrap().chars().collect::<Vec<_>>()[0] {
+					'+' => true,
+					'-' => false,
+					_ => panic!("parse"),
+				};
+				let loc: u32 = loc_stra.next().unwrap().parse().unwrap();
+				if stra == x.strand && loc >= x.start && loc <= x.end {
+					counter += 1;
+				}
+			});
 		println!("{}", counter);
+		}
 	});
 }
 
