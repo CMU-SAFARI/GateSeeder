@@ -26,18 +26,20 @@ void *thread_read_seeding(void *arg) {
 	uint32_t *location_buffer[2];
 	location_buffer[0] = (uint32_t *)malloc(sizeof(uint32_t) * LOCATION_BUFFER_SIZE);
 	location_buffer[1] = (uint32_t *)malloc(sizeof(uint32_t) * LOCATION_BUFFER_SIZE);
+	location_v locs;
+	locs.a = (buffer_t *)malloc(LOCATION_BUFFER_SIZE * sizeof(buffer_t));
 	for (size_t i = param->start; i < param->end; i++) {
-		location_v locs;
 #ifdef VARIABLE_LEN
 		seeding(param->idx, param->reads.a[i], &locs, param->reads.len[i], location_buffer);
 #else
 		seeding(param->idx, param->reads.a[i], &locs, location_buffer);
 #endif
 		for (size_t j = 0; j < locs.n; j++) {
+			char strand = locs.a[j].strand ? '+' : '-';
 			if (j == 0) {
-				fprintf(param->fp, "%u", locs.a[0]);
+				fprintf(param->fp, "%c.%u", strand, locs.a[0].location);
 			} else {
-				fprintf(param->fp, "\t%u", locs.a[j]);
+				fprintf(param->fp, "\t%c.%u", strand, locs.a[j].location);
 			}
 		}
 		fputs("\n", param->fp);
@@ -51,18 +53,20 @@ void read_seeding(const index_t idx, const read_v reads, FILE *fp) {
 	uint32_t *location_buffer[2];
 	location_buffer[0] = (uint32_t *)malloc(sizeof(uint32_t) * LOCATION_BUFFER_SIZE);
 	location_buffer[1] = (uint32_t *)malloc(sizeof(uint32_t) * LOCATION_BUFFER_SIZE);
+	location_v locs;
+	locs.a = (buffer_t *)malloc(LOCATION_BUFFER_SIZE * sizeof(buffer_t));
 	for (size_t i = 0; i < reads.n; i++) {
-		location_v locs;
 #ifdef VARIABLE_LEN
 		seeding(idx, reads.a[i], &locs, reads.len[i], location_buffer);
 #else
 		seeding(idx, reads.a[i], &locs, location_buffer);
 #endif
 		for (size_t j = 0; j < locs.n; j++) {
+			char strand = locs.a[j].strand ? '+' : '-';
 			if (j == 0) {
-				fprintf(fp, "%u", locs.a[0]);
+				fprintf(fp, "%c.%u", strand, locs.a[0].location);
 			} else {
-				fprintf(fp, "\t%u", locs.a[j]);
+				fprintf(fp, "\t%c.%u", strand, locs.a[j].location);
 			}
 		}
 		fputs("\n", fp);
@@ -116,16 +120,24 @@ void seeding(const index_t idx, const char *read, location_v *locs, uint32_t *lo
 		sel = 1 - sel;
 	}
 
-	// Adjacency test
 	size_t n = location_buffer_len[sel];
-	locs->n  = 0;
+
+	/*
+	locs->a = (buffer_t *)malloc(n * sizeof(buffer_t));
+	for (size_t i = 0; i < n; i++) {
+	        locs->a[i] = location_buffer[sel];
+	}
+	*/
+
+	// Adjacency test
+	locs->n = 0;
 	if (n >= 3) {
+		// TODO: maybe can be optimized
 		buffer_t buffer[LOCATION_BUFFER_SIZE];
 		for (size_t i = 0; i < n; i++) {
 			buffer[i].location = location_buffer[sel][i] & (UINT32_MAX - 1);
 			buffer[i].strand   = location_buffer[sel][i] & 1;
 		}
-		uint32_t loc_buffer[LOCATION_BUFFER_SIZE];
 		size_t loc_counter  = 1;
 		size_t loc_offset   = 1;
 		size_t init_loc_idx = 0;
@@ -134,7 +146,7 @@ void seeding(const index_t idx, const char *read, location_v *locs, uint32_t *lo
 				if (buffer[init_loc_idx + loc_offset].strand == buffer[init_loc_idx].strand) {
 					loc_counter++;
 					if (loc_counter == MIN_T) {
-						loc_buffer[locs->n] = buffer[init_loc_idx].location;
+						locs->a[locs->n] = buffer[init_loc_idx];
 						locs->n++;
 						init_loc_idx++;
 						loc_counter = 1;
@@ -147,12 +159,6 @@ void seeding(const index_t idx, const char *read, location_v *locs, uint32_t *lo
 				loc_offset  = 0;
 			}
 			loc_offset++;
-		}
-
-		// Store the locations
-		locs->a = (uint32_t *)malloc(locs->n * sizeof(uint32_t));
-		for (size_t i = 0; i < locs->n; i++) {
-			locs->a[i] = loc_buffer[i];
 		}
 	}
 }

@@ -24,7 +24,7 @@ clean:
 
 run: $(EXE)
 	#./$^ -i ../res/full_k18_w12_f1000_b26.bin ../res/ERR240727_1.bin -o /tmp/locs
-	./$^ -i ../res/full_k18_w12_f1000_b26.bin ../res/pacbio_10.bin -o /tmp/locs
+	./$^ -i ../res/full_k18_w12_f1000_b26.bin ../res/pacbio_10000.bin -o /tmp/locs
 
 .PHONY: clean format all run test
 -include $(wildcard *.d)

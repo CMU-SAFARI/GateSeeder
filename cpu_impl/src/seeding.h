@@ -23,14 +23,14 @@
 #endif
 
 typedef struct {
-	size_t n;
-	uint32_t *a;
-} location_v;
-
-typedef struct {
 	uint32_t location;
 	uint8_t strand;
 } buffer_t;
+
+typedef struct {
+	size_t n;
+	buffer_t *a;
+} location_v;
 
 #ifdef MULTI_THREAD
 typedef struct {
