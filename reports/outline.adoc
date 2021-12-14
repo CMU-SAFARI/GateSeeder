@@ -1,0 +1,14 @@
+= Outline
+
+* Introduction
+** Novelties
+* Background
+** k-mers, minimizer
+** seeding algorithm
+* Implementation
+** Reference genome indexing
+*** Constrains: few memory accesses, size of the human DNA, partitioning for HBM
+*** CPU impl
+*** FPGA impl
+** Read encoding
+*** const len vs variable len

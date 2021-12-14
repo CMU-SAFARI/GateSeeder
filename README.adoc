@@ -7,8 +7,6 @@ FPGA Genome Indexing &amp; Seeding (Julien Eudine)
 * Host implementation
 * Optimize size of the buffers
 * Test different configurations for the connection between PEs and HBM
-* Wrap the data flow of the kernel inside a for loop (to loop over the entire read set)
-* Maybe divide `get_loactions` into two stages
 
 == CPU implementation
 
@@ -64,6 +62,7 @@ cd fpga_impl && make
 
 In all the following results link:https://www.ncbi.nlm.nih.gov/assembly/GCF_000001405.39[GRCh38.p13] (3,209,286,105 bases) is used as the genome reference.
 
+* *https://github.com/mealser/FPGA_Genome_Indexing/blob/main/reports/week14.adoc[week14]*
 * *https://github.com/mealser/FPGA_Genome_Indexing/blob/main/reports/week13.adoc[week13]*
 * *https://github.com/mealser/FPGA_Genome_Indexing/blob/main/reports/week12.adoc[week12]*
 * *https://github.com/mealser/FPGA_Genome_Indexing/blob/main/reports/week11.adoc[week11]*
