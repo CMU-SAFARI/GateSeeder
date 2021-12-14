@@ -19,21 +19,26 @@ fn main() {
 	let offset_map = offset::get_offset();
 
 	let reader = BufReader::new(&file_gold);
-	let gold = reader.lines().map(|line| {
+	let gold = reader.lines().filter_map(|line| {
 		let line_buf = line.unwrap();
 		let sec: Vec<_> = line_buf.split('\t').collect();
 		let offset: u32 = *offset_map.get(sec[5]).unwrap();
-		Gold {
-			id: sec[0].split('.').collect::<Vec<_>>()[1].parse().unwrap(),
-			strand: match sec[4].chars().collect::<Vec<_>>()[0] {
-				'+' => true,
-				'-' => false,
-				_ => panic!("parse"),
-			},
-			start: sec[7].parse::<u32>().unwrap() + offset,
-			end: sec[8].parse::<u32>().unwrap() + offset,
-			mb: sec[9].parse().unwrap(),
-			tb: sec[10].parse().unwrap(),
+		let tb = sec[10].parse().unwrap();
+		if sec[12].eq("tp:A:P") && tb >= 10000 {
+			Some(Gold {
+				id: sec[0].split('.').collect::<Vec<_>>()[1].parse().unwrap(),
+				strand: match sec[4].chars().collect::<Vec<_>>()[0] {
+					'+' => true,
+					'-' => false,
+					_ => panic!("parse"),
+				},
+				start: sec[7].parse::<u32>().unwrap() + offset,
+				end: sec[8].parse::<u32>().unwrap() + offset,
+				mb: sec[9].parse().unwrap(),
+				tb: tb,
+			})
+		} else {
+			None
 		}
 	});
 
@@ -55,7 +60,7 @@ fn main() {
 					counter += 1;
 				}
 			});
-		println!("{}", counter);
+			println!("{}", counter);
 		}
 	});
 }
