@@ -1,14 +1,54 @@
 = Outline
 
-* Introduction
-** Novelties
-* Background
-** k-mers, minimizer
-** seeding algorithm
-* Implementation
-** Reference genome indexing
-*** Constrains: few memory accesses, size of the human DNA, partitioning for HBM
-*** CPU impl
-*** FPGA impl
-** Read encoding
-*** const len vs variable len
+== Introduction
+
+* Read mapping
+* Indexing & seeding
+* Memory bottleneck
+* Processing near memory
+* cf. Proposal
+
+== Background
+* k-mer, minimizer
+* seeding algorithm
+* FPGA & HBM
+
+== Implementation
+=== Reference genome indexing
+* Constrains:
+** reduce the number of memory accesses
+** contiguous memory accesses
+** size of the human DNA
+** filtering
+* Construction of the hash table
+* specificities of the CPU index
+* specificities of the FPGA index
+** partitioning for HBM
+
+=== Read encoding
+** 4-bit encoding and bit-packing
+** Constant length vs Variable length
+
+=== Choice of Parameters
+* Size of the buffers
+* Adjacency test
+
+=== Cpu implementation
+* Multi thread CPU implementation
+** Constant length vs Variable length
+
+=== FPGA implementation
+* Pipeline
+* Data flow
+* HBM
+* Tapasco
+
+== Results
+* Performances of the CPU implementation
+** Scaling?
+** Comparison with minimap2
+* Estimation of the performances of the FPGA implementation
+
+== Future work
+
+== Conclusion
