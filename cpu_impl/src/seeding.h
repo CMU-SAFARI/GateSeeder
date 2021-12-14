@@ -7,8 +7,8 @@
 #define W 12
 #define K 18
 #define B 26
-#define MIN_T 3
-#define LOC_R 150
+#define MIN_T 1000
+#define LOC_R 20000
 #define LOCATION_BUFFER_SIZE 300000
 #ifdef MULTI_THREAD
 #ifndef NB_THREADS
@@ -25,12 +25,12 @@
 typedef struct {
 	uint32_t location;
 	uint8_t strand;
-} buffer_t;
+} loc_stra_t;
 
 typedef struct {
 	size_t n;
-	buffer_t *a;
-} location_v;
+	loc_stra_t *a;
+} loc_stra_v;
 
 #ifdef MULTI_THREAD
 typedef struct {
@@ -51,9 +51,11 @@ void read_seeding(const index_t idx, const read_v reads, FILE *fp);
 #endif
 
 #ifdef VARIABLE_LEN
-void seeding(const index_t idx, const char *read, location_v *locs, size_t len, uint32_t *location_buffer[2]);
+void seeding(const index_t idx, const char *read, loc_stra_v *locs, size_t len, uint32_t *location_buffer[2],
+             loc_stra_t *loc_stra_buf);
 #else
-void seeding(const index_t idx, const char *read, location_v *locs, uint32_t *location_buffer[2]);
+void seeding(const index_t idx, const char *read, loc_stra_v *locs, uint32_t *location_buffer[2],
+             loc_stra_t *loc_stra_buf);
 #endif
 
 #endif

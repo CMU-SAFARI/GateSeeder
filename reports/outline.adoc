@@ -2,27 +2,28 @@
 
 == Introduction
 
-* Read mapping
 * Indexing & seeding
+* Processing time bottleneck
 * Memory bottleneck
+* Accelerate read mapping
 * Processing near memory
 * cf. Proposal
 
 == Background
 * k-mer, minimizer
 * seeding algorithm
+* Filtering
 * FPGA & HBM
 
-== Implementation
+== Design
 === Reference genome indexing
-* Constrains:
+* Algorithm constraint
 ** reduce the number of memory accesses
 ** contiguous memory accesses
 ** size of the human DNA
 ** filtering
 * Construction of the hash table
-* specificities of the CPU index
-* specificities of the FPGA index
+* Design constrain
 ** partitioning for HBM
 
 === Read encoding
@@ -33,14 +34,16 @@
 * Size of the buffers
 * Adjacency test
 
-=== Cpu implementation
-* Multi thread CPU implementation
-** Constant length vs Variable length
-
-=== FPGA implementation
-* Pipeline
+=== FPGA design
+* Pipeleine
 * Data flow
 * HBM
+
+== Implementation
+=== Methodology
+* Readset: Illumina, Pacbio
+* CPU implementation for baseline
+* Vitis
 * Tapasco
 
 == Results
@@ -50,5 +53,8 @@
 * Estimation of the performances of the FPGA implementation
 
 == Future work
+* kraken 2
+* Full design with alignment
+* different minimizers
 
 == Conclusion
