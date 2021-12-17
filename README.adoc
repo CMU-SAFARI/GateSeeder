@@ -7,6 +7,8 @@ FPGA Genome Indexing &amp; Seeding (Julien Eudine)
 * Host implementation
 * Optimize size of the buffers
 * Test different configurations for the connection between PEs and HBM
+* Write a script to find the best parameters (windex, wread, threshold) for each dataset
+** loss function: _F(MIN_T, % of acceptance, Execution time)_
 
 == CPU implementation
 

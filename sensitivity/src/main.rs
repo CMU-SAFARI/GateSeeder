@@ -10,7 +10,8 @@ fn main() {
 		Ok(file) => file,
 	};
 
-	let path = Path::new("../res/locs_pacbio_10000.dat");
+	//let path = Path::new("../res/locs_pacbio_10000.dat");
+	let path = Path::new("/tmp/locs.dat");
 	let file_res = match File::open(&path) {
 		Err(why) => panic!("open {}: {}", path.display(), why),
 		Ok(file) => file,
