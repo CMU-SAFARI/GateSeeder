@@ -21,7 +21,7 @@ static inline FILE *open_file(char *name, char *suffix) {
 	return fp_out;
 }
 
-static unsigned char seq_nt4_table[256] = {
+static char seq_nt4_table[256] = {
     0, 1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 1, 4, 4, 4, 2, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 1, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4,
@@ -59,7 +59,7 @@ void encode_const_len(int fd, unsigned l, char *name) {
 			i += 2;
 		}
 		if (l % 2) {
-			write_buf[l / 2] = seq_nt4_table[(size_t)read_buf[i]];
+			write_buf[l / 2] = seq_nt4_table[(size_t)read_buf[i]] | (0xf << 4);
 			i++;
 		}
 		fwrite(write_buf, 1, l / 2 + l % 2, fp_out);

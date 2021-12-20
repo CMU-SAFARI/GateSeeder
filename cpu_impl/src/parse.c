@@ -144,7 +144,7 @@ void parse_reads(int fd, read_v *reads) {
 	}
 #else
 	reads->n = 2 * size / READ_LEN;
-	reads->a = (char **)malloc(sizeof(char **) * reads->n);
+	reads->a = (char **)malloc(sizeof(char *) * reads->n);
 	if (reads->a == NULL) {
 		err(1, "malloc");
 	}

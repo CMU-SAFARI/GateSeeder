@@ -263,13 +263,11 @@ void parse_extract(int fd, const unsigned int w, const unsigned int k, const uns
 		err(1, "malloc");
 	}
 
-	size_t i          = 0;
 	size_t dna_len    = 0;
 	size_t chromo_len = 0;
 
-	while (1) {
+	for (size_t i = 0; i < size; i++) {
 		char c = file_buffer[i];
-
 		if (c == '>') {
 			char name[20] = {0};
 			for (size_t j = 0; file_buffer[i + 1 + j] != ' '; j++) {
@@ -293,11 +291,6 @@ void parse_extract(int fd, const unsigned int w, const unsigned int k, const uns
 				c = file_buffer[i];
 			}
 		}
-
-		if (c == 0) {
-			break;
-		}
-		i++;
 	}
 
 	munmap(file_buffer, size);
