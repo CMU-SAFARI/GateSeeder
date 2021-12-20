@@ -1,5 +1,6 @@
 #include "seeding.h"
 #include "extraction.h"
+#include <err.h>
 #include <stdlib.h>
 
 #ifdef MULTI_THREAD
@@ -24,11 +25,23 @@ void read_seeding(const index_t idx, const read_v reads, FILE *fp[NB_THREADS]) {
 void *thread_read_seeding(void *arg) {
 	thread_param_t *param = (thread_param_t *)arg;
 	uint32_t *location_buf[2];
-	location_buf[0]          = (uint32_t *)malloc(sizeof(uint32_t) * LOCATION_BUFFER_SIZE);
-	location_buf[1]          = (uint32_t *)malloc(sizeof(uint32_t) * LOCATION_BUFFER_SIZE);
+	location_buf[0] = (uint32_t *)malloc(sizeof(uint32_t) * LOCATION_BUFFER_SIZE);
+	if (location_buf[0] == NULL) {
+		err(1, "malloc");
+	}
+	location_buf[1] = (uint32_t *)malloc(sizeof(uint32_t) * LOCATION_BUFFER_SIZE);
+	if (location_buf[1] == NULL) {
+		err(1, "malloc");
+	}
 	loc_stra_t *loc_stra_buf = (loc_stra_t *)malloc(sizeof(loc_stra_t) * LOCATION_BUFFER_SIZE);
+	if (loc_stra_buf == NULL) {
+		err(1, "malloc");
+	}
 	loc_stra_v locs;
 	locs.a = (loc_stra_t *)malloc(LOCATION_BUFFER_SIZE * sizeof(loc_stra_t));
+	if (locs.a == NULL) {
+		err(1, "malloc");
+	}
 	for (size_t i = param->start; i < param->end; i++) {
 #ifdef VARIABLE_LEN
 		seeding(param->idx, param->reads.a[i], &locs, param->reads.len[i], location_buf, loc_stra_buf);
@@ -52,11 +65,23 @@ void *thread_read_seeding(void *arg) {
 
 void read_seeding(const index_t idx, const read_v reads, FILE *fp) {
 	uint32_t *location_buf[2];
-	location_buf[0]          = (uint32_t *)malloc(sizeof(uint32_t) * LOCATION_BUFFER_SIZE);
-	location_buf[1]          = (uint32_t *)malloc(sizeof(uint32_t) * LOCATION_BUFFER_SIZE);
+	location_buf[0] = (uint32_t *)malloc(sizeof(uint32_t) * LOCATION_BUFFER_SIZE);
+	if (location_buf[0] == NULL) {
+		err(1, "malloc");
+	}
+	location_buf[1] = (uint32_t *)malloc(sizeof(uint32_t) * LOCATION_BUFFER_SIZE);
+	if (location_buf[1] == NULL) {
+		err(1, "malloc");
+	}
 	loc_stra_t *loc_stra_buf = (loc_stra_t *)malloc(sizeof(loc_stra_t) * LOCATION_BUFFER_SIZE);
+	if (loc_stra_buf == NULL) {
+		err(1, "malloc");
+	}
 	loc_stra_v locs;
 	locs.a = (loc_stra_t *)malloc(LOCATION_BUFFER_SIZE * sizeof(loc_stra_t));
+	if (locs.a == NULL) {
+		err(1, "malloc");
+	}
 	for (size_t i = 0; i < reads.n; i++) {
 #ifdef VARIABLE_LEN
 		seeding(idx, reads.a[i], &locs, reads.len[i], location_buf, loc_stra_buf);
@@ -153,7 +178,7 @@ void seeding(const index_t idx, const char *read, loc_stra_v *locs, uint32_t *lo
 					if (loc_counter == MIN_T) {
 						locs->a[locs->n] = loc_stra_buf[init_loc_idx];
 						locs->n++;
-						init_loc_idx ++;
+						init_loc_idx++;
 						loc_counter = 1;
 						loc_offset  = 0;
 					}
