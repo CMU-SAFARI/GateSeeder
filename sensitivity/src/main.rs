@@ -13,7 +13,7 @@ fn main() {
 		Ok(file) => file,
 	};
 
-	(10..20).for_each(|w_ref| {
+	(11..20).for_each(|w_ref| {
 		make_index(w_ref);
 		(w_ref..31).for_each(|w_read| {
 			let time = seed_index(w_read);
@@ -26,7 +26,7 @@ fn main() {
 
 fn make_index(w_ref: u32) {
 	let w = format!("-w{}", w_ref);
-	Command::new("./indexdna")
+	let status = Command::new("./indexdna")
 		.args([
 			"-k19",
 			&w,
@@ -38,26 +38,30 @@ fn make_index(w_ref: u32) {
 		.current_dir("../dna_indexing")
 		.status()
 		.expect("indexdna");
+	assert!(status.success());
 }
 
 fn seed_index(w_read: u32) -> u64 {
 	let w = format!("CFLAGS+='-DW={}'", w_read);
-	Command::new("make")
+	let status = Command::new("make")
 		.arg("clean")
 		.current_dir("../cpu_impl")
 		.status()
 		.expect("make");
-	Command::new("make")
+	assert!(status.success());
+	let status = Command::new("make")
 		.arg(&w)
 		.current_dir("../cpu_impl")
 		.status()
 		.expect("make");
 	let now = Instant::now();
-	Command::new("./map-pacbio")
+	assert!(status.success());
+	let status = Command::new("./map-pacbio")
 		.args(["-i/tmp/idx.bin", "../res/pacbio_10000.bin", "-o/tmp/locs"])
 		.current_dir("../cpu_impl")
 		.status()
 		.expect("map-pacbio");
+	assert!(status.success());
 	now.elapsed().as_secs()
 }
 
