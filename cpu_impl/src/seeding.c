@@ -151,44 +151,44 @@ void seeding(const index_t idx, const char *read, loc_stra_v *locs, uint32_t *lo
 
 	size_t n = location_buf_len[sel];
 
-	/*
 	locs->n = n;
 	for (size_t i = 0; i < n; i++) {
-	                locs->a[i].location = location_buf[sel][i] & (UINT32_MAX - 1);
-	                locs->a[i].strand   = location_buf[sel][i] & 1;
+		locs->a[i].location = location_buf[sel][i] & (UINT32_MAX - 1);
+		locs->a[i].strand   = location_buf[sel][i] & 1;
 	}
-	*/
 
+	/*
 	// Adjacency test
 	locs->n = 0;
 	if (n >= MIN_T) {
-		for (size_t i = 0; i < n; i++) {
-			loc_stra_buf[i].location = location_buf[sel][i] & (UINT32_MAX - 1);
-			loc_stra_buf[i].strand   = location_buf[sel][i] & 1;
-		}
-		size_t loc_counter  = 1;
-		size_t loc_offset   = 1;
-		size_t init_loc_idx = 0;
-		while (init_loc_idx < n - MIN_T + 1) {
-			if (loc_stra_buf[init_loc_idx + loc_offset].location - loc_stra_buf[init_loc_idx].location <
-			    LOC_R) {
-				if (loc_stra_buf[init_loc_idx + loc_offset].strand ==
-				    loc_stra_buf[init_loc_idx].strand) {
-					loc_counter++;
-					if (loc_counter == MIN_T) {
-						locs->a[locs->n] = loc_stra_buf[init_loc_idx];
-						locs->n++;
-						init_loc_idx++;
-						loc_counter = 1;
-						loc_offset  = 0;
-					}
-				}
-			} else {
-				init_loc_idx++;
-				loc_counter = 1;
-				loc_offset  = 0;
-			}
-			loc_offset++;
-		}
+	        for (size_t i = 0; i < n; i++) {
+	                loc_stra_buf[i].location = location_buf[sel][i] & (UINT32_MAX - 1);
+	                loc_stra_buf[i].strand   = location_buf[sel][i] & 1;
+	        }
+	        size_t loc_counter  = 1;
+	        size_t loc_offset   = 1;
+	        size_t init_loc_idx = 0;
+	        while (init_loc_idx < n - MIN_T + 1) {
+	                if (loc_stra_buf[init_loc_idx + loc_offset].location - loc_stra_buf[init_loc_idx].location <
+	                    LOC_R) {
+	                        if (loc_stra_buf[init_loc_idx + loc_offset].strand ==
+	                            loc_stra_buf[init_loc_idx].strand) {
+	                                loc_counter++;
+	                                if (loc_counter == MIN_T) {
+	                                        locs->a[locs->n] = loc_stra_buf[init_loc_idx];
+	                                        locs->n++;
+	                                        init_loc_idx++;
+	                                        loc_counter = 1;
+	                                        loc_offset  = 0;
+	                                }
+	                        }
+	                } else {
+	                        init_loc_idx++;
+	                        loc_counter = 1;
+	                        loc_offset  = 0;
+	                }
+	                loc_offset++;
+	        }
 	}
+	*/
 }

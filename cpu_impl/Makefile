@@ -3,7 +3,7 @@ CC			:= gcc
 
 DEPFLAGS	= -MD -MP
 NB_THREADS	= 8
-CFLAGS		= -g -O3 $(DEPFLAGS) -Wall -Werror -DNB_THREADS=$(NB_THREADS) -DMULTI_THREAD
+CFLAGS		= -g -O3 $(DEPFLAGS) -Wall -Werror #-DNB_THREADS=$(NB_THREADS) -DMULTI_THREAD
 LDLIBS		= -pthread
 VPATH		= $(SRC_DIR)
 SRCS		= $(wildcard $(SRC_DIR)/*.c)

@@ -57,8 +57,9 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (optind >= argc || !o_flag || !idx_flag) {
-		errx(1, "USAGE:\t seeding -i <INDEX FILE> -o <OUTPUT NAME> <READS FILE>");
+		errx(1, "USAGE:\t map-<DATA SET> -i <INDEX FILE> -o <OUTPUT NAME> <READS FILE>");
 	}
+	printf("Info: K: %u & W: %u\n", K, W);
 	int fd_reads = open(argv[optind], O_RDONLY);
 	if (fd_reads == -1) {
 		err(1, "open %s", argv[optind]);

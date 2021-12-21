@@ -4,8 +4,12 @@
 #include "parse.h"
 #include <stdint.h>
 #include <stdio.h>
+#ifndef W
 #define W 36
-#define K 18
+#endif
+#ifndef K
+#define K 19
+#endif
 #define B 26
 #define MIN_T 1000
 #define LOC_R 20000
