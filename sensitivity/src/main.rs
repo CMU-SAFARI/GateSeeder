@@ -66,7 +66,7 @@ fn seed_index_adja(w_read: u32, threshold: u32) -> u64 {
 	let now = Instant::now();
 	assert!(status.success());
 	let status = Command::new("./map-pacbio")
-		.args(["-i/tmp/idx.bin", "../res/pacbio_100000.bin", "-o/tmp/locs"])
+		.args(["-i/tmp/idx.bin", "../res/pacbio_10000.bin", "-o/tmp/locs"])
 		.current_dir("../cpu_impl")
 		.status()
 		.expect("map-pacbio");
@@ -90,7 +90,7 @@ fn seed_index(w_read: u32) -> u64 {
 	let now = Instant::now();
 	assert!(status.success());
 	let status = Command::new("./map-pacbio")
-		.args(["-i/tmp/idx.bin", "../res/pacbio_100000.bin", "-o/tmp/locs"])
+		.args(["-i/tmp/idx.bin", "../res/pacbio_10000.bin", "-o/tmp/locs"])
 		.current_dir("../cpu_impl")
 		.status()
 		.expect("map-pacbio");
@@ -99,7 +99,7 @@ fn seed_index(w_read: u32) -> u64 {
 }
 
 fn get_gold() -> Vec<Gold> {
-	let path = Path::new("../res/gold_pacbio_100000.paf");
+	let path = Path::new("../res/gold_pacbio_10000.paf");
 	let file_gold = match File::open(&path) {
 		Err(why) => panic!("open {}: {}", path.display(), why),
 		Ok(file) => file,
