@@ -16,7 +16,7 @@ fn main() {
 		Ok(file) => file,
 	};
 
-	(12..40).for_each(|w_ref| {
+	(10..40).for_each(|w_ref| {
 		build_index(w_ref);
 		// If we want to test different window sizes for the reference genome and the reads
 		(w_ref..w_ref+1).for_each(|w_read| {
@@ -66,7 +66,7 @@ fn seed_index_adja(w_read: u32, threshold: u32) -> u64 {
 	let now = Instant::now();
 	assert!(status.success());
 	let status = Command::new("./map-pacbio")
-		.args(["-i/tmp/idx.bin", "../res/pacbio_1000.bin", "-o/tmp/locs"])
+		.args(["-i/tmp/idx.bin", "../res/pacbio_100000.bin", "-o/tmp/locs"])
 		.current_dir("../cpu_impl")
 		.status()
 		.expect("map-pacbio");
@@ -90,7 +90,7 @@ fn seed_index(w_read: u32) -> u64 {
 	let now = Instant::now();
 	assert!(status.success());
 	let status = Command::new("./map-pacbio")
-		.args(["-i/tmp/idx.bin", "../res/pacbio_1000.bin", "-o/tmp/locs"])
+		.args(["-i/tmp/idx.bin", "../res/pacbio_100000.bin", "-o/tmp/locs"])
 		.current_dir("../cpu_impl")
 		.status()
 		.expect("map-pacbio");
@@ -99,7 +99,7 @@ fn seed_index(w_read: u32) -> u64 {
 }
 
 fn get_gold() -> Vec<Gold> {
-	let path = Path::new("../res/gold_pacbio_1000.paf");
+	let path = Path::new("../res/gold_pacbio_100000.paf");
 	let file_gold = match File::open(&path) {
 		Err(why) => panic!("open {}: {}", path.display(), why),
 		Ok(file) => file,
