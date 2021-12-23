@@ -3,13 +3,13 @@ CC			:= gcc
 
 DEPFLAGS	= -MD -MP
 NB_THREADS	= 8
-CFLAGS		= -g -O3 $(DEPFLAGS) -Wall -Werror #-DNB_THREADS=$(NB_THREADS) -DMULTI_THREAD
+CFLAGS		= -g -O3 $(DEPFLAGS) -Wall -Werror -DADJACENCY_FILTERING#-DNB_THREADS=$(NB_THREADS) -DMULTI_THREAD
 LDLIBS		= -pthread
 VPATH		= $(SRC_DIR)
 SRCS		= $(wildcard $(SRC_DIR)/*.c)
 
-PFLAGS 		= -DVARIABLE_LEN
-IFLAGS 		=
+PFLAGS 		= -DADJACENCY_FILTERING_THRESHOLD=10 -DVARIABLE_LEN
+IFLAGS 		= -DADJACENCY_FILTERING_THRESHOLD=10
 
 IEXE			= map-illumina
 PEXE			= map-pacbio
@@ -25,10 +25,10 @@ $(IEXE): $(IOBJS)
 $(PEXE): $(POBJS)
 	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
-illumina_obj/%.o: $(SRC_DIR)/%.c | illumina_obj
+illumina_obj/%.o: %.c | illumina_obj
 	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
 
-pacbio_obj/%.o: $(SRC_DIR)/%.c | pacbio_obj
+pacbio_obj/%.o: %.c | pacbio_obj
 	$(CC) $(CFLAGS) $(PFLAGS) -c $< -o $@
 
 format:
