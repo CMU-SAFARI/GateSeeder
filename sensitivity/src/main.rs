@@ -10,14 +10,14 @@ const BLAST_FILT: f64 = 0.0;
 
 fn main() {
 	let gold = get_gold();
-	let path = Path::new("plot.dat");
+	let path = Path::new("sensitivity.dat");
 	let mut file = match File::create(&path) {
 		Err(why) => panic!("open {}: {}", path.display(), why),
 		Ok(file) => file,
 	};
 
 	(12..40).for_each(|w_ref| {
-		make_index(w_ref);
+		build_index(w_ref);
 		// If we want to test different window sizes for the reference genome and the reads
 		(w_ref..w_ref+1).for_each(|w_read| {
 			let time_si = seed_index(w_read);
@@ -25,12 +25,12 @@ fn main() {
 			let time_sia = seed_index_adja(w_read, threshold);
 			let (fp_n, fn_n) = get_false(&gold);
 			writeln!(&mut file, "{}\t{}\t{}\t{}\t{}\t{}", w_ref, time_si, time_sia, threshold, fp_n, fn_n).unwrap();
-			println!("w: {}\ttime_si: {}\ttime_sia: {}\tthreshold: {}\tfalse_positive: {}\tfalse_negative: {}", w_ref, time_si, time_sia, threshold, fp_n, fp_n);
+			println!("w: {}\ttime_si: {}\ttime_sia: {}\tthreshold: {}\tfalse_positive: {}\tfalse_negative: {}", w_ref, time_si, time_sia, threshold, fp_n, fn_n);
 		});
 	});
 }
 
-fn make_index(w_ref: u32) {
+fn build_index(w_ref: u32) {
 	let w = format!("-w{}", w_ref);
 	let status = Command::new("./indexdna")
 		.args([
@@ -48,8 +48,8 @@ fn make_index(w_ref: u32) {
 }
 
 fn seed_index_adja(w_read: u32, threshold: u32) -> u64 {
-	let w = format!(
-		"CFLAGS+='-DADJACENCY_FILTERING_THRESHOLD={} -DADJACENCY_FILTERING -DW={}'",
+	let env = format!(
+		"-DADJACENCY_FILTERING_THRESHOLD={} -DADJACENCY_FILTERING -DW={}",
 		threshold, w_read
 	);
 	let status = Command::new("make")
@@ -59,7 +59,7 @@ fn seed_index_adja(w_read: u32, threshold: u32) -> u64 {
 		.expect("make");
 	assert!(status.success());
 	let status = Command::new("make")
-		.arg(&w)
+		.env("CFLAGS", env)
 		.current_dir("../cpu_impl")
 		.status()
 		.expect("make");
@@ -75,7 +75,7 @@ fn seed_index_adja(w_read: u32, threshold: u32) -> u64 {
 }
 
 fn seed_index(w_read: u32) -> u64 {
-	let w = format!("CFLAGS+='-DW={}'", w_read);
+	let env = format!("-DW={}", w_read);
 	let status = Command::new("make")
 		.arg("clean")
 		.current_dir("../cpu_impl")
@@ -83,7 +83,7 @@ fn seed_index(w_read: u32) -> u64 {
 		.expect("make");
 	assert!(status.success());
 	let status = Command::new("make")
-		.arg(&w)
+		.env("CFLAGS", env)
 		.current_dir("../cpu_impl")
 		.status()
 		.expect("make");

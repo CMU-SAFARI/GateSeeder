@@ -22,8 +22,8 @@ clean:
 	$(RM) *.o $(EXE) *.d
 
 run: $(EXE)
-	./$(EXE) -l 100 ../res/ERR240727_1.fastq ../res/ERR240727_1
-	./$(EXE) -v -l 20000 ../res/pacbio_10000.fastq ../res/pacbio_10000
+	./$(EXE) -l 100 ../res/illumina_1000.fastq ../res/illumina_1000
+	./$(EXE) -v -l 20000 ../res/pacbio_100.fastq ../res/pacbio_100
 
 .PHONY: clean format all run
 -include $(wildcard *.d)
