@@ -1,0 +1,17 @@
+set terminal svg size 800, 600 enhanced font 'FreeSans,18'
+set output "sensitivity_pacbio_threshold.svg"
+set ylabel "Threshold"
+set xlabel "Window size"
+plot 'sensitivity_pacbio.dat' u 1:2 notitle w p pt 7 ps 0.3
+
+set terminal svg size 800, 600 enhanced font 'FreeSans,18'
+set output "sensitivity_pacbio_time.svg"
+set ylabel "Time (sec)"
+set xlabel "Window size"
+plot 'sensitivity_pacbio.dat' u 1:6 notitle w p pt 7 ps 0.3
+
+set terminal svg size 800, 600 enhanced font 'FreeSans,18'
+set output "sensitivity_pacbio_fp.svg"
+set ylabel "Number of false positives"
+set xlabel "Window size"
+plot 'sensitivity_pacbio.dat' u 1:3 notitle w p pt 7 ps 0.3
