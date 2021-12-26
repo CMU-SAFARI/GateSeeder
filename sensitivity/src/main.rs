@@ -1,105 +1,35 @@
 use std::fs::File;
-use std::io::Write;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
-use std::process::Command;
-use std::time::Instant;
+use std::env::args;
+extern crate getopts;
+use getopts::Options;
 mod offset;
 
 const BLAST_FILT: f64 = 0.0;
 
 fn main() {
-	let gold = get_gold();
-	let path = Path::new("sensitivity.dat");
-	let mut file = match File::create(&path) {
-		Err(why) => panic!("open {}: {}", path.display(), why),
-		Ok(file) => file,
+	let args:Vec<_> = args().collect();
+	let mut opts = Options::new();
+	opts.optflag("s", "stats", "");
+	let matches = match opts.parse(&args[1..]) {
+		Ok(m) => { m }
+		Err(f) => {panic!("{}", f)}
 	};
-
-	(10..40).for_each(|w_ref| {
-		build_index(w_ref);
-		// If we want to test different window sizes for the reference genome and the reads
-		(w_ref..w_ref+1).for_each(|w_read| {
-			let time_si = seed_index(w_read);
-			let threshold = get_threshold(&gold);
-			let time_sia = seed_index_adja(w_read, threshold);
-			let (fp_n, fn_n) = get_false(&gold);
-			writeln!(&mut file, "{}\t{}\t{}\t{}\t{}\t{}", w_ref, time_si, time_sia, threshold, fp_n, fn_n).unwrap();
-			println!("w: {}\ttime_si: {}\ttime_sia: {}\tthreshold: {}\tfalse_positive: {}\tfalse_negative: {}", w_ref, time_si, time_sia, threshold, fp_n, fn_n);
-		});
-	});
+	if matches.free.len() != 2 {
+		panic!("USAGE:\tsensitivity [option]* <GOLDEN PAF FILE> <LOCS DAT FILE>");
+	}
+	let gold = get_gold(&matches.free[0]);
+	if matches.opt_present("s") {
+		let (fp_n, fn_n) = get_stats(&gold, &matches.free[1]);
+		println!("{}\t{}", fp_n, fn_n);
+	} else {
+		println!("{}", get_threshold(&gold, &matches.free[1]));
+	}
 }
 
-fn build_index(w_ref: u32) {
-	let w = format!("-w{}", w_ref);
-	let status = Command::new("./indexdna")
-		.args([
-			"-k19",
-			&w,
-			"-b26",
-			"-f2000",
-			"../res/GCF_000001405.39_GRCh38.p13_genomic.fna",
-			"/tmp/idx",
-		])
-		.current_dir("../dna_indexing")
-		.status()
-		.expect("indexdna");
-	assert!(status.success());
-}
-
-fn seed_index_adja(w_read: u32, threshold: u32) -> u64 {
-	let env = format!(
-		"-DADJACENCY_FILTERING_THRESHOLD={} -DADJACENCY_FILTERING -DW={}",
-		threshold, w_read
-	);
-	let status = Command::new("make")
-		.arg("clean")
-		.current_dir("../cpu_impl")
-		.status()
-		.expect("make");
-	assert!(status.success());
-	let status = Command::new("make")
-		.env("CFLAGS", env)
-		.current_dir("../cpu_impl")
-		.status()
-		.expect("make");
-	let now = Instant::now();
-	assert!(status.success());
-	let status = Command::new("./map-pacbio")
-		.args(["-i/tmp/idx.bin", "../res/pacbio_10000.bin", "-o/tmp/locs"])
-		.current_dir("../cpu_impl")
-		.status()
-		.expect("map-pacbio");
-	assert!(status.success());
-	now.elapsed().as_secs()
-}
-
-fn seed_index(w_read: u32) -> u64 {
-	let env = format!("-DW={}", w_read);
-	let status = Command::new("make")
-		.arg("clean")
-		.current_dir("../cpu_impl")
-		.status()
-		.expect("make");
-	assert!(status.success());
-	let status = Command::new("make")
-		.env("CFLAGS", env)
-		.current_dir("../cpu_impl")
-		.status()
-		.expect("make");
-	let now = Instant::now();
-	assert!(status.success());
-	let status = Command::new("./map-pacbio")
-		.args(["-i/tmp/idx.bin", "../res/pacbio_10000.bin", "-o/tmp/locs"])
-		.current_dir("../cpu_impl")
-		.status()
-		.expect("map-pacbio");
-	assert!(status.success());
-	now.elapsed().as_secs()
-}
-
-fn get_gold() -> Vec<Gold> {
-	let path = Path::new("../res/gold_pacbio_10000.paf");
+fn get_gold(path: &String) -> Vec<Gold> {
+	let path = Path::new(&path);
 	let file_gold = match File::open(&path) {
 		Err(why) => panic!("open {}: {}", path.display(), why),
 		Ok(file) => file,
@@ -136,8 +66,8 @@ fn get_gold() -> Vec<Gold> {
 		.collect()
 }
 
-fn get_threshold(gold: &Vec<Gold>) -> u32 {
-	let path = Path::new("/tmp/locs.dat");
+fn get_threshold(gold: &Vec<Gold>, path: &String) -> u32 {
+	let path = Path::new(path);
 	let file_res = match File::open(&path) {
 		Err(why) => panic!("open {}: {}", path.display(), why),
 		Ok(file) => file,
@@ -171,9 +101,9 @@ fn get_threshold(gold: &Vec<Gold>) -> u32 {
 		.unwrap()
 }
 
-fn get_false(gold: &Vec<Gold>) -> (u32, u32) {
+fn get_stats(gold: &Vec<Gold>, path: &String) -> (u32, u32) {
 	let mut fn_n = 0;
-	let path = Path::new("/tmp/locs.dat");
+	let path = Path::new(path);
 	let file_res = match File::open(&path) {
 		Err(why) => panic!("open {}: {}", path.display(), why),
 		Ok(file) => file,
