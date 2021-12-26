@@ -13,7 +13,7 @@ do
 	exec_time_0=`expr $end_time - $start_time`
 	echo -e "SENSITIVITY\t\tEXEC_TIME: $exec_time_0"
 	cd ../sensitivity
-	threshold=`cargo run --release -- ../res/gold_pacbio_10000.paf /tmp/locs.dat`
+	threshold=`cargo run --release -- -t ../res/gold_pacbio_10000.paf /tmp/locs.dat`
 	echo -e "SENSITIVITY\t\tTHRESHOLD: $threshold"
 	cd ../cpu_impl
 	make clean

@@ -1,7 +1,7 @@
+use std::env::args;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
-use std::env::args;
 extern crate getopts;
 use getopts::Options;
 mod offset;
@@ -9,12 +9,15 @@ mod offset;
 const BLAST_FILT: f64 = 0.0;
 
 fn main() {
-	let args:Vec<_> = args().collect();
+	let args: Vec<_> = args().collect();
 	let mut opts = Options::new();
 	opts.optflag("s", "stats", "");
+	opts.optflag("t", "threshold", "");
 	let matches = match opts.parse(&args[1..]) {
-		Ok(m) => { m }
-		Err(f) => {panic!("{}", f)}
+		Ok(m) => m,
+		Err(f) => {
+			panic!("{}", f)
+		}
 	};
 	if matches.free.len() != 2 {
 		panic!("USAGE:\tsensitivity [option]* <GOLDEN PAF FILE> <LOCS DAT FILE>");
@@ -23,8 +26,10 @@ fn main() {
 	if matches.opt_present("s") {
 		let (fp_n, fn_n) = get_stats(&gold, &matches.free[1]);
 		println!("{}\t{}", fp_n, fn_n);
-	} else {
+	} else if matches.opt_present("t") {
 		println!("{}", get_threshold(&gold, &matches.free[1]));
+	} else {
+		eprintln!("Threshold: {}", get_nb_locations(&gold, &matches.free[1]));
 	}
 }
 
@@ -64,6 +69,41 @@ fn get_gold(path: &String) -> Vec<Gold> {
 			}
 		})
 		.collect()
+}
+
+fn get_nb_locations(gold: &Vec<Gold>, path: &String) -> u32 {
+	let path = Path::new(path);
+	let file_res = match File::open(&path) {
+		Err(why) => panic!("open {}: {}", path.display(), why),
+		Ok(file) => file,
+	};
+	let reader = BufReader::new(&file_res);
+	let res: Vec<_> = reader.lines().collect();
+	gold.iter()
+		.filter_map(|x| {
+			// FILTERING
+			if (x.mb as f64) / (x.tb as f64) >= BLAST_FILT {
+				let line_buf = res[(x.id - 1) as usize].as_ref().unwrap();
+				let mut counter: u32 = 0;
+				line_buf.split('\t').for_each(|loc_stra| {
+					let mut loc_stra = loc_stra.split('.');
+					let stra = match loc_stra.next().unwrap().chars().collect::<Vec<_>>()[0] {
+						'+' => true,
+						'-' => false,
+						_ => panic!("parse"),
+					};
+					let loc: u32 = loc_stra.next().unwrap().parse().unwrap();
+					if stra == x.strand && loc >= x.start && loc <= x.end {
+						counter += 1;
+					}
+				});
+				Some(counter)
+			} else {
+				None
+			}
+		})
+		.min()
+		.unwrap()
 }
 
 fn get_threshold(gold: &Vec<Gold>, path: &String) -> u32 {
