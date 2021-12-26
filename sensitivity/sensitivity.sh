@@ -1,6 +1,6 @@
 #!/bin/bash
 rm -f sensitivity.dat
-for w in {10..50}
+for w in {200..500}
 do
 	echo -e "SENSITIVITY:\t\tW: $w"
 	../dna_indexing/indexdna -w$w -k19 -b26 -f2000 ../res/GCF_000001405.39_GRCh38.p13_genomic.fna /tmp/idx
