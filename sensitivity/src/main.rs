@@ -51,7 +51,7 @@ fn get_gold(path: &String) -> Vec<Gold> {
 			let offset: u32 = *offset_map.get(sec[5]).unwrap();
 			let tb = sec[10].parse().unwrap();
 			//Filtering
-			if sec[12].eq("tp:A:P") && tb >= 10000 {
+			if sec[12].eq("tp:A:S") && tb >= 10000 {
 				Some(Gold {
 					id: sec[0].split('.').collect::<Vec<_>>()[1].parse().unwrap(),
 					strand: match sec[4].chars().collect::<Vec<_>>()[0] {
@@ -85,18 +85,21 @@ fn get_nb_locations(gold: &Vec<Gold>, path: &String) -> u32 {
 			if (x.mb as f64) / (x.tb as f64) >= BLAST_FILT {
 				let line_buf = res[(x.id - 1) as usize].as_ref().unwrap();
 				let mut counter: u32 = 0;
-				line_buf.split('\t').for_each(|loc_stra| {
-					let mut loc_stra = loc_stra.split('.');
-					let stra = match loc_stra.next().unwrap().chars().collect::<Vec<_>>()[0] {
-						'+' => true,
-						'-' => false,
-						_ => panic!("parse"),
-					};
-					let loc: u32 = loc_stra.next().unwrap().parse().unwrap();
-					if stra == x.strand && loc >= x.start && loc <= x.end {
-						counter += 1;
-					}
-				});
+				if !line_buf.is_empty() {
+					line_buf.split('\t').for_each(|loc_stra| {
+						let mut loc_stra = loc_stra.split('.');
+						let stra = match loc_stra.next().unwrap().chars().collect::<Vec<_>>()[0] {
+							'+' => true,
+							'-' => false,
+							_ => panic!("parse"),
+						};
+						let loc: u32 = loc_stra.next().unwrap().parse().unwrap();
+						if stra == x.strand && loc >= x.start && loc <= x.end {
+							counter += 1;
+						}
+					});
+				}
+				println!("{}", counter);
 				Some(counter)
 			} else {
 				None
@@ -120,18 +123,20 @@ fn get_threshold(gold: &Vec<Gold>, path: &String) -> u32 {
 			if (x.mb as f64) / (x.tb as f64) >= BLAST_FILT {
 				let line_buf = res[(x.id - 1) as usize].as_ref().unwrap();
 				let mut counter: u32 = 0;
-				line_buf.split('\t').for_each(|loc_stra| {
-					let mut loc_stra = loc_stra.split('.');
-					let stra = match loc_stra.next().unwrap().chars().collect::<Vec<_>>()[0] {
-						'+' => true,
-						'-' => false,
-						_ => panic!("parse"),
-					};
-					let loc: u32 = loc_stra.next().unwrap().parse().unwrap();
-					if stra == x.strand && loc >= x.start && loc <= x.end {
-						counter += 1;
-					}
-				});
+				if !line_buf.is_empty() {
+					line_buf.split('\t').for_each(|loc_stra| {
+						let mut loc_stra = loc_stra.split('.');
+						let stra = match loc_stra.next().unwrap().chars().collect::<Vec<_>>()[0] {
+							'+' => true,
+							'-' => false,
+							_ => panic!("parse"),
+						};
+						let loc: u32 = loc_stra.next().unwrap().parse().unwrap();
+						if stra == x.strand && loc >= x.start && loc <= x.end {
+							counter += 1;
+						}
+					});
+				}
 				Some(counter)
 			} else {
 				None
@@ -155,18 +160,20 @@ fn get_stats(gold: &Vec<Gold>, path: &String) -> (u32, u32) {
 		if (x.mb as f64) / (x.tb as f64) >= BLAST_FILT {
 			let line_buf = res[(x.id - 1) as usize].as_ref().unwrap();
 			let mut found = false;
-			line_buf.split('\t').for_each(|loc_stra| {
-				let mut loc_stra = loc_stra.split('.');
-				let stra = match loc_stra.next().unwrap().chars().collect::<Vec<_>>()[0] {
-					'+' => true,
-					'-' => false,
-					_ => panic!("parse"),
-				};
-				let loc: u32 = loc_stra.next().unwrap().parse().unwrap();
-				if stra == x.strand && loc >= x.start && loc <= x.end {
-					found = true;
-				}
-			});
+			if !line_buf.is_empty() {
+				line_buf.split('\t').for_each(|loc_stra| {
+					let mut loc_stra = loc_stra.split('.');
+					let stra = match loc_stra.next().unwrap().chars().collect::<Vec<_>>()[0] {
+						'+' => true,
+						'-' => false,
+						_ => panic!("parse"),
+					};
+					let loc: u32 = loc_stra.next().unwrap().parse().unwrap();
+					if stra == x.strand && loc >= x.start && loc <= x.end {
+						found = true;
+					}
+				});
+			}
 			if !found {
 				fn_n += 1;
 			}

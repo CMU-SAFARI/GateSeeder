@@ -23,7 +23,7 @@ clean:
 
 run: $(EXE)
 	./$(EXE) -l 100 ../res/illumina_1000.fastq ../res/illumina_1000
-	./$(EXE) -v -l 20000 ../res/pacbio_100.fastq ../res/pacbio_100
+	./$(EXE) -v -l 20000 ../res/SRR11292123_subreads.fastq ../res/SRR11292123_subreads
 
 .PHONY: clean format all run
 -include $(wildcard *.d)

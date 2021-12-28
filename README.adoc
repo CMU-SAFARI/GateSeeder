@@ -4,9 +4,9 @@ FPGA Genome Indexing &amp; Seeding (Julien Eudine)
 
 == TO DO
 
-* [ ] Sensitivity test
-** [ ] Window size
-** [ ] Threshold
+* [x] Sensitivity test
+** [x] Window size
+** [x] Threshold
 ** [ ] Buffer size
 * [ ] Estimation of the throughput of the FPGA implementation
 * [ ] Write report
