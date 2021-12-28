@@ -214,7 +214,7 @@
        y="79.375008" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.2;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;stroke-width:0.264583"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.2;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;stroke-width:0.264583;"
        x="238.01208"
        y="100.608"
        id="text1109-5-4-3"><tspan
@@ -222,7 +222,7 @@
          id="tspan1107-6-8-1"
          x="238.01208"
          y="100.608"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;stroke-width:0.264583">7</tspan></text>
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;stroke-width:0.264583;">7</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.2;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;stroke-width:0.264583"
@@ -243,7 +243,7 @@
        y="105.83333" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.25;font-family:FreeSerif;-inkscape-font-specification:FreeSerif;text-align:center;text-anchor:middle;stroke-width:0.264583"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.25;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;stroke-width:0.264583;"
        x="238.06851"
        y="47.318794"
        id="text1401"><tspan
@@ -251,10 +251,10 @@
          id="tspan1399"
          x="238.06851"
          y="47.318794"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSerif;-inkscape-font-specification:FreeSerif;stroke-width:0.264583">2</tspan></text>
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;stroke-width:0.264583;">2</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.25;font-family:FreeSerif;-inkscape-font-specification:FreeSerif;text-align:center;text-anchor:middle;stroke-width:0.264583"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.25;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;stroke-width:0.264583;"
        x="238.4072"
        y="73.61908"
        id="text1401-1"><tspan
@@ -262,7 +262,7 @@
          id="tspan1399-8"
          x="238.4072"
          y="73.61908"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSerif;-inkscape-font-specification:FreeSerif;stroke-width:0.264583">5</tspan></text>
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;stroke-width:0.264583;">5</tspan></text>
     <rect
        style="fill:none;stroke:#000000;stroke-width:3.05514"
        id="rect1105-6-96-3"
@@ -387,7 +387,7 @@
          id="tspan1906"
          x="238.125"
          y="185.20833"
-         style="stroke-width:0.264583"></tspan></text>
+         style="stroke-width:0.264583" /></text>
     <text
        xml:space="preserve"
        style="font-size:22.5778px;line-height:1.25;font-family:FreeSans;-inkscape-font-specification:'FreeSans, Normal';text-align:center;text-anchor:middle;stroke-width:0.264583"

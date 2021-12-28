@@ -26,6 +26,21 @@ void create_index(int fd, const unsigned int w, const unsigned int k, const unsi
 	parse_extract(fd, w, k, b, &p);
 	// Sort p
 	sort(&p);
+
+	/*
+	// Used for plots
+	size_t counter = 0;
+	uint32_t buf = 1;
+	for (size_t i = 0; i < p.n; i++) {
+	        counter++;
+	        if(p.a[i].min/100000 > buf) {
+	                buf = p.a[i].min/100000;
+	                printf("%u\t%lu\n", p.a[i].min - 100000, counter/10000);
+	                counter = 0;
+	        }
+	}
+	*/
+
 	// Write the data in the struct & filter out the most frequent minimizers
 	info[0] = build_index(p, f, b, &idx, 0, 1);
 	char name_buf[200];
@@ -272,7 +287,7 @@ void parse_extract(int fd, const unsigned int w, const unsigned int k, const uns
 			/*
 			char name[20] = {0};
 			for (size_t j = 0; file_buffer[i + 1 + j] != ' '; j++) {
-				name[j] = file_buffer[i + 1 + j];
+			        name[j] = file_buffer[i + 1 + j];
 			}
 			printf("(\"%s\", %lu),\n", name, dna_len + chromo_len);
 			*/

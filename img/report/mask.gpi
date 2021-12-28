@@ -1,0 +1,12 @@
+set terminal pdf enhanced font 'FreeSans,16'
+set output "mask.pdf"
+set ylabel "Density of {/:Italic (loc, str)}"
+set xlabel "{/:Italic s}"
+set xtics ("2^{28}" 268435456, "2^{29}" 536870912, "2^{30}" 1073741824, "2^{31}" 2147483648, "2^{32}" 4289886808)
+set noytics
+set grid
+plot 'mask.dat' u 1:2 notitle w l
+
+set output "mask_b26.pdf"
+set xtics ("2^{22}" 4194304, "2^{23}" 8388608, "2^{24}" 16777216, "2^{25}" 33554432, "2^{26}" 67000000)
+plot 'mask_b26.dat' u 1:2 notitle w l
