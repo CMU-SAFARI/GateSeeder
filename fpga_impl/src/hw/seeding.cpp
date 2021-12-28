@@ -128,7 +128,7 @@ void get_locations(const min_stra_b_t *p_i, const ap_uint<32> *h_m, const loc_st
 
 void read_locations(const min_stra_b_t min_stra_i, loc_stra_t *buf_o, ap_uint<F_LOG> &buf_lo, const ap_uint<32> *h_m,
                     const loc_stra_t *loc_stra_m) {
-#pragma HLS INLINE OFF
+//#pragma HLS INLINE OFF
 	ap_uint<32> minimizer = min_stra_i.minimizer;
 	ap_uint<32> min       = minimizer ? h_m[minimizer - 1].to_uint() : 0;
 	ap_uint<32> max       = h_m[minimizer];
