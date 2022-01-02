@@ -16,7 +16,7 @@ SRCS_TB			= $(wildcard $(SRC_TB_DIR)/*.cpp)
 OBJS_HW			= $(SRCS_HW:$(SRC_HW_DIR)/%.cpp=%.o)
 OBJS_TB			= $(SRCS_TB:$(SRC_TB_DIR)/%.cpp=%.o)
 
-XO				= seeding.xo
+XO				= kernel.xo
 
 TB_ID			:= 1000
 FASTQ			:= ../res/illumina_$(TB_ID).fastq

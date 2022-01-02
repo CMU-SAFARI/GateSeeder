@@ -7,16 +7,13 @@
 #pragma GCC diagnostic ignored "-Wint-in-bool-context"
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #include "ap_int.h"
+#include <hls_stream.h>
 #pragma GCC diagnostic pop
 
 #include <stdint.h>
 
 #define MAX_IN_LEN 1048576  // 1M
 #define MAX_OUT_LEN 1048576 // 1M
-
-// Only for C sim
-#define MAX_SEED_LEN 1048576    // 1M
-#define MAX_LOC_STR_LEN 1048576 // 1M
 
 #define END_OF_SEQ_BASE 0xe
 
@@ -31,26 +28,25 @@
 
 #define K 18
 
+#define F 1000
+
+#define B 26
+
 #define READ_LEN_LOG 7
 
 #define MAX_KMER 0xfffffffff
 #define MAX_HASH 0xfffffffff
 
+#define LOC_STR_FIFO_LEN 40000
+
+#define END_OF_READ_LOC_STR 0xfffffffe
+#define END_OF_SEQ_LOC_STR 0xffffffff
+
+#define AFR 3
+#define AFT 120
+
 #define H_SIZE 67108864 // b26
 #define LS_SIZE 67108864
-#define B 26
-#define F 1000
-#define F_LOG 10
-#define MIN_T 3
-#define MIN_T_1 (MIN_T - 1)
-#define MIN_T_LOG 2
-#define LOC_R 150
-#define NB_READS 4093747
-#define LOCATION_BUFFER_SIZE 40000
-#define LOCATION_BUFFER_SIZE_LOG 16
-#define OUT_SIZE 5000
-#define OUT_SIZE_LOG 13
-#define END_LOCATION 0xffffffff
 
 #ifdef VARIABLE_LEN
 #define MAX_READ_LEN 1000
@@ -75,35 +71,20 @@ struct seed_t {
 	int operator!=(seed_t x) { return (this->seed != x.seed || this->str != x.str); }
 };
 
-#ifdef VARIABLE_LEN
-void seeding(const ap_uint<32> h0_m[H_SIZE], const loc_stra_t loc_stra0_m[LS_SIZE], const ap_uint<32> h1_m[H_SIZE],
-             const loc_stra_t loc_stra1_m[LS_SIZE], const base_t read_i[IN_SIZE], const ap_uint<32> nb_reads_i,
-             loc_stra_t locs0_o[OUT_SIZE], loc_stra_t locs1_o[OUT_SIZE]);
-
-void pipeline(const ap_uint<32> h0_m[H_SIZE], const loc_stra_t loc_stra0_m[LS_SIZE], const ap_uint<32> h1_m[H_SIZE],
-              const loc_stra_t loc_stra1_m[LS_SIZE], const base_t *read_i, const ap_uint<32> nb_reads_i,
-              loc_stra_t *locs0_o, loc_stra_t *locs1_o);
-#else
 void kernel(const ap_uint<32> h0_m[H_SIZE], const loc_str_t loc_str0_m[LS_SIZE], const ap_uint<32> h1_m[H_SIZE],
             const loc_str_t loc_str1_m[LS_SIZE], const base_t seq_i[MAX_IN_LEN], loc_str_t loc_str0_o[MAX_OUT_LEN],
             loc_str_t loc_str1_o[MAX_OUT_LEN]);
 
-#endif
-/*
-void pipeline(const ap_uint<32> h0_m[H_SIZE], const loc_stra_t loc_stra0_m[LS_SIZE], const ap_uint<32> h1_m[H_SIZE],
-              const loc_stra_t loc_stra1_m[LS_SIZE], const base_t *read_i, loc_stra_t *locs0_o, loc_stra_t *locs1_o);
-#endif
+void read_seq(const base_t *seq_i, hls::stream<base_t> &seq_o);
+void get_locations(hls::stream<seed_t> &p_i, const ap_uint<32> *h_m, const loc_str_t *loc_str_m,
+                   hls::stream<loc_str_t> &loc_str_o);
 
-void read_read(const base_t *read_i, base_t *read_o);
+void read_locations(const seed_t seed_i, hls::stream<loc_str_t> &buf_o, const ap_uint<32> *h_m,
+                    const loc_str_t *loc_str_m);
 
-void get_locations(const min_stra_b_t *p_i, const ap_uint<32> *h_m, const loc_stra_t *loc_stra_m, loc_stra_t *locs_o);
-void read_locations(const min_stra_b_t min_stra_i, loc_stra_t *buf_o, ap_uint<F_LOG> &buf_lo, const ap_uint<32> *h_m,
-                    const loc_stra_t *loc_stra_m);
-void merge_locations(const loc_stra_t *loc_stra_i, const ap_uint<LOCATION_BUFFER_SIZE_LOG> loc_stra_li,
-                     const loc_stra_t *buf_i, const ap_uint<F_LOG> buf_li, loc_stra_t *loc_stra_o,
-                     ap_uint<LOCATION_BUFFER_SIZE_LOG> &loc_stra_lo);
+void merge_locations(hls::stream<loc_str_t> &loc_str_i, hls::stream<loc_str_t> &buf_i,
+                     hls::stream<loc_str_t> &loc_str_o);
+void adjacency_filtering(hls::stream<loc_str_t> &loc_str_i, hls::stream<loc_str_t> &loc_str_o);
+void write_locations(hls::stream<loc_str_t> &loc_str_i, loc_str_t *loc_str_o);
 
-void adjacency_test(const loc_stra_t *loc_stra_i, loc_stra_t *locs_o);
-void write_locations(const loc_stra_t *locs_i, loc_stra_t *locs_o);
-*/
 #endif

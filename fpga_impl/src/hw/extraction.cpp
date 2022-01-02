@@ -13,7 +13,7 @@ static inline ap_uint<2 * K> hash64(ap_uint<2 * K> key) {
 	return key;
 }
 
-void extract_seeds(const base_t *seq_i, seed_t *p0_o, seed_t *p1_o) {
+void extract_seeds(hls::stream<base_t> &seq_i, hls::stream<seed_t> &p0_o, hls::stream<seed_t> &p1_o) {
 	hash_t buf[W];
 	ap_uint<2 * K> kmer[2] = {0, 0};
 	ap_uint<READ_LEN_LOG> l(0); // l counts the number of bases and is reset
@@ -28,7 +28,6 @@ void extract_seeds(const base_t *seq_i, seed_t *p0_o, seed_t *p1_o) {
 
 	seed_t p[SEED_BUF_LEN];
 	ap_uint<SEED_BUF_LEN_LOG> p_l(0);
-	size_t p_j = 0;
 LOOP_extract_seeds:
 #ifdef VARIABLE_LEN
 	for (size_t i = 0; i < MAX_IN_LEN; ++i) {
@@ -36,6 +35,7 @@ LOOP_extract_seeds:
 		if (c == END_OF_READ) break;
 #else
 	ap_uint<READ_LEN_LOG> base_j = 0;
+	base_t c;
 	for (size_t i = 0; i < MAX_IN_LEN; ++i) {
 		if (base_j == READ_LEN) {
 			l            = 0;
@@ -49,10 +49,10 @@ LOOP_extract_seeds:
 		} else {
 			base_j++;
 		}
-		base_t c = seq_i[i];
+		seq_i >> c;
 		if (c == END_OF_SEQ_BASE) {
-			p0_o[p_j] = END_OF_SEQ_SEED;
-			p1_o[p_j] = END_OF_SEQ_SEED;
+			p0_o << END_OF_SEQ_SEED;
+			p1_o << END_OF_SEQ_SEED;
 			break;
 		}
 #endif
@@ -72,7 +72,7 @@ LOOP_extract_seeds:
 			}
 		} else {
 			if (l >= W + K - 1) {
-				push_seed(p, p0_o, p1_o, p_l, min_hash_reg, p_j);
+				push_seed(p, p0_o, p1_o, p_l, min_hash_reg);
 				seed_saved = 1;
 			}
 			l = 0;
@@ -80,13 +80,13 @@ LOOP_extract_seeds:
 		buf[buf_pos] = hash_reg;
 		if (l == W + K - 1) {
 			if (same_hash) {
-				push_seed(p, p0_o, p1_o, p_l, hash_t{min_hash_reg.hash, !min_hash_reg.str}, p_j);
+				push_seed(p, p0_o, p1_o, p_l, hash_t{min_hash_reg.hash, !min_hash_reg.str});
 				same_hash = 0;
 			}
 		}
 		if (hash_reg.hash <= min_hash_reg.hash) {
 			if (l >= W + K) {
-				push_seed(p, p0_o, p1_o, p_l, min_hash_reg, p_j);
+				push_seed(p, p0_o, p1_o, p_l, min_hash_reg);
 			} else if (l < W + K - 1 && hash_reg.hash == min_hash_reg.hash &&
 			           hash_reg.str != min_hash_reg.str) {
 				same_hash = 1;
@@ -98,7 +98,7 @@ LOOP_extract_seeds:
 			seed_saved   = 0;
 		} else if (buf_pos == seed_pos) {
 			if (l >= W + K - 1) {
-				push_seed(p, p0_o, p1_o, p_l, min_hash_reg, p_j);
+				push_seed(p, p0_o, p1_o, p_l, min_hash_reg);
 			}
 			min_hash_reg.hash      = MAX_HASH;
 			ap_uint<1> same_hash_w = 0;
@@ -120,20 +120,20 @@ LOOP_extract_seeds:
 				}
 			}
 			if (same_hash_w && l >= W + K - 1) {
-				push_seed(p, p0_o, p1_o, p_l, hash_t{min_hash_reg.hash, !min_hash_reg.str}, p_j);
+				push_seed(p, p0_o, p1_o, p_l, hash_t{min_hash_reg.hash, !min_hash_reg.str});
 			}
 		}
 		buf_pos = (buf_pos == W - 1) ? 0 : buf_pos.to_uint() + 1;
 	}
 	if (min_hash_reg.hash != MAX_HASH && !seed_saved) {
-		push_seed(p, p0_o, p1_o, p_l, min_hash_reg, p_j);
+		push_seed(p, p0_o, p1_o, p_l, min_hash_reg);
 	}
-	p0_o[p_j] = END_OF_READ_SEED;
-	p1_o[p_j] = END_OF_READ_SEED;
-	p_j++;
+	p0_o << END_OF_READ_SEED;
+	p1_o << END_OF_READ_SEED;
 }
 
-void push_seed(seed_t *p, seed_t *p0_o, seed_t *p1_o, ap_uint<SEED_BUF_LEN_LOG> &p_l, hash_t val, size_t &p_j) {
+void push_seed(seed_t *p, hls::stream<seed_t> &p0_o, hls::stream<seed_t> &p1_o, ap_uint<SEED_BUF_LEN_LOG> &p_l,
+               hash_t val) {
 	seed_t seed = {val.hash, val.str, 1};
 	ap_uint<1> flag(1);
 	p[p_l] = seed;
@@ -145,9 +145,8 @@ LOOP_push_seed:
 		}
 	}
 	if (flag) {
-		p0_o[p_j] = seed;
-		p1_o[p_j] = seed;
+		p0_o << seed;
+		p1_o << seed;
 		p_l++;
-		p_j++;
 	}
 }
