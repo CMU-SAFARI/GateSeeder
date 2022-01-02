@@ -1,7 +1,6 @@
 #ifndef EXTRACTION_HPP
 #define EXTRACTION_HPP
-#include "seeding.hpp"
-void extract_minimizers(const base_t *read_i, min_stra_b_t *p0_o, min_stra_b_t *p1_o);
-void push_min_stra(min_stra_b_t *p, min_stra_b_t *p0_o, min_stra_b_t *p1_o, ap_uint<MIN_STRA_SIZE_LOG> &p_l,
-                   min_stra_t val);
+#include "kernel.hpp"
+void extract_seeds(const base_t *read_i, seed_t *p0_o, seed_t *p1_o);
+void push_seed(seed_t *p, seed_t *p0_o, seed_t *p1_o, ap_uint<SEED_BUF_LEN_LOG> &p_l, hash_t val, size_t &p_j);
 #endif

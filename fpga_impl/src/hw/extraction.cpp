@@ -13,28 +13,50 @@ static inline ap_uint<2 * K> hash64(ap_uint<2 * K> key) {
 	return key;
 }
 
-void extract_minimizers(const base_t *read_i, min_stra_b_t *p0_o, min_stra_b_t *p1_o) {
-	ap_uint<MIN_STRA_SIZE_LOG> p_l(0);
-	min_stra_t buff[W];
+void extract_seeds(const base_t *seq_i, seed_t *p0_o, seed_t *p1_o) {
+	hash_t buf[W];
 	ap_uint<2 * K> kmer[2] = {0, 0};
 	ap_uint<READ_LEN_LOG> l(0); // l counts the number of bases and is reset
 	                            // to 0 each time there is an ambiguous base
-	ap_uint<W_LOG> buff_pos(0);
-	ap_uint<W_LOG> min_pos(0);
-	min_stra_t min_reg = {MAX_KMER, 0};
-	ap_uint<1> min_saved(0);
-	ap_uint<1> same_min(0);
-	min_stra_b_t p[MIN_STRA_SIZE];
-LOOP_extract_minimizer:
+	ap_uint<W_LOG> buf_pos(0);
+	ap_uint<W_LOG> seed_pos(0);
+
+	hash_t min_hash_reg = {MAX_HASH, 0};
+
+	ap_uint<1> seed_saved(0);
+	ap_uint<1> same_hash(0);
+
+	seed_t p[SEED_BUF_LEN];
+	ap_uint<SEED_BUF_LEN_LOG> p_l(0);
+	size_t p_j = 0;
+LOOP_extract_seeds:
 #ifdef VARIABLE_LEN
-	for (size_t i = 0; i < MAX_READ_LEN; ++i) {
+	for (size_t i = 0; i < MAX_IN_LEN; ++i) {
 		base_t c = read_i[i];
-		if (c == 0xf) break;
+		if (c == END_OF_READ) break;
 #else
-	for (size_t i = 0; i < READ_LEN; ++i) {
-		base_t c = read_i[i];
+	ap_uint<READ_LEN_LOG> base_j = 0;
+	for (size_t i = 0; i < MAX_IN_LEN; ++i) {
+		if (base_j == READ_LEN) {
+			l            = 0;
+			buf_pos      = 0;
+			seed_pos     = 0;
+			min_hash_reg = {MAX_HASH, 0};
+			seed_saved   = 0;
+			same_hash    = 0;
+			p_l          = 0;
+			base_j       = 0;
+		} else {
+			base_j++;
+		}
+		base_t c = seq_i[i];
+		if (c == END_OF_SEQ_BASE) {
+			p0_o[p_j] = END_OF_SEQ_SEED;
+			p1_o[p_j] = END_OF_SEQ_SEED;
+			break;
+		}
 #endif
-		min_stra_t hash_reg = {MAX_KMER, 0};
+		hash_t hash_reg = {MAX_HASH, 0};
 		if (c < 4) {                                                 // not an ambiguous base
 			kmer[0] = (kmer[0] << 2 | c);                        // forward k-mer
 			kmer[1] = (kmer[1] >> 2) | (MAX_KMER ^ c) << SHIFT1; // reverse k-mer
@@ -45,88 +67,87 @@ LOOP_extract_minimizer:
 			ap_uint<1> z = (kmer[0] > kmer[1]); // strand
 			++l;
 			if (l >= K) {
-				hash_reg.minimizer = hash64(kmer[z]);
-				hash_reg.strand    = z;
+				hash_reg.hash = hash64(kmer[z]);
+				hash_reg.str  = z;
 			}
 		} else {
 			if (l >= W + K - 1) {
-				push_min_stra(p, p0_o, p1_o, p_l, min_reg);
-				min_saved = 1;
+				push_seed(p, p0_o, p1_o, p_l, min_hash_reg, p_j);
+				seed_saved = 1;
 			}
 			l = 0;
 		}
-		buff[buff_pos] = hash_reg;
+		buf[buf_pos] = hash_reg;
 		if (l == W + K - 1) {
-			if (same_min) {
-				push_min_stra(p, p0_o, p1_o, p_l, (min_stra_t){min_reg.minimizer, !min_reg.strand});
-				same_min = 0;
+			if (same_hash) {
+				push_seed(p, p0_o, p1_o, p_l, hash_t{min_hash_reg.hash, !min_hash_reg.str}, p_j);
+				same_hash = 0;
 			}
 		}
-		if (hash_reg.minimizer <= min_reg.minimizer) {
+		if (hash_reg.hash <= min_hash_reg.hash) {
 			if (l >= W + K) {
-				push_min_stra(p, p0_o, p1_o, p_l, min_reg);
-			} else if (l < W + K - 1 && hash_reg.minimizer == min_reg.minimizer &&
-			           hash_reg.strand != min_reg.strand) {
-				same_min = 1;
+				push_seed(p, p0_o, p1_o, p_l, min_hash_reg, p_j);
+			} else if (l < W + K - 1 && hash_reg.hash == min_hash_reg.hash &&
+			           hash_reg.str != min_hash_reg.str) {
+				same_hash = 1;
 			} else {
-				same_min = 0;
+				same_hash = 0;
 			}
-			min_reg   = hash_reg;
-			min_pos   = buff_pos;
-			min_saved = 0;
-		} else if (buff_pos == min_pos) {
+			min_hash_reg = hash_reg;
+			seed_pos     = buf_pos;
+			seed_saved   = 0;
+		} else if (buf_pos == seed_pos) {
 			if (l >= W + K - 1) {
-				push_min_stra(p, p0_o, p1_o, p_l, min_reg);
+				push_seed(p, p0_o, p1_o, p_l, min_hash_reg, p_j);
 			}
-			min_reg.minimizer     = MAX_KMER;
-			ap_uint<1> same_min_w = 0;
-		LOOP_new_min:
+			min_hash_reg.hash      = MAX_HASH;
+			ap_uint<1> same_hash_w = 0;
+		LOOP_new_min_hash:
 			for (size_t j = 0; j < W; j++) {
 #pragma HLS PIPELINE II = 1
-				size_t buff_i = (j >= W - buff_pos.to_uint() - 1) ? j - W + buff_pos.to_uint() + 1
-				                                                  : j + buff_pos.to_uint() + 1;
-				if (min_reg.minimizer > buff[buff_i].minimizer) {
-					min_reg    = buff[buff_i];
-					min_pos    = buff_i;
-					min_saved  = 0;
-					same_min_w = 0;
-				} else if (min_reg.minimizer == buff[buff_i].minimizer &&
-				           min_reg.minimizer != MAX_KMER) {
-					min_pos = buff_i;
-					if (min_reg.strand != buff[buff_i].strand) {
-						same_min_w = 1;
+				size_t buf_j = (j >= W - buf_pos.to_uint() - 1) ? j - W + buf_pos.to_uint() + 1
+				                                                : j + buf_pos.to_uint() + 1;
+				if (min_hash_reg.hash > buf[buf_j].hash) {
+					min_hash_reg = buf[buf_j];
+					seed_pos     = buf_j;
+					seed_saved   = 0;
+					same_hash_w  = 0;
+				} else if (min_hash_reg.hash == buf[buf_j].hash && min_hash_reg.hash != MAX_HASH) {
+					seed_pos = buf_j;
+					if (min_hash_reg.str != buf[buf_j].str) {
+						same_hash_w = 1;
 					}
 				}
 			}
-			if (same_min_w && l >= W + K - 1) {
-				push_min_stra(p, p0_o, p1_o, p_l, (min_stra_t){min_reg.minimizer, !min_reg.strand});
+			if (same_hash_w && l >= W + K - 1) {
+				push_seed(p, p0_o, p1_o, p_l, hash_t{min_hash_reg.hash, !min_hash_reg.str}, p_j);
 			}
 		}
-		buff_pos = (buff_pos == W - 1) ? 0 : buff_pos.to_uint() + 1;
+		buf_pos = (buf_pos == W - 1) ? 0 : buf_pos.to_uint() + 1;
 	}
-	if (min_reg.minimizer != MAX_KMER && !min_saved) {
-		push_min_stra(p, p0_o, p1_o, p_l, min_reg);
+	if (min_hash_reg.hash != MAX_HASH && !seed_saved) {
+		push_seed(p, p0_o, p1_o, p_l, min_hash_reg, p_j);
 	}
-	p0_o[p_l] = END_MINIMIZER;
-	p1_o[p_l] = END_MINIMIZER;
+	p0_o[p_j] = END_OF_READ_SEED;
+	p1_o[p_j] = END_OF_READ_SEED;
+	p_j++;
 }
 
-void push_min_stra(min_stra_b_t *p, min_stra_b_t *p0_o, min_stra_b_t *p1_o, ap_uint<MIN_STRA_SIZE_LOG> &p_l,
-                   min_stra_t val) {
-	min_stra_b_t min_stra = {val.minimizer, val.strand, 1};
+void push_seed(seed_t *p, seed_t *p0_o, seed_t *p1_o, ap_uint<SEED_BUF_LEN_LOG> &p_l, hash_t val, size_t &p_j) {
+	seed_t seed = {val.hash, val.str, 1};
 	ap_uint<1> flag(1);
-	ap_uint<MIN_STRA_SIZE_LOG> i(0);
-	p[p_l] = min_stra;
-LOOP_push_min_stra:
-	for (size_t i = 0; i < MIN_STRA_SIZE; i++) {
+	p[p_l] = seed;
+LOOP_push_seed:
+	for (size_t i = 0; i < SEED_BUF_LEN; i++) {
 #pragma HLS unroll
-		if (p[i] == min_stra && i < p_l) {
+		if (p[i] == seed && i < p_l) {
 			flag = 0;
 		}
 	}
 	if (flag) {
-		p0_o[p_l] = min_stra;
-		p1_o[p_l] = min_stra;
+		p0_o[p_j] = seed;
+		p1_o[p_j] = seed;
 		p_l++;
+		p_j++;
 	}
 }

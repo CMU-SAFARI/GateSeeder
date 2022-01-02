@@ -1,5 +1,5 @@
-#include "seeding.hpp"
 #include "extraction.hpp"
+#include "seeding.hpp"
 #include <stddef.h>
 
 const int f                    = F;
@@ -10,42 +10,61 @@ const int max_read_len = MAX_READ_LEN;
 const int nb_reads = NB_READS;
 
 #ifdef VARIABLE_LEN
-void seeding(const ap_uint<32> h0_m[H_SIZE], const loc_stra_t loc_stra0_m[LS_SIZE], const ap_uint<32> h1_m[H_SIZE],
-             const loc_stra_t loc_stra1_m[LS_SIZE], const base_t read_i[IN_SIZE], const ap_uint<32> nb_reads_i,
-             loc_stra_t locs0_o[OUT_SIZE], loc_stra_t locs1_o[OUT_SIZE]) {
+void kernel(const ap_uint<32> h0_m[H_SIZE], const loc_str_t loc_stra0_m[LS_SIZE], const ap_uint<32> h1_m[H_SIZE],
+            const loc_stra_t loc_stra1_m[LS_SIZE], const base_t read_i[IN_SIZE], const ap_uint<32> nb_reads_i,
+            loc_stra_t locs0_o[OUT_SIZE], loc_stra_t locs1_o[OUT_SIZE]) {
 #else
-void seeding(const ap_uint<32> h0_m[H_SIZE], const loc_stra_t loc_stra0_m[LS_SIZE], const ap_uint<32> h1_m[H_SIZE],
-             const loc_stra_t loc_stra1_m[LS_SIZE], const base_t read_i[IN_SIZE], loc_stra_t locs0_o[OUT_SIZE],
-             loc_stra_t locs1_o[OUT_SIZE]) {
+void kernel(const ap_uint<32> h0_m[H_SIZE], const loc_str_t loc_str0_m[LS_SIZE], const ap_uint<32> h1_m[H_SIZE],
+            const loc_str_t loc_str1_m[LS_SIZE], const base_t seq_i[MAX_IN_LEN], loc_str_t loc_str0_o[MAX_OUT_LEN],
+            loc_str_t loc_str1_o[MAX_OUT_LEN]) {
 #endif
-#pragma HLS INTERFACE m_axi port = h0_m bundle = h0_m
-#pragma HLS INTERFACE m_axi port = loc_stra0_m bundle = loc_stra0_m
-#pragma HLS INTERFACE m_axi port = h1_m bundle = h1_m
-#pragma HLS INTERFACE m_axi port = loc_stra1_m bundle = loc_stra1_m
+
 #pragma HLS INTERFACE m_axi port = read_i bundle = read_i
-#pragma HLS INTERFACE m_axi port = locs0_o bundle = locs0_o
-#pragma HLS INTERFACE m_axi port = locs1_o bundle = locs1_o
+#pragma HLS INTERFACE m_axi port = h0_m bundle = h0_m
+#pragma HLS INTERFACE m_axi port = h1_m bundle = h1_m
+#pragma HLS INTERFACE m_axi port = loc_str0_m bundle = loc_str0_m
+#pragma HLS INTERFACE m_axi port = loc_str1_m bundle = loc_str1_m
+#pragma HLS INTERFACE m_axi port = loc_str0_o bundle = loc_str0_o
+#pragma HLS INTERFACE m_axi port = loc_str1_o bundle = loc_str1_o
 
 #pragma HLS dataflow
-#ifdef VARIABLE_LEN
-	base_t read[MAX_READ_LEN];
-#else
-	base_t read[READ_LEN];
-#endif
-#pragma HLS STREAM variable = read
-	read_read(read_i, read);
-#ifdef VARIABLE_LEN
-	pipeline(h0_m, loc_stra0_m, h1_m, loc_stra1_m, read, nb_reads_i, locs0_o, locs1_o);
-#else
-	pipeline(h0_m, loc_stra0_m, h1_m, loc_stra1_m, read, locs0_o, locs1_o);
-#endif
+	base_t seq[MAX_IN_LEN];
+	seed_t p0[MAX_SEED_LEN];
+	seed_t p1[MAX_SEED_LEN];
+	loc_str_t loc_str0[MAX_LOC_STR_LEN];
+	loc_str_t loc_str1[MAX_LOC_STR_LEN];
+	loc_str_t loc_str0_af[MAX_LOC_STR_LEN];
+	loc_str_t loc_str1_af[MAX_LOC_STR_LEN];
+
+#pragma HLS STREAM variable = read depth 10
+#pragma HLS STREAM variable = p0 depth 10
+#pragma HLS STREAM variable = p1 depth 10
+#pragma HLS STREAM variable = loc_str0 depth 10
+#pragma HLS STREAM variable = loc_str1 depth 10
+#pragma HLS STREAM variable = loc_str0_af depth 10
+#pragma HLS STREAM variable = loc_str1_af depth 10
+#pragma HLS STREAM variable = loc_str0_o depth 10
+#pragma HLS STREAM variable = loc_str1_o depth 10
+
+	read_seq(seq_i, seq);
+	extract_seeds(seq, p0, p1);
+	get_locations(p0, h0_m, loc_str0_m, loc_str0);
+	get_locations(p1, h1_m, loc_str1_m, loc_str1);
+	adjacency_filtering(loc_str0, loc_str0_af);
+	adjacency_filtering(loc_str1, loc_str1_af);
+	write_locations(loc_str0_af, loc_str0_o);
+	write_locations(loc_str1_af, loc_str1_o);
 }
 
-void read_read(const base_t *read_i, base_t *read_o) {
-LOOP_read_read:
-	for (size_t i = 0; i < IN_SIZE; i++) {
+void read_seq(const base_t *seq_i, base_t *seq_o) {
+LOOP_read_seq:
+	for (size_t i = 0; i < MAX_IN_LEN; i++) {
 #pragma HLS PIPELINE II = 1
-		read_o[i] = read_i[i];
+		base_t buf = seq_i[i];
+		seq_o[i]   = buf;
+		if (buf == END_OF_SEQ) {
+			break;
+		}
 	}
 }
 
@@ -128,7 +147,7 @@ void get_locations(const min_stra_b_t *p_i, const ap_uint<32> *h_m, const loc_st
 
 void read_locations(const min_stra_b_t min_stra_i, loc_stra_t *buf_o, ap_uint<F_LOG> &buf_lo, const ap_uint<32> *h_m,
                     const loc_stra_t *loc_stra_m) {
-//#pragma HLS INLINE OFF
+	//#pragma HLS INLINE OFF
 	ap_uint<32> minimizer = min_stra_i.minimizer;
 	ap_uint<32> min       = minimizer ? h_m[minimizer - 1].to_uint() : 0;
 	ap_uint<32> max       = h_m[minimizer];
