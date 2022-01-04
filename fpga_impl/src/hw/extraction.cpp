@@ -28,7 +28,6 @@ void extract_seeds(hls::stream<base_t> &seq_i, hls::stream<seed_t> &p0_o, hls::s
 
 	seed_t p[SEED_BUF_LEN];
 	ap_uint<SEED_BUF_LEN_LOG> p_l(0);
-LOOP_extract_seeds:
 #ifdef VARIABLE_LEN
 	for (size_t i = 0; i < MAX_IN_LEN; ++i) {
 		base_t c = read_i[i];
@@ -36,16 +35,17 @@ LOOP_extract_seeds:
 #else
 	ap_uint<READ_LEN_LOG> base_j = 0;
 	base_t c;
+LOOP_extract_seeds:
 	for (size_t i = 0; i < MAX_IN_LEN; ++i) {
 		if (base_j == READ_LEN) {
-			l            = 0;
-			buf_pos      = 0;
-			seed_pos     = 0;
+			l = 0;
+			buf_pos = 0;
+			seed_pos = 0;
 			min_hash_reg = {MAX_HASH, 0};
-			seed_saved   = 0;
-			same_hash    = 0;
-			p_l          = 0;
-			base_j       = 0;
+			seed_saved = 0;
+			same_hash = 0;
+			p_l = 0;
+			base_j = 0;
 		} else {
 			base_j++;
 		}

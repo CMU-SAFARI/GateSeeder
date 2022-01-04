@@ -23,29 +23,49 @@ void kernel(const ap_uint<32> h0_m[H_SIZE], const loc_str_t loc_str0_m[LS_SIZE],
 
 #pragma HLS dataflow
 	hls::stream<base_t> seq;
+
 	hls::stream<seed_t> p0;
 	hls::stream<seed_t> p1;
+
+	hls::stream<pos_t> pos0;
+	hls::stream<pos_t> pos1;
+
 	hls::stream<loc_str_t> loc_str0;
 	hls::stream<loc_str_t> loc_str1;
+
 	hls::stream<loc_str_t> loc_str0_af;
 	hls::stream<loc_str_t> loc_str1_af;
 
 #pragma HLS STREAM variable = seq depth = 10
+
 #pragma HLS STREAM variable = p0 depth = 10
 #pragma HLS STREAM variable = p1 depth = 10
+
+#pragma HLS STREAM variable = pos0 depth = 2
+#pragma HLS STREAM variable = pos1 depth = 2
+
 #pragma HLS STREAM variable = loc_str0 depth = 10
 #pragma HLS STREAM variable = loc_str1 depth = 10
+
 #pragma HLS STREAM variable = loc_str0_af depth = 10
 #pragma HLS STREAM variable = loc_str1_af depth = 10
+
 #pragma HLS STREAM variable = loc_str0_o depth = 10
 #pragma HLS STREAM variable = loc_str1_o depth = 10
 
 	read_seq(seq_i, seq);
+
 	extract_seeds(seq, p0, p1);
-	get_locations(p0, h0_m, loc_str0_m, loc_str0);
-	get_locations(p1, h1_m, loc_str1_m, loc_str1);
+
+	get_pos(p0, h0_m, pos0);
+	get_pos(p1, h1_m, pos1);
+
+	get_locations(pos0, loc_str0_m, loc_str0);
+	get_locations(pos1, loc_str1_m, loc_str1);
+
 	adjacency_filtering(loc_str0, loc_str0_af);
 	adjacency_filtering(loc_str1, loc_str1_af);
+
 	write_locations(loc_str0_af, loc_str0_o);
 	write_locations(loc_str1_af, loc_str1_o);
 }
@@ -64,8 +84,18 @@ LOOP_read_seq:
 	}
 }
 
-void get_locations(hls::stream<seed_t> &p_i, const ap_uint<32> *h_m, const loc_str_t *loc_str_m,
-                   hls::stream<loc_str_t> &loc_str_o) {
+void get_pos(hls::stream<seed_t> &p_i, const ap_uint<32> *h_m, hls::stream<pos_t> &pos_o) {
+	seed_t seed_buf = p_i.read();
+	if (seed_buf.valid) {
+		ap_uint<28> start = seed_buf.seed ? h_m[seed_buf.seed - 1].to_uint() : 0;
+		ap_uint<28> end   = h_m[seed_buf.seed];
+		pos_o << pos_t{start, end, seed_buf.str, 1};
+	} else {
+		pos_o << pos_t{0, 0, seed_buf.str, 0};
+	}
+}
+
+void get_locations(hls::stream<pos_t> &pos_i, const loc_str_t *loc_str_m, hls::stream<loc_str_t> &loc_str_o) {
 	hls::stream<loc_str_t> loc_str1;
 	hls::stream<loc_str_t> loc_str2;
 	hls::stream<loc_str_t> buf1;
@@ -75,56 +105,77 @@ void get_locations(hls::stream<seed_t> &p_i, const ap_uint<32> *h_m, const loc_s
 #pragma HLS STREAM variable = buf1 depth = f
 #pragma HLS STREAM variable = buf2 depth = f
 
-	seed_t seed_buf;
+	pos_t pos_buf;
 LOOP_get_locations:
 	for (;;) {
-		p_i >> seed_buf;
-		if (seed_buf.valid == 0) {
-			while (!loc_str1.empty()) {
-				loc_str_o << loc_str1.read();
-			}
-			if (seed_buf.str == 0) {
-				loc_str_o << END_OF_READ_LOC_STR;
-			} else {
-				loc_str_o << END_OF_SEQ_LOC_STR;
-				break;
-			}
-		}
 		// Phase a)
-		read_locations(seed_buf, buf1, h_m, loc_str_m);
-		merge_locations(loc_str1, buf2, loc_str2);
-
-		p_i >> seed_buf;
-		if (seed_buf.valid == 0) {
-			while (!loc_str2.empty()) {
-				loc_str_o << loc_str2.read();
-			}
-			if (seed_buf.str == 0) {
-				loc_str_o << END_OF_READ_LOC_STR;
-			} else {
+		pos_i >> pos_buf;
+		if (pos_buf.valid) {
+			read_merge_locations(pos_buf, buf2, loc_str1, loc_str_m, buf1, loc_str2);
+		} else {
+			if (pos_buf.str) {
+				merge_locations(loc_str1, buf2, loc_str_o);
 				loc_str_o << END_OF_SEQ_LOC_STR;
 				break;
+			} else {
+				pos_i >> pos_buf;
+				if (pos_buf.valid) {
+					read_merge_locations(pos_buf, buf2, loc_str1, loc_str_m, buf1, loc_str_o);
+				} else {
+					merge_locations(loc_str1, buf2, loc_str_o);
+					loc_str_o << END_OF_READ_LOC_STR;
+					if (pos_buf.str) {
+						loc_str_o << END_OF_SEQ_LOC_STR;
+						break;
+					} else {
+						loc_str_o << END_OF_READ_LOC_STR;
+					}
+				}
 			}
 		}
+
 		// Phase b)
-		read_locations(seed_buf, buf2, h_m, loc_str_m);
-		merge_locations(loc_str2, buf1, loc_str1);
+		pos_i >> pos_buf;
+		if (pos_buf.valid) {
+			read_merge_locations(pos_buf, buf1, loc_str2, loc_str_m, buf2, loc_str1);
+		} else {
+			if (pos_buf.str) {
+				merge_locations(loc_str2, buf1, loc_str_o);
+				loc_str_o << END_OF_SEQ_LOC_STR;
+				break;
+			} else {
+				pos_i >> pos_buf;
+				if (pos_buf.valid) {
+					read_merge_locations(pos_buf, buf1, loc_str2, loc_str_m, buf2, loc_str_o);
+				} else {
+					merge_locations(loc_str2, buf1, loc_str_o);
+					loc_str_o << END_OF_READ_LOC_STR;
+					if (pos_buf.str) {
+						loc_str_o << END_OF_SEQ_LOC_STR;
+						break;
+					} else {
+						loc_str_o << END_OF_READ_LOC_STR;
+					}
+				}
+			}
+		}
 	}
 }
 
-void read_locations(const seed_t seed_i, hls::stream<loc_str_t> &buf_o, const ap_uint<32> *h_m,
-                    const loc_str_t *loc_str_m) {
-	ap_uint<32> seed = seed_i.seed;
-	ap_uint<1> str   = seed_i.str;
+void read_merge_locations(pos_t pos_i, hls::stream<loc_str_t> &buf_i, hls::stream<loc_str_t> &loc_str_i,
+                          const loc_str_t *loc_str_m, hls::stream<loc_str_t> &buf_o,
+                          hls::stream<loc_str_t> &loc_str_o) {
+#pragma HLS dataflow
+	read_locations(pos_i, loc_str_m, buf_o);
+	merge_locations(loc_str_i, buf_i, loc_str_o);
+}
 
-	ap_uint<32> m = seed ? h_m[seed - 1].to_uint() : 0;
-	ap_uint<32> n = h_m[seed];
-
+void read_locations(pos_t pos_i, const loc_str_t *loc_str_m, hls::stream<loc_str_t> &buf_o) {
 LOOP_read_locations:
-	for (size_t j = m; j < n; j++) {
+	for (size_t j = pos_i.start; j < pos_i.end; j++) {
 #pragma HLS PIPELINE II        = 1
 #pragma HLS loop_tripcount min = 0 max = f
-		buf_o << (loc_str_m[j] ^ str);
+		buf_o << (loc_str_m[j] ^ pos_i.str);
 	}
 }
 
@@ -169,16 +220,16 @@ LOOP_merge_fisrt_part:
 		}
 	}
 	if (loc_str_flag) {
-	LOOP_merge_second_part:
 		loc_str_o << loc_str_reg;
+	LOOP_merge_second_part:
 		while (!loc_str_i.empty()) {
 #pragma HLS PIPELINE II        = 1
 #pragma HLS loop_tripcount min = 0 max = loc_str_fifo_len
 			loc_str_o << loc_str_i.read();
 		}
 	} else {
-	LOOP_merge_third_part:
 		loc_str_o << buf_reg;
+	LOOP_merge_third_part:
 		while (!buf_i.empty()) {
 #pragma HLS PIPELINE II        = 1
 #pragma HLS loop_tripcount min = 0 max = f
@@ -193,7 +244,9 @@ void adjacency_filtering(hls::stream<loc_str_t> &loc_str_i, hls::stream<loc_str_
 #pragma HLS STREAM variable = buf1 depth = aft - 1
 #pragma HLS STREAM variable = buf2 depth = aft - 1
 
-	loc_str_o << loc_str_i.read();
+	buf1 << (loc_str_i.read() | 0x01);
+	buf2 << (buf1.read() | 0x11);
+	loc_str_o << buf2.read();
 	/*
 	ap_uint<1> state(0);
 LOOP_adjacency_filtering:
