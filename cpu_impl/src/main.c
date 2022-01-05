@@ -1,5 +1,5 @@
+#include "kernel.h"
 #include "parse.h"
-#include "seeding.h"
 #include <err.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
 	parse_reads(fd_reads, &reads);
 	printf("Info: reads `%s` parsed\n", argv[optind]);
 	puts("\t SEEDING STARTS");
-	read_seeding(idx, reads, fp_o);
+	kernel(idx, reads, fp_o);
 #ifdef MULTI_THREAD
 	for (unsigned i = 0; i < NB_THREADS; i++) {
 		printf("\t * %s_%u.dat written\n", fp_name, i);

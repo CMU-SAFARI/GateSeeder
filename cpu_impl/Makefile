@@ -3,13 +3,13 @@ CC			:= gcc
 
 DEPFLAGS	= -MD -MP
 NB_THREADS	= 8
-CFLAGS		+= -g -O3 $(DEPFLAGS) -Wall -Werror #-DNB_THREADS=$(NB_THREADS) -DMULTI_THREAD
+CFLAGS		+= -g -O3 $(DEPFLAGS) -Wall -Werror -DNB_THREADS=$(NB_THREADS) -DMULTI_THREAD
 LDLIBS		= -pthread
 VPATH		= $(SRC_DIR)
 SRCS		= $(wildcard $(SRC_DIR)/*.c)
 
-PFLAGS 		= -DADJACENCY_FILTERING_RANGE=10 -DVARIABLE_LEN
-IFLAGS 		= -DADJACENCY_FILTERING_RANGE=10
+IFLAGS 		= -DAF -DW=12 -DK=18 -DAFT=3 -DAFR=20
+PFLAGS 		= -DAF -DVARIABLE_LEN -DW=152 -DK=19 -DAFT=3 -DAFR=10
 
 IEXE			= map-illumina
 PEXE			= map-pacbio
@@ -46,7 +46,7 @@ pacbio_obj:
 run_i: $(IEXE)
 	./$^ -i ../res/full_k18_w12_f1000_b26.bin ../res/ERR240727_1.bin -o /tmp/locs
 run_p: $(PEXE)
-	./$^ -i ../res/full_k18_w12_f1000_b26.bin ../res/pacbio_10000.bin -o /tmp/locs
+	./$^ -i /tmp/test.bin ../res/pacbio_10000.bin -o /tmp/locs
 
 .PHONY: clean format all run_i run_p test
 -include $(wildcard illumina_obj/*.d) $(wildcard pacbio_obj/*.d)

@@ -1,5 +1,5 @@
 #include "parse.h"
-#include "seeding.h"
+#include "kernel.h"
 #include <err.h>
 #include <stdlib.h>
 #include <string.h>
@@ -82,10 +82,10 @@ void parse_index(int fd, index_t *idx) {
 	if (idx_buf == MAP_FAILED) {
 		err(1, "mmap");
 	}
-	idx->n        = idx_buf[0];
-	idx->h        = &idx_buf[1];
-	idx->m        = idx->h[idx->n - 1];
-	idx->location = &idx_buf[idx->n + 1];
+	idx->n       = idx_buf[0];
+	idx->h       = &idx_buf[1];
+	idx->m       = idx->h[idx->n - 1];
+	idx->loc_str = &idx_buf[idx->n + 1];
 
 	// Check the consistency of the data
 	if ((((size_t)idx->m + idx->n + 1) << 2) != size) {

@@ -15,9 +15,9 @@ typedef struct {
 } exp_loc_v;
 
 typedef struct {
-	uint32_t n, m;      // size of h & location
-	uint32_t *h;        // hash table
-	uint32_t *location; // location array
+	uint32_t n, m;     // size of h & location
+	uint32_t *h;       // hash table
+	uint32_t *loc_str; // location array
 } index_t;
 
 typedef struct {

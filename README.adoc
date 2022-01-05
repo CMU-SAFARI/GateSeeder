@@ -8,8 +8,8 @@ FPGA Genome Indexing &amp; Seeding (Julien Eudine)
 ** [x] Window size
 ** [x] Threshold
 ** [ ] Buffer size
-* [ ] Estimation of the throughput of the FPGA implementation
-* [ ] Write report
+* [x] Estimation of the throughput of the FPGA implementation
+* [x] Write report
 * [ ] Host implementation
 * [ ] Test different configurations for the connection between PEs and HBM
 
