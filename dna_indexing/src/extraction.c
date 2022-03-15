@@ -115,7 +115,7 @@ void extract_minimizers(const char *dna, unsigned int len, unsigned int w, unsig
 		}
 		buf_pos = (buf_pos == w - 1) ? 0 : buf_pos + 1;
 	}
-	if (min.kmer != UINT64_MAX && min.loc != last_loc) {
+	if (l >= w + k - 1) {
 		push_min_loc_stra(p, min, mask1, offset);
 	}
 }
