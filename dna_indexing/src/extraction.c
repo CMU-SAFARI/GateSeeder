@@ -31,7 +31,6 @@ void extract_minimizers(const char *dna, unsigned int len, unsigned int w, unsig
 	uint64_t mask            = (1ULL << 2 * k) - 1;
 	uint64_t kmer[2]         = {0, 0};
 	uint32_t mask1           = (1ULL << b) - 1;
-	uint32_t last_loc        = UINT32_MAX;
 	size_t l                 = 0;
 	size_t buf_pos           = 0;
 	size_t min_pos           = 0;
