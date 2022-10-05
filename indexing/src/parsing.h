@@ -4,5 +4,6 @@
 #include "types.h"
 
 target_t parse_target(int fd);
+void target_destroy(const target_t target);
 
 #endif

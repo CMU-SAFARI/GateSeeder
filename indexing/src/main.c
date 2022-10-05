@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (optind + 2 != argc) {
-		errx(1, "USAGE\t %s [option]* <target.fna> <index.idx>", argv[0]);
+		errx(1, "USAGE\t %s [option]* <target.fna> <index.ali>", argv[0]);
 	}
 
 	fprintf(stderr, "[INFO] w: %u, k: %u, b: %u, max_occ: %u\n", w, k, b, max_occ);
@@ -55,7 +55,10 @@ int main(int argc, char *argv[]) {
 	target_t target = parse_target(fd_target);
 	fprintf(stderr, "[INFO] nb_sequences: %u\n", target.nb_sequences);
 	index_t index = gen_index(target, w, k, b, max_occ);
+	fprintf(stderr, "[INFO] map_len: %u (%lu MB), key_len: %u (%lu MB)\n", index.map_len,
+	        index.map_len * sizeof(index.map[0]) >> 20, index.key_len, index.key_len * sizeof(index.key[0]) >> 20);
 	write_index(index_fp, index, target, w, k, b, max_occ);
+	target_destroy(target);
 	index_destroy(index);
 	return 0;
 }

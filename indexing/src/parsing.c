@@ -86,3 +86,12 @@ target_t parse_target(int fd) {
 	free(seq_buf);
 	return target;
 }
+
+void target_destroy(const target_t target) {
+	for (unsigned i = 0; i < target.nb_sequences; i++) {
+		free(target.seq[i]);
+		free(target.name[i]);
+	}
+	free(target.seq);
+	free(target.name);
+}

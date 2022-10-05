@@ -3,6 +3,7 @@ SRC_DIR		:= src
 CC			:= gcc
 DEPFLAGS	= -MD -MP
 CFLAGS		= -std=gnu11 -g -O3 $(DEPFLAGS) -Wall -Werror -Wextra
+LDLIBS		= -pthread
 
 SRCS		= $(wildcard $(SRC_DIR)/*.c)
 OBJS		= $(SRCS:$(SRC_DIR)/%.c=%.o)
