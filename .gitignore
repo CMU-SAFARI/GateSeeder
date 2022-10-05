@@ -1,5 +1,7 @@
 *.d
 *.o
+tags
+aloha_index
 main
 indexdna
 map-pacbio
