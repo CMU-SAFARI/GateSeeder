@@ -4,13 +4,6 @@
 #include "ap_int.h"
 #include "hls_stream.h"
 
-#define SE_K 15
-
-typedef struct {
-	ap_uint<2 * SE_K> hash; // size: 2*K
-	ap_uint<32> loc;
-	ap_uint<1> str;
-	ap_uint<1> EOR;
-} seed_t;
-
+void kernel(const uint32_t nb_bases_i, const uint8_t *seq_i, const uint32_t *map_i, const uint64_t *key_0_i,
+            const uint64_t *key_1_i, const uint64_t *out_o);
 #endif

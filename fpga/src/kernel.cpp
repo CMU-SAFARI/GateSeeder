@@ -1,12 +1,6 @@
+#include "extraction.hpp"
 #include "kernel.hpp"
 #include <stdint.h>
-
-void read_seq(const uint32_t nb_bases_i, const uint8_t *seq_i, hls::stream<uint8_t> &seq_o) {
-	for (uint32_t i = 0; i < nb_bases_i; i++) {
-#pragma HLS PIPELINE II = 1
-		seq_o << seq_i[i];
-	}
-}
 
 void kernel(const uint32_t nb_bases_i, const uint8_t *seq_i, const uint32_t *map_i, const uint64_t *key_0_i,
             const uint64_t *key_1_i, const uint64_t *out_o) {
@@ -29,7 +23,11 @@ void kernel(const uint32_t nb_bases_i, const uint8_t *seq_i, const uint32_t *map
 
 #pragma HLS dataflow
 
-	hls::stream<uint8_t> seq;
 	hls::stream<seed_t> seed;
 	hls::stream<uint64_t> key;
+
+	extract_seeds(seq_i, nb_bases_i, seed);
+#ifndef __SYNTHESIS__
+
+#endif
 }
