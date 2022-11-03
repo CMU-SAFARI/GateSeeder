@@ -1,5 +1,7 @@
 #include "extraction.hpp"
 #include "kernel.hpp"
+#include "querying.hpp"
+#include "types.hpp"
 #include <stdint.h>
 
 void kernel(const uint32_t nb_bases_i, const uint8_t *seq_i, const uint32_t *map_i, const uint64_t *key_0_i,
@@ -24,10 +26,13 @@ void kernel(const uint32_t nb_bases_i, const uint8_t *seq_i, const uint32_t *map
 #pragma HLS dataflow
 
 	hls::stream<seed_t> seed;
-	hls::stream<uint64_t> key;
+	hls::stream<ms_pos_t> ms_pos_0;
+	hls::stream<ms_pos_t> ms_pos_1;
 
 	extract_seeds(seq_i, nb_bases_i, seed);
-#ifndef __SYNTHESIS__
+	query_index_map(seed, map_i, ms_pos_0, ms_pos_1);
 
-#endif
+	// query_index_key(ms_pos_0,
+
+	// vote();
 }

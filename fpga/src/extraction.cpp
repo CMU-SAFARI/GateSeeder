@@ -41,7 +41,7 @@ bases_extraction_loop:
 			write              = (length > SE_K + SE_W - 2);
 			length             = 0;
 			location           = 0;
-			previous_minimizer = {.hash = MAX, .loc = 0, .EOR = 1};
+			previous_minimizer = {.hash = MAX, .loc = 0, .str = 0, .EOR = 1};
 		} else {
 			location++;
 			if (base == N_BASE) {
@@ -149,4 +149,5 @@ bases_extraction_loop:
 			write = 0;
 		}
 	}
+	minimizers_o << seed_t{.hash = MAX, .loc = 0, .str = 1, .EOR = 1};
 }
