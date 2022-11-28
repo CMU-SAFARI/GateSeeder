@@ -25,4 +25,10 @@ typedef struct {
 	key128_t *key;
 } index_t;
 
+typedef struct {
+	unsigned nb_MS;
+	uint32_t *map;
+	uint64_t **key;
+} index_MS_t;
+
 #endif

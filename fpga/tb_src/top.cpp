@@ -9,7 +9,6 @@ int main(int argc, char *argv[]) {
 		cerr << "[ERROR] Wrong number of arguments" << endl;
 		exit(2);
 	}
-	ifstream ifs_fastq, ifs_idx, ifs_exp;
 	read_buf_t read_buf;
 	open_fastq(argv[1]);
 	read_buf_init(&read_buf, 1 << 30);
@@ -25,6 +24,8 @@ int main(int argc, char *argv[]) {
 	        printf("%s\n", read_buf.seq_name[i]);
 	}
 	*/
+
+	return 0;
 
 	// ifs_idx.open(argv[2], ifstream::in | ifstream::binary);
 	/*

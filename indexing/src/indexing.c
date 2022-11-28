@@ -2,6 +2,7 @@
 #include "indexing.h"
 #include "types.h"
 #include "util.h"
+#include <err.h>
 #include <pthread.h>
 #include <string.h>
 
@@ -138,13 +139,13 @@ index_t gen_index(const target_t target, const unsigned w, const unsigned k, con
 	MALLOC(index.key, key128_t, minimizers.len);
 
 	// hash: after extraction
-	// |--- BUCKET_ID ---|--- SEED_ID ---|--- STR ---|
-	//  2K         2K-B+1 2K-B          1           0
+	// |--- SEED_ID ---|--- BUCKET_ID ---|--- STR ---|
+	//  2K-1        B+1                 1           0
 
-	unsigned bucket_shift = 2 * k - b;
+	const unsigned bucket_mask = index.map_len - 1;
 
 	uint64_t hash      = minimizers.keys[0].hash >> 1;
-	uint32_t bucket_id = hash >> bucket_shift;
+	uint32_t bucket_id = (hash >> 1) & bucket_mask;
 	for (uint32_t i = 0; i < bucket_id; i++) {
 		index.map[i] = 0;
 	}
@@ -162,7 +163,7 @@ index_t gen_index(const target_t target, const unsigned w, const unsigned k, con
 			}
 			map_start = i;
 			hash      = tmp_hash;
-			while (bucket_id != (hash >> bucket_shift)) {
+			while (bucket_id != ((hash >> 1) & bucket_mask)) {
 				index.map[bucket_id] = key_pos;
 				bucket_id++;
 			}
@@ -174,10 +175,9 @@ index_t gen_index(const target_t target, const unsigned w, const unsigned k, con
 			key_pos++;
 		}
 	}
-	for (uint32_t i = bucket_id; i < (uint32_t)(1 << b); i++) {
+	for (uint32_t i = bucket_id; i < index.map_len; i++) {
 		index.map[i] = key_pos;
 	}
-	index.map_len = 1 << b;
 	index.key_len = key_pos;
 	free(minimizers.keys);
 	return index;
@@ -202,6 +202,29 @@ void write_index(FILE *fp, const index_t index, const target_t target, const uns
 		fwrite(&target.len[i], sizeof(uint32_t), 1, fp);
 		fwrite(target.seq[i], sizeof(uint8_t), target.len[i], fp);
 	}
+}
+
+// MAP
+// |-- MS ID --|-- BUCKET ID --|
+//  31        B               0
+index_MS_t partion_index(const index_t index, const size_t MS_size, const unsigned max_nb_MS) {
+	index_MS_t index_MS = {.nb_MS = 0, .key = NULL};
+	if ((MS_size >> 2) < index.map_len) {
+		errx(1, "[ERROR] size of the map greater than the size of one memory section");
+	}
+	index_MS.map            = index.map;
+	const size_t MS_SIZE_64 = MS_size >> 3;
+	size_t size_counter     = 0;
+	for (uint32_t i = 0; i < index.map_len; i++) {
+		const uint32_t start = i ? index.map[i - 1] : 0;
+		const uint32_t end   = index.map[i];
+		size_counter += end - start;
+		if (size_counter > MS_SIZE_64) {
+			nb_MS++;
+			size_counter = 0;
+		}
+	}
+	return index_MS;
 }
 
 void index_destroy(const index_t index) {
