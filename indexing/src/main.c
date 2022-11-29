@@ -57,7 +57,10 @@ int main(int argc, char *argv[]) {
 	index_t index = gen_index(target, w, k, b, max_occ);
 	fprintf(stderr, "[INFO] map_len: %u (%lu MB), key_len: %u (%lu MB)\n", index.map_len,
 	        index.map_len * sizeof(index.map[0]) >> 20, index.key_len, index.key_len * sizeof(index.key[0]) >> 20);
-	write_index(index_fp, index, target, w, k, b, max_occ);
+
+#define MS_SIZE 1 << 28
+	index_MS_t index_MS = partion_index(index, MS_SIZE, 16);
+	write_index(index_fp, index_MS, target, w, k, b, max_occ, MS_SIZE);
 	target_destroy(target);
 	index_destroy(index);
 	return 0;

@@ -16,7 +16,7 @@ typedef struct {
 	seed_t *seeds;
 } seed_v;
 
-void extract_seeds(const uint8_t *seq, const uint32_t len, const unsigned chrom_id, key128_v *const minimizers,
-                   const unsigned w, const unsigned k);
+void extract_seeds(const uint8_t *seq, const uint32_t len, const unsigned chrom_id, key_v *const minimizers,
+                   const unsigned w, const unsigned k, const unsigned b);
 
 #endif
