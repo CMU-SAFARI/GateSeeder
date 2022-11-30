@@ -13,7 +13,10 @@
    version="1.1"
    id="svg8"
    inkscape:version="1.0.2 (e86c870879, 2021-01-15)"
-   sodipodi:docname="index.svg">
+   sodipodi:docname="index.svg"
+   inkscape:export-filename="/home/julien/Desktop/FPGA_Genome_Indexing/img/index.png"
+   inkscape:export-xdpi="386.04779"
+   inkscape:export-ydpi="386.04779">
   <defs
      id="defs2" />
   <sodipodi:namedview
@@ -23,18 +26,18 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.49497474"
-     inkscape:cx="53.724082"
-     inkscape:cy="790.40012"
+     inkscape:zoom="0.25728314"
+     inkscape:cx="366.79183"
+     inkscape:cy="975.7067"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
      showgrid="true"
      units="px"
      inkscape:window-width="1920"
-     inkscape:window-height="1052"
+     inkscape:window-height="1080"
      inkscape:window-x="0"
-     inkscape:window-y="28"
+     inkscape:window-y="0"
      inkscape:window-maximized="0">
     <inkscape:grid
        type="xygrid"
@@ -50,7 +53,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -59,7 +62,7 @@
      inkscape:groupmode="layer"
      id="layer1">
     <rect
-       style="fill:none;stroke:#000000;stroke-width:3.05514"
+       style="fill:none;stroke:#000000;stroke-width:1.76388889;stroke-miterlimit:4;stroke-dasharray:none"
        id="rect1105"
        width="105.83334"
        height="26.458332"
@@ -67,7 +70,7 @@
        y="26.458332" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.2;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;stroke-width:0.264583;fill:#00ff00;"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.2;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;fill:#669900;stroke-width:0.264583"
        x="78.910461"
        y="45.490559"
        id="text1109"><tspan
@@ -75,12 +78,11 @@
          id="tspan1107"
          x="78.910461"
          y="45.490559"
-         dx="0"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;stroke-width:0.264583;fill:#00ff00;">(loc, str)<tspan
-   style="font-size:65%;baseline-shift:sub;-inkscape-font-specification:FreeSans;font-family:FreeSans;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;fill:#00ff00;"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;fill:#669900;stroke-width:0.264583">loc<tspan
+   style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:65%;font-family:FreeSans;-inkscape-font-specification:FreeSans;baseline-shift:sub;fill:#669900"
    id="tspan1113">0</tspan></tspan></text>
     <rect
-       style="fill:none;stroke:#000000;stroke-width:3.05514"
+       style="fill:none;stroke:#000000;stroke-width:1.76388889;stroke-miterlimit:4;stroke-dasharray:none"
        id="rect1105-6"
        width="105.83334"
        height="26.458332"
@@ -88,7 +90,7 @@
        y="52.916664" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.2;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;stroke-width:0.264583;fill:#00ff00;"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.2;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;fill:#669900;stroke-width:0.264583"
        x="80.084503"
        y="71.982193"
        id="text1109-5"><tspan
@@ -96,12 +98,11 @@
          id="tspan1107-6"
          x="80.084503"
          y="71.982193"
-         dx="0"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;stroke-width:0.264583;fill:#00ff00;">(loc, str)<tspan
-   style="font-size:65%;baseline-shift:sub;fill:#00ff00;"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;fill:#669900;stroke-width:0.264583">loc<tspan
+   style="font-size:65%;baseline-shift:sub;fill:#669900"
    id="tspan1273">1</tspan></tspan></text>
     <rect
-       style="fill:none;stroke:#000000;stroke-width:3.05514"
+       style="fill:none;stroke:#000000;stroke-width:1.76388889;stroke-miterlimit:4;stroke-dasharray:none"
        id="rect1105-6-9"
        width="105.83334"
        height="26.458332"
@@ -109,7 +110,7 @@
        y="79.375" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.2;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;stroke-width:0.264583;fill:#ff0000;"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.2;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;fill:#cc0000;stroke-width:0.264583"
        x="78.881104"
        y="98.440529"
        id="text1109-5-4"><tspan
@@ -117,12 +118,11 @@
          id="tspan1107-6-8"
          x="78.881104"
          y="98.440529"
-         dx="0"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;stroke-width:0.264583;fill:#ff0000;">(loc, str)<tspan
-   style="font-size:65%;baseline-shift:sub;fill:#ff0000;"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;fill:#cc0000;stroke-width:0.264583">loc<tspan
+   style="font-size:65%;baseline-shift:sub;fill:#cc0000"
    id="tspan1275">2</tspan></tspan></text>
     <rect
-       style="fill:none;stroke:#000000;stroke-width:3.05514"
+       style="fill:none;stroke:#000000;stroke-width:1.76388889;stroke-miterlimit:4;stroke-dasharray:none"
        id="rect1105-6-2"
        width="105.83334"
        height="26.458332"
@@ -130,7 +130,7 @@
        y="105.83333" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.2;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;stroke-width:0.264583;fill:#ff0000;"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.2;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;fill:#cc0000;stroke-width:0.264583"
        x="78.917801"
        y="124.86555"
        id="text1109-5-9"><tspan
@@ -138,12 +138,11 @@
          id="tspan1107-6-3"
          x="78.917801"
          y="124.86555"
-         dx="0"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;stroke-width:0.264583;fill:#ff0000;">(loc, str)<tspan
-   style="font-size:65%;baseline-shift:sub;fill:#ff0000;"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;fill:#cc0000;stroke-width:0.264583">loc<tspan
+   style="font-size:65%;baseline-shift:sub;fill:#cc0000"
    id="tspan1277">3</tspan></tspan></text>
     <rect
-       style="fill:none;stroke:#000000;stroke-width:3.05514"
+       style="fill:none;stroke:#000000;stroke-width:1.76388889;stroke-miterlimit:4;stroke-dasharray:none"
        id="rect1105-6-0"
        width="105.83334"
        height="26.458332"
@@ -151,7 +150,7 @@
        y="132.29167" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.2;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;stroke-width:0.264583;fill:#ff0000;"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.2;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;fill:#cc0000;stroke-width:0.264583"
        x="78.815071"
        y="151.35719"
        id="text1109-5-8"><tspan
@@ -159,12 +158,11 @@
          id="tspan1107-6-85"
          x="78.815071"
          y="151.35719"
-         dx="0"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;stroke-width:0.264583;fill:#ff0000;">(loc, str)<tspan
-   style="font-size:65%;baseline-shift:sub;fill:#ff0000;"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;fill:#cc0000;stroke-width:0.264583">loc<tspan
+   style="font-size:65%;baseline-shift:sub;fill:#cc0000"
    id="tspan1279">4</tspan></tspan></text>
     <rect
-       style="fill:none;stroke:#000000;stroke-width:3.05514"
+       style="fill:none;stroke:#000000;stroke-width:1.76388889;stroke-miterlimit:4;stroke-dasharray:none"
        id="rect1105-6-96"
        width="105.83334"
        height="26.458332"
@@ -172,7 +170,7 @@
        y="158.75" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.2;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;stroke-width:0.264583;fill:#ff00ff;"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.2;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;fill:#3366cc;stroke-width:0.264583"
        x="78.866425"
        y="177.78223"
        id="text1109-5-3"><tspan
@@ -180,49 +178,48 @@
          id="tspan1107-6-856"
          x="78.866425"
          y="177.78223"
-         dx="0"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;stroke-width:0.264583;fill:#ff00ff;">(loc, str)<tspan
-   style="font-size:65%;baseline-shift:sub;fill:#ff00ff;"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;fill:#3366cc;stroke-width:0.264583">loc<tspan
+   style="font-size:65%;baseline-shift:sub;fill:#3366cc"
    id="tspan1281">5</tspan></tspan></text>
     <rect
-       style="fill:none;stroke:#000000;stroke-width:3.05514"
+       style="fill:none;stroke:#000000;stroke-width:1.76388889;stroke-miterlimit:4;stroke-dasharray:none"
        id="rect1105-6-96-5"
        width="105.83335"
        height="52.916668"
        x="26.458317"
        y="238.125" />
     <rect
-       style="fill:none;stroke:#000000;stroke-width:3.05514"
+       style="fill:none;stroke:#000000;stroke-width:1.76388889;stroke-miterlimit:4;stroke-dasharray:none"
        id="rect1105-1"
        width="105.83334"
        height="26.458332"
-       x="185.20831"
-       y="26.458332" />
+       x="190.49998"
+       y="158.75" />
     <rect
-       style="fill:none;stroke:#000000;stroke-width:3.05514"
+       style="fill:none;stroke:#000000;stroke-width:1.76388889;stroke-miterlimit:4;stroke-dasharray:none"
        id="rect1105-6-4"
        width="105.83334"
        height="26.458332"
-       x="185.20831"
-       y="52.91666" />
+       x="190.49998"
+       y="185.20833" />
     <rect
-       style="fill:none;stroke:#000000;stroke-width:3.05514"
+       style="fill:none;stroke:#000000;stroke-width:1.76388889;stroke-miterlimit:4;stroke-dasharray:none"
        id="rect1105-6-9-6"
        width="105.83334"
        height="26.458332"
-       x="185.2083"
-       y="79.375008" />
+       x="190.49997"
+       y="211.66667" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.2;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;stroke-width:0.264583;"
-       x="238.01208"
-       y="100.608"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.2;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;stroke-width:0.264583"
+       x="243.30376"
+       y="232.89967"
        id="text1109-5-4-3"><tspan
          sodipodi:role="line"
          id="tspan1107-6-8-1"
-         x="238.01208"
-         y="100.608"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;stroke-width:0.264583;">7</tspan></text>
+         x="243.30376"
+         y="232.89967"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;stroke-width:0.264583">7</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.2;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;stroke-width:0.264583"
@@ -235,36 +232,36 @@
          y="124.86555"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;stroke-width:0.264583" /></text>
     <rect
-       style="fill:none;stroke:#000000;stroke-width:3.05514"
+       style="fill:none;stroke:#000000;stroke-width:1.76388889;stroke-miterlimit:4;stroke-dasharray:none"
        id="rect1105-6-96-5-5"
        width="105.83335"
        height="52.916668"
-       x="185.2083"
-       y="105.83333" />
+       x="190.49997"
+       y="238.125" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.25;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;stroke-width:0.264583;"
-       x="238.06851"
-       y="47.318794"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.25;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;stroke-width:0.264583"
+       x="243.36018"
+       y="179.61046"
        id="text1401"><tspan
          sodipodi:role="line"
          id="tspan1399"
-         x="238.06851"
-         y="47.318794"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;stroke-width:0.264583;">2</tspan></text>
+         x="243.36018"
+         y="179.61046"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;stroke-width:0.264583">2</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.25;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;stroke-width:0.264583;"
-       x="238.4072"
-       y="73.61908"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.25;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;stroke-width:0.264583"
+       x="243.69887"
+       y="205.91075"
        id="text1401-1"><tspan
          sodipodi:role="line"
          id="tspan1399-8"
-         x="238.4072"
-         y="73.61908"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;stroke-width:0.264583;">5</tspan></text>
+         x="243.69887"
+         y="205.91075"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;stroke-width:0.264583">5</tspan></text>
     <rect
-       style="fill:none;stroke:#000000;stroke-width:3.05514"
+       style="fill:none;stroke:#000000;stroke-width:1.76388889;stroke-miterlimit:4;stroke-dasharray:none"
        id="rect1105-6-96-3"
        width="105.83334"
        height="26.458332"
@@ -272,7 +269,7 @@
        y="185.20833" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.2;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;stroke-width:0.264583;fill:#ff00ff;"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.2;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;fill:#3366cc;stroke-width:0.264583"
        x="78.866432"
        y="204.24055"
        id="text1109-5-3-3"><tspan
@@ -280,12 +277,11 @@
          id="tspan1107-6-856-3"
          x="78.866432"
          y="204.24055"
-         dx="0"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;stroke-width:0.264583;fill:#ff00ff;">(loc, str)<tspan
-   style="font-size:65%;baseline-shift:sub;fill:#ff00ff;"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;fill:#3366cc;stroke-width:0.264583">loc<tspan
+   style="font-size:65%;baseline-shift:sub;fill:#3366cc"
    id="tspan1487">6</tspan></tspan></text>
     <rect
-       style="fill:none;stroke:#000000;stroke-width:3.05514"
+       style="fill:none;stroke:#000000;stroke-width:1.76388889;stroke-miterlimit:4;stroke-dasharray:none"
        id="rect1105-6-96-3-4"
        width="105.83334"
        height="26.458332"
@@ -301,59 +297,58 @@
          id="tspan1107-6-856-3-8"
          x="78.815063"
          y="230.73218"
-         dx="0"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;fill:#000000;stroke-width:0.264583">(loc, str)<tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;fill:#000000;stroke-width:0.264583">loc<tspan
    style="font-size:65%;baseline-shift:sub;fill:#000000"
    id="tspan1521">7</tspan></tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.25;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;fill:#00ff00;stroke-width:0.264583"
-       x="301.44681"
-       y="43.345665"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.25;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;fill:#669900;stroke-width:0.264583"
+       x="327.22198"
+       y="175.63733"
        id="text1525"><tspan
          sodipodi:role="line"
          id="tspan1523"
-         x="301.44681"
-         y="43.345665"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;fill:#00ff00;stroke-width:0.264583">s<tspan
-   style="font-size:65%;baseline-shift:sub;fill:#00ff00"
+         x="327.22198"
+         y="175.63733"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;fill:#669900;stroke-width:0.264583">seed<tspan
+   style="font-size:65%;baseline-shift:sub;fill:#669900"
    id="tspan1527">0</tspan></tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.25;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;fill:#ff0000;stroke-width:0.264583"
-       x="301.44681"
-       y="69.972763"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.25;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;fill:#cc0000;stroke-width:0.264583"
+       x="327.22198"
+       y="202.26443"
        id="text1525-3"><tspan
          sodipodi:role="line"
          id="tspan1523-0"
-         x="301.44681"
-         y="69.972763"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;fill:#ff0000;stroke-width:0.264583">s<tspan
-   style="font-size:65%;baseline-shift:sub;fill:#ff0000"
+         x="327.22198"
+         y="202.26443"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;fill:#cc0000;stroke-width:0.264583">seed<tspan
+   style="font-size:65%;baseline-shift:sub;fill:#cc0000"
    id="tspan1585">1</tspan></tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.25;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;fill:#ff00ff;stroke-width:0.264583"
-       x="301.44678"
-       y="96.431114"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;line-height:1.25;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:center;text-anchor:middle;fill:#3366cc;stroke-width:0.264583"
+       x="327.22198"
+       y="228.72278"
        id="text1525-3-0"><tspan
          sodipodi:role="line"
          id="tspan1523-0-9"
-         x="301.44678"
-         y="96.431114"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;fill:#ff00ff;stroke-width:0.264583">s<tspan
-   style="font-size:65%;baseline-shift:sub"
+         x="327.22198"
+         y="228.72278"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:FreeSans;-inkscape-font-specification:FreeSans;fill:#3366cc;stroke-width:0.264583">seed<tspan
+   style="font-size:65%;baseline-shift:sub;fill:#3366cc"
    id="tspan1617">2</tspan></tspan></text>
     <text
        xml:space="preserve"
        style="font-size:22.5778px;line-height:1.25;font-family:FreeSans;-inkscape-font-specification:'FreeSans, Normal';text-align:center;text-anchor:middle;stroke-width:0.264583"
-       x="237.9669"
-       y="133.46571"
+       x="243.25858"
+       y="265.75739"
        id="text1591"><tspan
          sodipodi:role="line"
          id="tspan1589"
-         x="237.9669"
-         y="133.46571"
+         x="243.25858"
+         y="265.75739"
          style="stroke-width:0.264583">...</tspan></text>
     <text
        xml:space="preserve"
@@ -376,7 +371,7 @@
          id="tspan1902"
          x="79.375"
          y="317.5"
-         style="stroke-width:0.264583">loc_str</tspan></text>
+         style="stroke-width:0.264583">key array</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:22.5778px;line-height:1.25;font-family:FreeSans;-inkscape-font-specification:'FreeSans, Normal';text-align:center;text-anchor:middle;stroke-width:0.264583"
@@ -391,13 +386,13 @@
     <text
        xml:space="preserve"
        style="font-size:22.5778px;line-height:1.25;font-family:FreeSans;-inkscape-font-specification:'FreeSans, Normal';text-align:center;text-anchor:middle;stroke-width:0.264583"
-       x="238.125"
-       y="185.20833"
+       x="243.41667"
+       y="317.5"
        id="text1912"><tspan
          sodipodi:role="line"
          id="tspan1910"
-         x="238.125"
-         y="185.20833"
-         style="stroke-width:0.264583">h</tspan></text>
+         x="243.41667"
+         y="317.5"
+         style="stroke-width:0.264583">map array</tspan></text>
   </g>
 </svg>

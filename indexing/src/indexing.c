@@ -325,7 +325,10 @@ index_MS_t partion_index(const index_t index, const size_t MS_size, const unsign
 	return index_MS;
 }
 
-void index_destroy(const index_t index) {
+void index_MS_destroy(const index_MS_t index) {
 	free(index.map);
+	for (unsigned i = 0; i < index.nb_MS; i++) {
+		free(index.key[i]);
+	}
 	free(index.key);
 }

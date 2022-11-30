@@ -11,6 +11,13 @@
 #define MAX_SEQ_LEN 1 << 30
 //#define ENCODE(c) (c & 0x0f) >> 1
 #define END_OF_READ_BASE 'E'
+#define IDX_MAGIC "ALOHA"
+
+extern unsigned SE_W;
+extern unsigned SE_K;
+extern unsigned IDX_B;
+extern unsigned IDX_MAX_OCC;
+extern unsigned MS_SIZE;
 
 static int fastq_fd;
 static uint8_t *fastq_file_ptr;
@@ -18,7 +25,7 @@ static size_t fastq_file_len;
 static size_t fastq_file_pos;
 static uint8_t *fastq_buf;
 
-void open_fastq(char *file_name) {
+void open_fastq(const char *file_name) {
 	struct stat statbuf;
 	fastq_fd = open(file_name, O_RDONLY);
 	if (fastq_fd == -1) {
@@ -112,4 +119,51 @@ void close_fastq() {
 	munmap(fastq_file_ptr, fastq_file_len);
 	free(fastq_buf);
 	close(fastq_fd);
+}
+
+index_t parse_index(const char *const file_name) {
+	FILE *fp = fopen(file_name, "wb");
+	if (fp == NULL) {
+		err(1, "fopen %s", file_name);
+	}
+	char magic[5];
+	if (fread(magic, sizeof(char), 5, fp) != 5) {
+		errx(1, "parse_index %s", file_name);
+	}
+	if (strncmp(magic, IDX_MAGIC, 5) != 0) {
+		errx(1, "parse_index %s", file_name);
+	}
+
+	unsigned param;
+	// TODO: handle errors
+	FREAD(&param, unsigned, 1, fp);
+	if (SE_W != param) {
+		SE_W = param;
+		fprintf(stderr, "[WARNING] parameter W overriden by the index parameter (%u)\n", SE_W);
+	}
+	FREAD(&param, unsigned, 1, fp);
+	if (SE_K != param) {
+		SE_K = param;
+		fprintf(stderr, "[WARNING] parameter K overriden by the index parameter (%u)\n", SE_K);
+	}
+	FREAD(&param, unsigned, 1, fp);
+	if (IDX_B != param) {
+		IDX_B = param;
+		fprintf(stderr, "[WARNING] parameter B overriden by the index parameter (%u)\n", IDX_B);
+	}
+	FREAD(&param, unsigned, 1, fp);
+	if (IDX_MAX_OCC != param) {
+		IDX_MAX_OCC = param;
+		fprintf(stderr, "[WARNING] parameter IDX_MAX_OCC overriden by the index parameter (%u)\n", IDX_MAX_OCC);
+	}
+	index_t index;
+	FREAD(&index.nb_MS, unsigned, 1, fp);
+	MALLOC(index.map, uint32_t, MS_SIZE >> 2);
+	MALLOC(index.key, uint64_t *, index.nb_MS);
+	FREAD(index.map, uint32_t, MS_SIZE >> 2, fp);
+	for (unsigned i = 0; i < index.nb_MS; i++) {
+		MALLOC(index.key[i], uint64_t, MS_SIZE >> 3);
+		FREAD(index.key[i], uint64_t, MS_SIZE >> 3, fp);
+	}
+	return index;
 }

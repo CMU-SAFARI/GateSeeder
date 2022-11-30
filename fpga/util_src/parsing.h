@@ -22,11 +22,11 @@ typedef struct {
 	uint64_t **key;
 } index_t;
 
-void open_fastq(char *file_name);
+void open_fastq(const char *const file_name);
 void read_buf_init(read_buf_t *const buf, const uint32_t capacity);
 int parse_fastq(read_buf_t *const buf);
-void destroy_fastq();
-void parse_index(FILE *fp, index_t *const index);
+void close_fastq();
+index_t parse_index(const char *const file_name);
 
 #ifdef __cplusplus
 }

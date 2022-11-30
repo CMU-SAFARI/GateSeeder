@@ -13,7 +13,8 @@ OBJS		= $(SRCS:$(SRC_DIR)/%.c=%.o)
 all: $(EXE)
 
 run: $(EXE)
-	./$(EXE) -k 19 -w 152 -b 26 -f 8000 ../res/GCF_000001405.39_GRCh38.p13_genomic.fna /tmp/test
+	#./$(EXE) -k 15 -w 12 -b 26 -f 20000 ../res/GCF_000001405.39_GRCh38.p13_genomic.fna /tmp/full_k12_w15_f20000_b26
+	./$(EXE) -k 19 -w 19 -b 26 -f 500 ../res/GCF_000001405.39_GRCh38.p13_genomic.fna /tmp/full_k19_w19_f500_b26
 	#./$(EXE) -k 18 -w 12 -b 26 -f 1000 ../res/GCF_000001405.39_GRCh38.p13_genomic.fna ../res/full_k18_w12_f1000_b26.bin
 
 $(EXE): $(OBJS)

@@ -6,12 +6,14 @@ set arrow from 9,graph(0,0) to 9,graph(1,1) nohead dt 2 lw 2 front
 hist(x, width) = width*floor(x/width)+width/2.0
 set boxwidth width
 set style fill solid
-set terminal pdf enhanced font 'FreeSans,18'
+set terminal svg enhanced font 'FreeSans,18'
 set grid
 
-set output "counter_p.pdf"
-set xlabel "Number of queried locations belonging to the baseline range"
-set ylabel "Number of occurrences"
+set output "counter_p.svg"
+set xlabel "Adjacency filtering score"
+set ylabel "Frequency"
+set logscale x 4
+set xrange [4: 256]
 plot "counter_p.dat" u (hist($1,width)):(1.0) smooth freq w boxes lc rgb"blue" notitle
 
 set output "counter_s.pdf"

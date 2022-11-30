@@ -36,6 +36,7 @@ void extract_seeds(hls::stream<base_t> &seq_i, hls::stream<seed_t> &p0_o, hls::s
 	ap_uint<READ_LEN_LOG> base_j = 0;
 	base_t c;
 LOOP_extract_seeds:
+	//TODO: set the number of bases
 	for (size_t i = 0; i < MAX_IN_LEN; ++i) {
 		if (base_j == READ_LEN) {
 			l = 0;

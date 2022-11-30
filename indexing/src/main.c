@@ -62,6 +62,6 @@ int main(int argc, char *argv[]) {
 	index_MS_t index_MS = partion_index(index, MS_SIZE, 16);
 	write_index(index_fp, index_MS, target, w, k, b, max_occ, MS_SIZE);
 	target_destroy(target);
-	index_destroy(index);
+	index_MS_destroy(index_MS);
 	return 0;
 }

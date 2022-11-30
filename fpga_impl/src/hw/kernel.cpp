@@ -1,5 +1,6 @@
-#include "kernel.hpp"
 #include "extraction.hpp"
+#include "hls_math.h"
+#include "kernel.hpp"
 #include <stddef.h>
 
 const int f                = F;
@@ -10,16 +11,18 @@ const int aft              = AFT;
 const int max_read_len = MAX_READ_LEN;
 #endif
 
-void kernel(const ap_uint<32> h0_m[H_SIZE], const loc_str_t loc_str0_m[LS_SIZE], const ap_uint<32> h1_m[H_SIZE],
-            const loc_str_t loc_str1_m[LS_SIZE], const base_t seq_i[MAX_IN_LEN], loc_str_t loc_str0_o[MAX_OUT_LEN],
-            loc_str_t loc_str1_o[MAX_OUT_LEN]) {
-#pragma HLS INTERFACE m_axi port = seq_i bundle = seq_i
-#pragma HLS INTERFACE m_axi port = h0_m bundle = h0_m
-#pragma HLS INTERFACE m_axi port = h1_m bundle = h1_m
-#pragma HLS INTERFACE m_axi port = loc_str0_m bundle = loc_str0_m
-#pragma HLS INTERFACE m_axi port = loc_str1_m bundle = loc_str1_m
-#pragma HLS INTERFACE m_axi port = loc_str0_o bundle = loc_str0_o
-#pragma HLS INTERFACE m_axi port = loc_str1_o bundle = loc_str1_o
+void kernel(const uint32_t h0_i[H_SIZE], const uint32_t str_loc0_i[LS_SIZE], const uint32_t h1_i[H_SIZE],
+            const uint32_t str_loc1_i[LS_SIZE], const uint32_t seq_i[MAX_IN_LEN], const uint32_t len_i,
+            uint32_t str_loc0_o[MAX_OUT_LEN], uint32_t str_loc1_o[MAX_OUT_LEN]) {
+	/*
+    #pragma HLS INTERFACE m_axi port = seq_i bundle = seq_i
+    #pragma HLS INTERFACE m_axi port = h0_m bundle = h0_m
+    #pragma HLS INTERFACE m_axi port = h1_m bundle = h1_m
+    #pragma HLS INTERFACE m_axi port = loc_str0_m bundle = loc_str0_m
+    #pragma HLS INTERFACE m_axi port = loc_str1_m bundle = loc_str1_m
+    #pragma HLS INTERFACE m_axi port = loc_str0_o bundle = loc_str0_o
+    #pragma HLS INTERFACE m_axi port = loc_str1_o bundle = loc_str1_o
+    */
 
 #pragma HLS dataflow
 	hls::stream<base_t> seq;
@@ -53,7 +56,7 @@ void kernel(const ap_uint<32> h0_m[H_SIZE], const loc_str_t loc_str0_m[LS_SIZE],
 #pragma HLS STREAM variable = loc_str0_o depth = 10
 #pragma HLS STREAM variable = loc_str1_o depth = 10
 
-	read_seq(seq_i, seq);
+	read_seq(seq_i, len_i, seq);
 
 	extract_seeds(seq, p0, p1);
 
@@ -70,17 +73,12 @@ void kernel(const ap_uint<32> h0_m[H_SIZE], const loc_str_t loc_str0_m[LS_SIZE],
 	write_locations(loc_str1_af, loc_str1_o);
 }
 
-void read_seq(const base_t *seq_i, hls::stream<base_t> &seq_o) {
+void read_seq(const uint32_t *seq_i, uint32_t len_i, hls::stream<base_t> &seq_o) {
 LOOP_read_seq:
-	for (size_t i = 0; i < MAX_IN_LEN; i++) {
+	for (size_t i = 0; i < len_i; i++) {
 #pragma HLS PIPELINE II = 1
 		base_t buf = seq_i[i];
-		seq_o << buf;
-		/*
-		if (buf == END_OF_SEQ_BASE) {
-		        return;
-		}
-		*/
+		seq_o << (buf >>);
 	}
 }
 
@@ -244,47 +242,42 @@ void adjacency_filtering(hls::stream<loc_str_t> &loc_str_i, hls::stream<loc_str_
 #pragma HLS STREAM variable = buf1 depth = aft - 1
 #pragma HLS STREAM variable = buf2 depth = aft - 1
 
-	buf1 << (loc_str_i.read() | 0x01);
-	buf2 << (buf1.read() | 0x11);
-	loc_str_o << buf2.read();
-	/*
 	ap_uint<1> state(0);
 LOOP_adjacency_filtering:
 	for (size_t i = 0; i < location_buffer_size; i++) {
 #pragma HLS PIPELINE II = 1
-	        ap_uint<32> loc_str = loc_str_i[i];
-	        if (loc_str == END_LOCATION) {
-	                locs_o[locs_l] = END_LOCATION;
-	                break;
-	        } else if (loc_str[0]) {
-	                if (c1 == MIN_T_1) {
-	                        if (loc_str.range(31, 1) - buf1[0] < LOC_R) {
-	                                locs_o[locs_l] = (ap_uint<1>(0), buf1[0]);
-	                                locs_l++;
-	                        }
-	                } else {
-	                        c1++;
-	                }
-	                for (size_t j = 0; j < MIN_T_1 - 1; j++) {
-	                        buf1[j] = buf1[j + 1];
-	                }
-	                buf1[MIN_T_1 - 1] = loc_str.range(31, 1);
-	        } else {
-	                if (c2 == MIN_T_1) {
-	                        if (loc_str.range(31, 1) - buf2[0] < LOC_R) {
-	                                locs_o[locs_l] = (ap_uint<1>(0), buf2[0]);
-	                                locs_l++;
-	                        }
-	                } else {
-	                        c2++;
-	                }
-	                for (size_t j = 0; j < MIN_T_1 - 1; j++) {
-	                        buf2[j] = buf2[j + 1];
-	                }
-	                buf2[MIN_T_1 - 1] = loc_str.range(31, 1);
-	        }
+		ap_uint<32> loc_str = loc_str_i[i];
+		if (loc_str == END_LOCATION) {
+			locs_o[locs_l] = END_LOCATION;
+			break;
+		} else if (loc_str[0]) {
+			if (c1 == MIN_T_1) {
+				if (loc_str.range(31, 1) - buf1[0] < LOC_R) {
+					locs_o[locs_l] = (ap_uint<1>(0), buf1[0]);
+					locs_l++;
+				}
+			} else {
+				c1++;
+			}
+			for (size_t j = 0; j < MIN_T_1 - 1; j++) {
+				buf1[j] = buf1[j + 1];
+			}
+			buf1[MIN_T_1 - 1] = loc_str.range(31, 1);
+		} else {
+			if (c2 == MIN_T_1) {
+				if (loc_str.range(31, 1) - buf2[0] < LOC_R) {
+					locs_o[locs_l] = (ap_uint<1>(0), buf2[0]);
+					locs_l++;
+				}
+			} else {
+				c2++;
+			}
+			for (size_t j = 0; j < MIN_T_1 - 1; j++) {
+				buf2[j] = buf2[j + 1];
+			}
+			buf2[MIN_T_1 - 1] = loc_str.range(31, 1);
+		}
 	}
-	*/
 }
 
 void write_locations(hls::stream<loc_str_t> &loc_str_i, loc_str_t *loc_str_o) {

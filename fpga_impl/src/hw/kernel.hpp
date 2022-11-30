@@ -12,6 +12,18 @@
 
 #include <stdint.h>
 
+// NEW //
+
+#define bits_per_base 4
+
+#if bits_per_base == 4
+#define base_per_byte 2
+#elif bits_per_base == 2
+#define base_per_byte 4
+#endif
+
+// OLD //
+
 #define MAX_IN_LEN 1048576  // 1M
 #define MAX_OUT_LEN 1048576 // 1M
 
@@ -49,7 +61,7 @@
 #define LS_SIZE 67108864
 
 #ifdef VARIABLE_LEN
-#define MAX_READ_LEN 1000
+#define MAX_READ_LEN 23000
 #define END_OF_READ 0xf
 #else
 #define READ_LEN 17000
@@ -76,15 +88,16 @@ struct seed_t {
 	ap_uint<B> seed;
 	str_t str;
 	valid_t valid;
+	ap_uint<READ_LEN_LOG> loc;
 	int operator==(seed_t x) { return (this->seed == x.seed && this->str == x.str); }
 	int operator!=(seed_t x) { return (this->seed != x.seed || this->str != x.str); }
 };
 
-void kernel(const ap_uint<32> h0_m[H_SIZE], const loc_str_t loc_str0_m[LS_SIZE], const ap_uint<32> h1_m[H_SIZE],
-            const loc_str_t loc_str1_m[LS_SIZE], const base_t seq_i[MAX_IN_LEN], loc_str_t loc_str0_o[MAX_OUT_LEN],
-            loc_str_t loc_str1_o[MAX_OUT_LEN]);
+void kernel(const uint32_t h0_i[H_SIZE], const uint32_t str_loc0_i[LS_SIZE], const uint32_t h1_i[H_SIZE],
+            const uint32_t str_loc1_i[LS_SIZE], const uint32_t seq_i[MAX_IN_LEN], const uint32_t len_i,
+            uint32_t str_loc0_o[MAX_OUT_LEN], uint32_t str_loc1_o[MAX_OUT_LEN]);
 
-void read_seq(const base_t *seq_i, hls::stream<base_t> &seq_o);
+void read_seq(const uint32_t *seq_i, const uint32_t len_i, hls::stream<base_t> &seq_o);
 
 void get_pos(hls::stream<seed_t> &p_i, const ap_uint<32> *h_m, hls::stream<pos_t> &pos_o);
 

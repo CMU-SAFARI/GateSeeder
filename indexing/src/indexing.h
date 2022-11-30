@@ -7,7 +7,7 @@
 index_t gen_index(const target_t target, const unsigned w, const unsigned k, const unsigned b, const unsigned max_occ);
 void write_index(FILE *fp, const index_MS_t index, const target_t target, const unsigned w, const unsigned k,
                  const unsigned b, const unsigned max_occ, const size_t MS_size);
-void index_destroy(const index_t index);
 index_MS_t partion_index(const index_t index, const size_t MS_size, const unsigned max_nb_MS);
+void index_MS_destroy(const index_MS_t index);
 
 #endif
