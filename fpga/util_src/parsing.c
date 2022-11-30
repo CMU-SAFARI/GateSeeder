@@ -122,7 +122,7 @@ void close_fastq() {
 }
 
 index_t parse_index(const char *const file_name) {
-	FILE *fp = fopen(file_name, "wb");
+	FILE *fp = fopen(file_name, "rb");
 	if (fp == NULL) {
 		err(1, "fopen %s", file_name);
 	}
@@ -165,5 +165,6 @@ index_t parse_index(const char *const file_name) {
 		MALLOC(index.key[i], uint64_t, MS_SIZE >> 3);
 		FREAD(index.key[i], uint64_t, MS_SIZE >> 3, fp);
 	}
+	fprintf(stderr, "[INFO] Number of used MS %u\n", index.nb_MS + 1);
 	return index;
 }
