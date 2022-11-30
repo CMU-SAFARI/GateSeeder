@@ -4,7 +4,7 @@ static const ap_uint<64> MASK = (1 << 2 * SE_K) - 1;
 static const ap_uint<64> MAX  = (1 << 2 * SE_K) - 1;
 
 #define END_OF_READ_BASE 'E'
-#define N_BASE 'E'
+#define N_BASE 'N'
 
 const unsigned window_size = SE_W;
 typedef ap_uint<8> base_t;
@@ -21,12 +21,13 @@ ap_uint<64> hash64(ap_uint<64> key) {
 }
 
 void extract_seeds(const uint8_t *seq_i, const uint32_t nb_bases_i, hls::stream<seed_t> &minimizers_o) {
+#pragma HLS INTERFACE m_axi port = seq_i offset = slave bundle = gmem0 depth = mem_size
 	seed_t previous_minimizer;
 	ap_uint<32> location;
 	ap_uint<32> length = 0;
 	ap_uint<2 * SE_K + 2 * SE_W - 2> window, window_rv;
 
-bases_extraction_loop:
+seed_extraction_loop:
 	for (uint32_t base_n = 0; base_n < nb_bases_i; base_n++) {
 #pragma HLS PIPELINE II = window_size
 		base_t base(seq_i[base_n]);
@@ -38,10 +39,10 @@ bases_extraction_loop:
 
 		if (base == END_OF_READ_BASE) {
 			EOR                = 1;
-			write              = (length > SE_K + SE_W - 2);
+			write              = length > SE_K + SE_W - 2;
 			length             = 0;
 			location           = 0;
-			previous_minimizer = {.hash = MAX, .loc = 0, .str = 0, .EOR = 1};
+			previous_minimizer = {.hash = MAX, .loc = 0, .EOR = 1};
 		} else {
 			location++;
 			if (base == N_BASE) {
@@ -58,7 +59,7 @@ bases_extraction_loop:
 				for (unsigned i = 0; i < SE_W; i++) {
 #pragma HLS UNROLL
 					kmers[i][0] =
-					    window(2 * SE_W - 2 * i + 2 * SE_K - 3, 2 * SE_W - 2 * i - 2) & MAX;
+					    window(2 * SE_W - 2 * i + 2 * SE_K - 3, 2 * SE_W - 2 * i - 2) & MASK;
 					kmers[i][1] = window_rv(2 * SE_K + 2 * i - 1, 2 * i);
 				}
 			hash_loop:
@@ -74,7 +75,6 @@ bases_extraction_loop:
 						base_window[i].EOR  = 0;
 					}
 				}
-
 				// Copy to reduce the interval
 			copy_loop:
 				for (unsigned i = 0; i < SE_W; i++) {
@@ -85,11 +85,9 @@ bases_extraction_loop:
 				// TODO: review
 				ap_uint<2 * SE_K> comp[SE_W / 2 + 1];
 #pragma HLS array_partition type = block variable = comp factor = 4
-
 			comp1_loop:
-				for (unsigned i = 0; i < SE_W / 2; i++) {
+				for (unsigned i = 0; i < SE_W / 2 + SE_W % 2; i++) {
 #pragma HLS UNROLL
-#pragma HLS latency max = 2
 					comp[i] = (base_window_2[i].hash < base_window_2[SE_W - 1 - i].hash)
 					              ? base_window_2[i].hash
 					              : base_window_2[SE_W - 1 - i].hash;
@@ -103,17 +101,15 @@ bases_extraction_loop:
 				}
 
 				// TODO: end review
-
 			find_minimizer_loop:
 				for (unsigned i = 0; i < SE_W; i++) {
 #pragma HLS UNROLL
 					out[i] = (base_window_2[i].hash == comp[SE_W / 2 - 1 + SE_W % 2]) ? 1 : 0;
 				}
 				EOR   = 0;
-				write = (length > SE_K + SE_W - 2);
+				write = 1;
 			}
 		}
-
 		if (write) {
 			if (EOR) {
 				minimizers_o << previous_minimizer;
@@ -121,11 +117,10 @@ bases_extraction_loop:
 				seed_t to_write[SE_W];
 #pragma HLS array_partition type = complete variable = to_write
 			copy_2:
-				for (ap_uint<8> i = 0; i < SE_W; i++) {
+				for (unsigned i = 0; i < SE_W; i++) {
 #pragma HLS UNROLL
 					to_write[i] = base_window_2[i];
 				}
-
 				// TODO: review
 				unsigned i;
 			first_output:
@@ -138,7 +133,7 @@ bases_extraction_loop:
 			output:
 				for (unsigned j = 0; j < SE_W; j++) {
 #pragma HLS PIPELINE II = 1
-					if (out[j] && j >= i) {
+					if (out[j] && j > i - 1) {
 						minimizers_o << to_write[j];
 						previous_minimizer = to_write[j];
 					}
@@ -149,5 +144,4 @@ bases_extraction_loop:
 			write = 0;
 		}
 	}
-	minimizers_o << seed_t{.hash = MAX, .loc = 0, .str = 1, .EOR = 1};
 }
