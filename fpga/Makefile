@@ -18,14 +18,18 @@ UTIL_OBJS		= $(UTIL_SRCS:$(UTIL_SRC_DIR)/%.c=%.o)
 VPATH	= $(SRC_DIR) $(TB_SRC_DIR) $(UTIL_SRC_DIR)
 
 DEPFLAGS	= -MD -MP
-CPPFLAGS	= -I$(HLS_ROOT)/include -I$(UTIL_SRC_DIR)
+CPPFLAGS	= -I$(HLS_ROOT)/include
 CXXFLAGS	= -O3 -g $(DEPFLAGS) -Wall -Wextra
 
 TB			= tb.x
 
 $(TB): $(OBJS) $(TB_OBJS) $(UTIL_OBJS)
 	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
-$(TB): LDLIBS+= -lstdc++
+$(TB): LDLIBS+=-lstdc++
+$(TB_OBJS): CPPFLAGS+=-I$(UTIL_SRC_DIR) -I$(SRC_DIR)
 
 clean:
-	$(RM) *.o
+	$(RM) *.o *.d $(TB)
+
+.PHONY: clean
+-include $(wildcard *.d)

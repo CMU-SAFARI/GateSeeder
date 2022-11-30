@@ -30,7 +30,13 @@ void kernel(const uint32_t nb_bases_i, const uint8_t *seq_i, const uint32_t *map
 	hls::stream<ms_pos_t> ms_pos_1;
 
 	extract_seeds(seq_i, nb_bases_i, seed);
-	query_index_map(seed, map_i, ms_pos_0, ms_pos_1);
+
+	// DEBUG
+	while (!seed.empty()) {
+		seed_t s = seed.read();
+		std::cout << "hash: " << s.hash << " loc: " << s.loc << std::endl;
+	}
+	// query_index_map(seed, map_i, ms_pos_0, ms_pos_1);
 
 	// query_index_key(ms_pos_0,
 

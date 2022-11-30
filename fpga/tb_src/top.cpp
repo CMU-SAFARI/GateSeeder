@@ -1,4 +1,6 @@
+#include "kernel.hpp"
 #include "parsing.h"
+#include "util.h"
 #include <fstream>
 #include <iostream>
 
@@ -19,26 +21,14 @@ int main(int argc, char *argv[]) {
 	read_buf_t read_buf;
 	open_fastq(argv[2]);
 	read_buf_init(&read_buf, 1 << 30);
+
+	uint64_t *results;
+	MALLOC(results, uint64_t, 1 << 30);
+
 	while (parse_fastq(&read_buf) == 0) {
+		kernel(read_buf.len, read_buf.seq, index.map, index.key[0], index.key[1], results);
 	}
-
-	/*
-	for (unsigned i = 0; i < read_buf.len; i++) {
-	        printf("%c", read_buf.seq[i]);
-	}
-	puts("");
-
-	for (unsigned i = 0; i < read_buf.nb_seqs; i++) {
-	        printf("%s\n", read_buf.seq_name[i]);
-	}
-	*/
+	kernel(read_buf.len, read_buf.seq, index.map, index.key[0], index.key[1], results);
 
 	return 0;
-
-	// ifs_idx.open(argv[2], ifstream::in | ifstream::binary);
-	/*
-	vector<out_loc_t> res = drive_sim(ifs_read, ifs_idx);
-	ifs_exp.open(argv[3], ifstream::in);
-	vector<exp_loc_t> exp = parse_data(ifs_exp);
-	*/
 }
