@@ -145,4 +145,5 @@ seed_extraction_loop:
 			write = 0;
 		}
 	}
+	minimizers_o << seed_t{.hash = MAX, .loc = 0, .str = 1, .EOR = 1};
 }

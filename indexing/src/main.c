@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
 	fprintf(stderr, "[INFO] nb_sequences: %u\n", target.nb_sequences);
 	index_t index = gen_index(target, w, k, b, max_occ);
 	fprintf(stderr, "[INFO] map_len: %u (%lu MB), key_len: %u (%lu MB)\n", index.map_len,
-	        index.map_len * sizeof(index.map[0]) >> 20, index.key_len, index.key_len * sizeof(index.key[0]) >> 20);
+	        index.map_len * sizeof(index.map[0]) >> 20, index.key_len, (index.key_len * 8L) >> 20);
 
 #define MS_SIZE 1 << 28
 	index_MS_t index_MS = partion_index(index, MS_SIZE, 16);

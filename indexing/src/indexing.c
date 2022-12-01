@@ -209,9 +209,11 @@ void write_index(FILE *fp, const index_MS_t index, const target_t target, const 
 	}
 }
 
-// MAP
-// |-- MS_ID --|-- BUCKET_ID --|
-//  31        B               0
+// INDEX_MS MAP
+// |-- MS_ID --|-- POSITION IN THE MS --|
+//  31          24                     0
+#define MS_POS_SIZE 25
+#define MS_POS_MASK ((1 << MS_POS_SIZE) - 1))
 
 // KEY
 // loc -> 32 bits  |
@@ -224,8 +226,9 @@ index_MS_t partion_index(const index_t index, const size_t MS_size, const unsign
 		errx(1, "[ERROR] size of the map greater than the size of one memory section");
 	}
 
-	index_MS_t index_MS = {.nb_MS = 0, .map = index.map};
+	index_MS_t index_MS = {.nb_MS = 0};
 	MALLOC(index_MS.key, uint64_t *, max_nb_MS);
+	MALLOC(index_MS.map, uint32_t, index.map_len);
 
 	const size_t MS_SIZE_64 = MS_size >> 3;
 	size_t size_counter     = 0;
@@ -261,12 +264,20 @@ index_MS_t partion_index(const index_t index, const size_t MS_size, const unsign
 				    ((uint64_t)index.key[start + j].seed_id << (LOC_SHIFT + 1));
 			}
 
-			// Update the map array
-			/*
+			// Write the map array
+			// map[start_i - 1] -> first pos for the first seed
+			// map[i - 1] -> (last pos for the last seed) + 1
+
+			// map[start_i] -> (last pos for the first seed) + 1
+			// need to be shifted based on (map[start_i - 1])
+
+			uint32_t base_pos  = (1 << MS_POS_SIZE) * index_MS.nb_MS;
+			uint32_t MS_offset = base_pos - start;
+			// printf("MS_offset: %u\n", MS_offset);
 			for (uint32_t j = start_i; j < i; j++) {
-			        index_MS.map[j] = index_MS.map[j] | (index_MS.nb_MS << b);
+				index_MS.map[j] = index.map[j] + MS_offset;
 			}
-			*/
+
 			index_MS.nb_MS++;
 			if (index_MS.nb_MS == max_nb_MS) {
 				errx(1, "[ERROR] maximum number of MS too small");
@@ -295,12 +306,13 @@ index_MS_t partion_index(const index_t index, const size_t MS_size, const unsign
 		                                  ((uint64_t)index.key[start + j].seed_id << (LOC_SHIFT + 1));
 	}
 
-	// Update the map array
-	/*
+	// Write the map array
+	uint32_t base_pos  = (1 << MS_POS_SIZE) * index_MS.nb_MS;
+	uint32_t MS_offset = base_pos - start;
+	// printf("new_start: %10x\n", start_i);
 	for (uint32_t j = start_i; j < index.map_len; j++) {
-	        index_MS.map[j] = index_MS.map[j] | (index_MS.nb_MS << b);
+		index_MS.map[j] = index.map[j] + MS_offset;
 	}
-	*/
 	index_MS.nb_MS++;
 
 	/*

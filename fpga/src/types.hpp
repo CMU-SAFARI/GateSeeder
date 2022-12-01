@@ -22,8 +22,8 @@ const static unsigned seed_id_size  = seed_id_msb - bucket_id_msb;
 
 // MAP:
 // |--MS ID --|-- MS POS --|
-//  31         21         0
-#define MS_POS_SIZE 22
+//  31         24         0
+#define MS_POS_SIZE 25
 const static unsigned ms_id_size = 32 - MS_POS_SIZE;
 const static unsigned ms_pos_msb = MS_POS_SIZE - 1;
 const static unsigned ms_id_lsb  = MS_POS_SIZE;

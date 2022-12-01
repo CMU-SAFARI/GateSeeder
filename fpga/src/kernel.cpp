@@ -38,8 +38,24 @@ void kernel(const uint32_t nb_bases_i, const uint8_t *seq_i, const uint32_t *map
 		std::cout << "hash: " << std::hex << s.hash << " loc: " << std::dec << s.loc << std::endl;
 	}
 #else
-
 	query_index_map(seed, map_i, ms_pos_0, ms_pos_1);
+
+#ifdef DEBUG_QUERY_INDEX_MAP
+	std::cout << "MS_0:" << std::endl;
+	while (!ms_pos_0.empty()) {
+		ms_pos_t p = ms_pos_0.read();
+		std::cout << "start_pos: " << std::hex << p.start_pos << " end_pos: " << p.end_pos
+		          << " seed_id: " << p.seed_id << std::dec << " query_loc: " << p.query_loc << std::endl;
+	}
+	std::cout << "MS_1:" << std::endl;
+	while (!ms_pos_1.empty()) {
+		ms_pos_t p = ms_pos_1.read();
+		std::cout << "start_pos: " << std::hex << p.start_pos << " end_pos: " << p.end_pos
+		          << " seed_id: " << p.seed_id << std::dec << " query_loc: " << p.query_loc << std::endl;
+	}
+
+#else
+#endif
 #endif
 
 	// query_index_key(ms_pos_0,

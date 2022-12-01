@@ -14,20 +14,28 @@ void query_index_map(hls::stream<seed_t> &seed_i, const uint32_t *map_i, hls::st
 			const ap_uint<32> start = ap_uint<32>((bucket_id == 0) ? 0 : map_i[bucket_id - 1]);
 			const ap_uint<32> end   = ap_uint<32>(map_i[bucket_id]);
 
-			// If locations in the bucket
+			// std::cout << std::hex << "start: " << start << std::endl;
+
+			// If there are some locations
 			if (start != end) {
 
 				// find out in which MS are the locations
-				const ap_uint<ms_id_size> ms_id = start.range(32, ms_id_lsb);
+				const ap_uint<ms_id_size> ms_id_start = start.range(31, ms_id_lsb);
+				const ap_uint<ms_id_size> ms_id       = end.range(31, ms_id_lsb);
 
-				const ms_pos_t ms_pos = ms_pos_t{
-				    .start_pos = start.range(ms_pos_msb, 0),
-				    .end_pos   = end.range(ms_pos_msb, 0),
-				    .seed_id   = seed.hash.range(seed_id_msb, seed_id_lsb),
-				    .query_loc = seed.loc.to_uint(),
-				    .str       = seed.str,
-				    .EOR       = 0,
-				};
+				ms_pos_t ms_pos;
+				ms_pos.end_pos   = end.range(ms_pos_msb, 0);
+				ms_pos.seed_id   = seed.hash.range(seed_id_msb, seed_id_lsb);
+				ms_pos.query_loc = seed.loc.to_uint();
+				ms_pos.str       = seed.str;
+				ms_pos.EOR       = 0;
+
+				// In case we are at the begining of a MS
+				if (ms_id != ms_id_start) {
+					ms_pos.start_pos = 0;
+				} else {
+					ms_pos.start_pos = start.range(ms_pos_msb, 0);
+				}
 
 				switch (ms_id) {
 					case 0:
