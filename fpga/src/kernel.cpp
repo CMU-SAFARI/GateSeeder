@@ -26,17 +26,21 @@ void kernel(const uint32_t nb_bases_i, const uint8_t *seq_i, const uint32_t *map
 #pragma HLS dataflow
 
 	hls::stream<seed_t> seed;
+
 	hls::stream<ms_pos_t> ms_pos_0;
 	hls::stream<ms_pos_t> ms_pos_1;
 
 	extract_seeds(seq_i, nb_bases_i, seed);
 
-	// DEBUG
+#ifdef DEBUG_SEED_EXTRACTION
 	while (!seed.empty()) {
 		seed_t s = seed.read();
-		std::cout << "hash: " << s.hash << " loc: " << s.loc << std::endl;
+		std::cout << "hash: " << std::hex << s.hash << " loc: " << std::dec << s.loc << std::endl;
 	}
-	// query_index_map(seed, map_i, ms_pos_0, ms_pos_1);
+#else
+
+	query_index_map(seed, map_i, ms_pos_0, ms_pos_1);
+#endif
 
 	// query_index_key(ms_pos_0,
 

@@ -23,15 +23,15 @@ ap_uint<64> hash64(ap_uint<64> key) {
 void extract_seeds(const uint8_t *seq_i, const uint32_t nb_bases_i, hls::stream<seed_t> &minimizers_o) {
 #pragma HLS INTERFACE m_axi port = seq_i offset = slave bundle = gmem0 depth = mem_size
 	seed_t previous_minimizer;
-	ap_uint<32> location;
-	ap_uint<32> length = 0;
+	ap_uint<32> location = 0;
+	ap_uint<32> length   = 0;
 	ap_uint<2 * SE_K + 2 * SE_W - 2> window, window_rv;
 
 seed_extraction_loop:
 	for (uint32_t base_n = 0; base_n < nb_bases_i; base_n++) {
 #pragma HLS PIPELINE II = window_size
 		base_t base(seq_i[base_n]);
-		ap_uint<1> write, EOR, out[SE_W];
+		ap_uint<1> write = 0, EOR = 0, out[SE_W];
 		ap_uint<2 * SE_K> kmers[SE_W][2];
 		seed_t base_window[SE_W], base_window_2[SE_W];
 #pragma HLS array_partition type = complete variable = base_window
@@ -39,10 +39,10 @@ seed_extraction_loop:
 
 		if (base == END_OF_READ_BASE) {
 			EOR                = 1;
-			write              = length > SE_K + SE_W - 2;
+			write              = 1;
 			length             = 0;
 			location           = 0;
-			previous_minimizer = {.hash = MAX, .loc = 0, .EOR = 1};
+			previous_minimizer = {.hash = MAX, .loc = 0, .str = 0, .EOR = 1};
 		} else {
 			location++;
 			if (base == N_BASE) {
@@ -50,6 +50,7 @@ seed_extraction_loop:
 			} else {
 				length++;
 				window <<= 2;
+				// Encode
 				window(1, 0) = base(2, 1);
 				window_rv >>= 2;
 				window_rv(2 * SE_W + 2 * SE_K - 3, 2 * SE_W + 2 * SE_K - 4) = (base ^ 0x4)(2, 1);

@@ -28,6 +28,8 @@ $(TB): $(OBJS) $(TB_OBJS) $(UTIL_OBJS)
 $(TB): LDLIBS+=-lstdc++
 $(TB_OBJS): CPPFLAGS+=-I$(UTIL_SRC_DIR) -I$(SRC_DIR)
 
+$(OBJS): CPPFLAGS+=-DDEBUG_SEED_EXTRACTION
+
 clean:
 	$(RM) *.o *.d $(TB)
 
