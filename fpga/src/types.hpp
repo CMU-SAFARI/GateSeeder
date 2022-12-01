@@ -43,6 +43,14 @@ struct loc_t {
 	uint32_t target_loc;
 	uint32_t query_loc;
 	ap_uint<10> chrom_id;
+	ap_uint<1> str;
 	ap_uint<1> EOR;
 };
+
+// KEY
+// loc -> 32 bits  |
+// CH_ID -> 10 bits | 42 bits
+#define LOC_SHIFT 42
+// STR -> 1 bits
+// SEED_ID -> 21 bits
 #endif

@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 void kernel(const uint32_t nb_bases_i, const uint8_t *seq_i, const uint32_t *map_i, const uint64_t *key_0_i,
-            const uint64_t *key_1_i, const uint64_t *out_o) {
+            const uint64_t *key_1_i, uint64_t *buf_0_i, uint64_t *buf_1_i, const uint64_t *out_o) {
 
 #pragma HLS INTERFACE m_axi port = seq_i bundle = gmem0
 #pragma HLS INTERFACE m_axi port = out_o bundle = gmem0
@@ -55,11 +55,9 @@ void kernel(const uint32_t nb_bases_i, const uint8_t *seq_i, const uint32_t *map
 	}
 
 #else
-	query_index_key(ms_pos_0, ms_pos_1, key_0_i, key_1_i, location);
+	query_index_key(ms_pos_0, ms_pos_1, key_0_i, key_1_i, buf_0_i, buf_1_i, location);
 #endif
 #endif
-
-	// query_index_key(ms_pos_0,
 
 	// vote();
 }

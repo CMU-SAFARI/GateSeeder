@@ -53,7 +53,66 @@ void query_index_map(hls::stream<seed_t> &seed_i, const uint32_t *map_i, hls::st
 	ms_pos_1_o << ms_pos_t{.str = 1, .EOR = 1};
 }
 
+ap_uint<1> query_index_key_MS(hls::stream<ms_pos_t> &ms_pos_i, const uint64_t *key_i, uint64_t *buf) {
+	ms_pos_t pos     = ms_pos_i.read();
+	uint32_t buf_len = 0;
+
+	while (pos.EOR != 1) {
+		std::cout << "start_pos: " << std::hex << pos.start_pos << " end_pos: " << pos.end_pos
+		          << " seed_id: " << pos.seed_id << std::dec << " query_loc: " << pos.query_loc << std::endl;
+		// Eliminate the false-positive
+		const uint32_t start_pos = pos.start_pos.to_uint();
+		const uint32_t end_pos   = pos.end_pos.to_uint();
+
+		uint32_t new_start = start_pos;
+
+		for (uint32_t i = start_pos; i < end_pos; i++) {
+			ap_uint<64> key               = ap_uint<64>(key_i[i]);
+			ap_uint<seed_id_size> seed_id = key.range(LOC_SHIFT + seed_id_size, seed_id_size);
+			if (seed_id == pos.seed_id) {
+				break;
+			}
+			new_start++;
+		}
+
+		if (new_start != end_pos) {
+			std::cout << "Some position" << std::endl;
+			// Merge
+			uint32_t buf_j = 0;
+			uint32_t key_j = 0;
+
+			ap_uint<1> key_end = 0;
+			while (key_end == 0 && buf_j < buf_len) {
+				// TODO: both strand
+			}
+		}
+
+		pos = ms_pos_i.read();
+		/*
+		std::cout << "EOR: " << pos.EOR << " start_pos: " << std::hex << pos.start_pos
+		          << " end_pos: " << pos.end_pos << " seed_id: " << pos.seed_id << std::dec
+		          << " query_loc: " << pos.query_loc << std::endl;
+		          */
+	}
+
+	if (pos.str == 1) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
 void query_index_key(hls::stream<ms_pos_t> &ms_pos_0_i, hls::stream<ms_pos_t> &ms_pos_1_i, const uint64_t *key_0_i,
-                     const uint64_t *key_1_i, hls::stream<loc_t> &location_o) {
-	// TODO
+                     const uint64_t *key_1_i, uint64_t *buf_0_i, uint64_t *buf_1_i, hls::stream<loc_t> &location_o) {
+	ap_uint<1> res0 = query_index_key_MS(ms_pos_0_i, key_0_i, buf_0_i);
+	ap_uint<1> res1 = query_index_key_MS(ms_pos_1_i, key_1_i, buf_1_i);
+
+	while (!res0 && !res1) {
+		// merge
+		// TODO: merge both strand
+
+		res0 = query_index_key_MS(ms_pos_0_i, key_0_i, buf_0_i);
+		res1 = query_index_key_MS(ms_pos_1_i, key_1_i, buf_1_i);
+	}
+	location_o << loc_t{.target_loc = 0, .query_loc = 0, .chrom_id = 0, .str = 1, .EOR = 1};
 }

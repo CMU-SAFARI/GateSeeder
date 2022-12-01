@@ -25,10 +25,15 @@ int main(int argc, char *argv[]) {
 	uint64_t *results;
 	MALLOC(results, uint64_t, 1 << 30);
 
+	uint64_t *buf_0_i;
+	MALLOC(buf_0_i, uint64_t, 1 << 25);
+	uint64_t *buf_1_i;
+	MALLOC(buf_1_i, uint64_t, 1 << 25);
+
 	while (parse_fastq(&read_buf) == 0) {
-		kernel(read_buf.len, read_buf.seq, index.map, index.key[0], index.key[1], results);
+		kernel(read_buf.len, read_buf.seq, index.map, index.key[0], index.key[1], buf_0_i, buf_1_i, results);
 	}
-	kernel(read_buf.len, read_buf.seq, index.map, index.key[0], index.key[1], results);
+	kernel(read_buf.len, read_buf.seq, index.map, index.key[0], index.key[1], buf_0_i, buf_1_i, results);
 
 	return 0;
 }
