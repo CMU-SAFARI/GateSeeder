@@ -217,10 +217,10 @@ void write_index(FILE *fp, const index_MS_t index, const target_t target, const 
 
 // KEY
 // loc -> 32 bits  |
-// CH_ID -> 5 bits | 37 bits
-#define LOC_SHIFT 37
+// CH_ID -> 10 bits | 42 bits
+#define LOC_SHIFT 42
 // STR -> 1 bits
-// SEED_ID -> 26 bits
+// SEED_ID -> 21 bits
 index_MS_t partion_index(const index_t index, const size_t MS_size, const unsigned max_nb_MS) {
 	if ((MS_size >> 2) < index.map_len) {
 		errx(1, "[ERROR] size of the map greater than the size of one memory section");

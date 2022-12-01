@@ -38,9 +38,11 @@ struct ms_pos_t {
 	ap_uint<1> EOR;
 };
 
+// limited to 1024 chromosomes
 struct loc_t {
-	uint64_t target;
-	uint32_t query;
+	uint32_t target_loc;
+	uint32_t query_loc;
+	ap_uint<10> chrom_id;
 	ap_uint<1> EOR;
 };
 #endif

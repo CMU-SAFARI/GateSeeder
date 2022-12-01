@@ -19,7 +19,7 @@ typedef struct {
 	uint32_t loc;
 	uint32_t bucket_id;
 	uint32_t seed_id;
-	uint8_t chrom_id;
+	uint16_t chrom_id;
 	unsigned str : 1;
 } keym_t;
 
