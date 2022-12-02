@@ -1,13 +1,11 @@
-CXX	:= g++
 
-HLS_ROOT	?= /opt/xilinx/Vitis_HLS/2022.1
-
-
-SRCS		= $(wildcard *.c)
-OBJS		= $(SRCS:%.c=%.o)
+SRC_DIR		:= src
+SRCS		= $(wildcard $(SRC_DIR)/*.c)
+OBJS		= $(SRCS:$(SRC_DIR)/%.c=%.o)
 
 DEPFLAGS	= -MD -MP
-CXXFLAGS	= -O3 -g $(DEPFLAGS) -Wall -Wextra
+CXXFLAGS	= -O3 -g $(DEPFLAGS) -Wall -Wextra -Werror
+VPATH		=$(SRC_DIR)
 
 GOLD			= gold.x
 
