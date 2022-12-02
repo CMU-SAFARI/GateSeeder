@@ -127,10 +127,11 @@ index_t parse_index(const char *const file_name) {
 		fprintf(stderr, "[WARNING] parameter IDX_MAX_OCC overriden by the index parameter (%u)\n", IDX_MAX_OCC);
 	}
 	index_t index;
-	FREAD(&index.key_len, sizeof(uint32_t), 1, fp);
+	FREAD(&index.key_len, uint32_t, 1, fp);
+	printf("key_len: %u\n", index.key_len);
 	MALLOC(index.map, uint32_t, 1 << IDX_B);
-	MALLOC(index.key, uint64_t, index.map_len);
+	MALLOC(index.key, uint64_t, index.key_len);
 	FREAD(index.map, uint32_t, 1ULL << IDX_B, fp);
-	FREAD(index.key, sizeof(uint64_t), index.key_len, fp);
+	FREAD(index.key, uint64_t, index.key_len, fp);
 	return index;
 }

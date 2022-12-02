@@ -18,6 +18,18 @@ int main(int argc, char *argv[]) {
 		exit(2);
 	}
 	index_t index = parse_index(argv[1]);
+
+	/*
+	//DEBUG
+	printf("MAP\n");
+	uint32_t prev = 0;
+	for (uint32_t i = 0; i < 200; i++) {
+	        if (index.map[i] != prev) {
+	                printf("%x: %x\n", i, index.map[i]);
+	                prev = index.map[i];
+	        }
+	}
+	*/
 	read_buf_t read_buf;
 	open_fastq(argv[2]);
 	read_buf_init(&read_buf, 1 << 30);

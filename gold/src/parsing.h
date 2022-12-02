@@ -21,7 +21,7 @@ typedef struct {
 } read_v;
 
 typedef struct {
-	uint32_t map_len, key_len;
+	uint32_t key_len;
 	uint32_t *map;
 	uint64_t *key;
 } index_t;

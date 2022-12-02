@@ -33,6 +33,17 @@ int main(int argc, char *argv[]) {
 
 	parse_reads(&input);
 
+	/*
+	printf("MAP\n");
+	uint32_t prev = 0;
+	for (uint32_t i = 0; i < 200; i++) {
+	        if (index.map[i] != prev) {
+	                printf("%x: %x\n", i, index.map[i]);
+	                prev = index.map[i];
+	        }
+	}
+	*/
+
 	while (input.nb_reads != 0) {
 		for (unsigned i = 0; i < input.nb_reads; i++) {
 			extract_seeds_mapping(input.reads[i].seq, input.reads[i].len, &minimizers, 0);
@@ -45,9 +56,10 @@ int main(int argc, char *argv[]) {
 
 #ifdef DEBUG_QUERY_INDEX_MAP
 			for (uint32_t j = 0; j < key_pos.len; j++) {
-				printf("start_pos: %x, end_pos: %x\n", key_pos.poss[i].start_pos,
-				       key_pos.poss[i].end_pos);
+				printf("start_pos: %x, end_pos: %x, seed_id: %x, loc: %x\n", key_pos.poss[j].start_pos,
+				       key_pos.poss[j].end_pos, key_pos.poss[j].seed_id, key_pos.poss[j].query_loc);
 			}
+			puts("");
 #endif
 		}
 		parse_reads(&input);

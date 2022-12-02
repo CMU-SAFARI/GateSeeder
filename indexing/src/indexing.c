@@ -184,6 +184,18 @@ index_t gen_index(const target_t target, const unsigned w, const unsigned k, con
 	}
 	index.key_len = key_pos;
 	free(minimizers.keys);
+	/*
+	// DEBUG
+	printf("MAP\n");
+	uint32_t prev = 0;
+	for (uint32_t i = 0; i < index.map_len; i++) {
+	        if (index.map[i] != prev) {
+	                printf("%x: %x\n", i, index.map[i]);
+	                prev = index.map[i];
+	        }
+	}
+	*/
+
 	return index;
 }
 
@@ -321,7 +333,7 @@ index_MS_t partion_index(const index_t index, const size_t MS_size, const unsign
 	uint32_t prev = 0;
 	for (uint32_t i = 0; i < index.map_len; i++) {
 	        if (index_MS.map[i] != prev) {
-	                printf("%x: %u\n", i, index_MS.map[i]);
+	                printf("%x: %x\n", i, index_MS.map[i]);
 	                prev = index_MS.map[i];
 	        }
 	}
@@ -363,6 +375,7 @@ void write_gold_index(FILE *fp, const index_t index, const target_t target, cons
 		         ((uint64_t)index.key[i].seed_id << (LOC_SHIFT + 1));
 	}
 	fwrite(key, sizeof(uint64_t), index.key_len, fp);
+	// printf("key_len: %u\n", index.key_len);
 	fwrite(&target.nb_sequences, sizeof(unsigned), 1, fp);
 	for (unsigned i = 0; i < target.nb_sequences; i++) {
 		uint8_t len = strlen(target.name[i]);

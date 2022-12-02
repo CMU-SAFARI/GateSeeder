@@ -14,7 +14,7 @@ void query_index_map(hls::stream<seed_t> &seed_i, const uint32_t *map_i, hls::st
 			const ap_uint<32> start = ap_uint<32>((bucket_id == 0) ? 0 : map_i[bucket_id - 1]);
 			const ap_uint<32> end   = ap_uint<32>(map_i[bucket_id]);
 
-			// std::cout << std::hex << "start: " << start << std::endl;
+			// std::cout << std::hex << "start: " << start << " end: " << end << std::endl;
 
 			// If there are some locations
 			if (start != end) {

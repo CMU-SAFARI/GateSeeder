@@ -22,6 +22,7 @@ void query_index_map(const seed_v seed_i, const uint32_t *const map_i, pos_v *co
 		const uint32_t end       = map_i[bucket_id];
 
 		if (start != end) {
+			// printf("start: %x, end: %x, bucket_id: %x\n", start, end, bucket_id);
 			const uint32_t seed_id = seed.hash >> IDX_B;
 			pos_t pos              = {.start_pos = start,
 			                          .end_pos   = end,
