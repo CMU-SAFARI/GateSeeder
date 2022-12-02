@@ -15,7 +15,8 @@ int main(int argc, char *argv[]) {
 	unsigned k       = 15;
 	unsigned b       = 26;
 	unsigned max_occ = 500;
-	while ((option = getopt(argc, argv, ":w:k:b:f")) != -1) {
+	int gold         = 0;
+	while ((option = getopt(argc, argv, ":w:k:b:f:g")) != -1) {
 		switch (option) {
 			case 'w':
 				w = strtoul(optarg, NULL, 10);
@@ -28,6 +29,9 @@ int main(int argc, char *argv[]) {
 				break;
 			case 'f':
 				max_occ = strtoul(optarg, NULL, 10);
+				break;
+			case 'g':
+				gold = 1;
 				break;
 			case ':':
 				errx(1, "option '%c' requires a value", optopt);
@@ -58,10 +62,14 @@ int main(int argc, char *argv[]) {
 	fprintf(stderr, "[INFO] map_len: %u (%lu MB), key_len: %u (%lu MB)\n", index.map_len,
 	        index.map_len * sizeof(index.map[0]) >> 20, index.key_len, (index.key_len * 8L) >> 20);
 
+	if (gold) {
+		write_gold_index(index_fp, index, target, w, k, b, max_occ);
+	} else {
 #define MS_SIZE 1 << 28
-	index_MS_t index_MS = partion_index(index, MS_SIZE, 16);
-	write_index(index_fp, index_MS, target, w, k, b, max_occ, MS_SIZE);
+		index_MS_t index_MS = partion_index(index, MS_SIZE, 16);
+		write_index(index_fp, index_MS, target, w, k, b, max_occ, MS_SIZE);
+		index_MS_destroy(index_MS);
+	}
 	target_destroy(target);
-	index_MS_destroy(index_MS);
 	return 0;
 }

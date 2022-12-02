@@ -4,13 +4,15 @@ SRCS		= $(wildcard $(SRC_DIR)/*.c)
 OBJS		= $(SRCS:$(SRC_DIR)/%.c=%.o)
 
 DEPFLAGS	= -MD -MP
-CXXFLAGS	= -O3 -g $(DEPFLAGS) -Wall -Wextra -Werror
+CFLAGS	= -O3 -g $(DEPFLAGS) -Wall -Wextra -Werror
 VPATH		=$(SRC_DIR)
 
 GOLD			= gold.x
 
 $(GOLD): $(OBJS)
 	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
+
+$(OBJS): CPPFLAGS=-DDEBUG_QUERY_INDEX_MAP
 
 clean:
 	$(RM) *.o *.d $(GOLD)

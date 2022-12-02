@@ -344,3 +344,31 @@ void index_MS_destroy(const index_MS_t index) {
 	}
 	free(index.key);
 }
+
+void write_gold_index(FILE *fp, const index_t index, const target_t target, const unsigned w, const unsigned k,
+                      const unsigned b, const unsigned max_occ) {
+	fwrite(IDX_MAGIC, sizeof(char), 5, fp);
+	fwrite(&w, sizeof(unsigned), 1, fp);
+	fwrite(&k, sizeof(unsigned), 1, fp);
+	fwrite(&b, sizeof(unsigned), 1, fp);
+	fwrite(&max_occ, sizeof(unsigned), 1, fp);
+	fwrite(&index.key_len, sizeof(uint32_t), 1, fp);
+	fwrite(index.map, sizeof(uint32_t), 1 << b, fp);
+	// Write the key array
+	uint64_t *key;
+	MALLOC(key, uint64_t, index.key_len);
+	for (unsigned i = 0; i < index.key_len; i++) {
+		key[i] = index.key[i].loc | ((uint64_t)index.key[i].chrom_id << 32) |
+		         ((uint64_t)index.key[i].str << LOC_SHIFT) |
+		         ((uint64_t)index.key[i].seed_id << (LOC_SHIFT + 1));
+	}
+	fwrite(key, sizeof(uint64_t), index.key_len, fp);
+	fwrite(&target.nb_sequences, sizeof(unsigned), 1, fp);
+	for (unsigned i = 0; i < target.nb_sequences; i++) {
+		uint8_t len = strlen(target.name[i]);
+		fwrite(&len, sizeof(uint8_t), 1, fp);
+		fwrite(target.name[i], sizeof(char), len, fp);
+		fwrite(&target.len[i], sizeof(uint32_t), 1, fp);
+		fwrite(target.seq[i], sizeof(uint8_t), target.len[i], fp);
+	}
+}

@@ -1,4 +1,4 @@
 #!/bin/bash
 
 make
-./gold.x ../test/dummy.fastq 1 2
+./gold.x ../indexing/index_gold.ali ../test/dummy.fastq 1
