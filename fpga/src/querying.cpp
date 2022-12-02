@@ -67,8 +67,8 @@ ap_uint<1> query_index_key_MS(hls::stream<ms_pos_t> &ms_pos_i, const uint64_t *k
 		uint32_t new_start = start_pos;
 
 		for (uint32_t i = start_pos; i < end_pos; i++) {
-			ap_uint<64> key               = ap_uint<64>(key_i[i]);
-			ap_uint<seed_id_size> seed_id = key.range(LOC_SHIFT + seed_id_size, seed_id_size);
+			const ap_uint<64> key               = ap_uint<64>(key_i[i]);
+			const ap_uint<seed_id_size> seed_id = key.range(LOC_SHIFT + seed_id_size, seed_id_size);
 			if (seed_id == pos.seed_id) {
 				break;
 			}
