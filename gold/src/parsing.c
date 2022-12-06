@@ -128,7 +128,7 @@ index_t parse_index(const char *const file_name) {
 	}
 	index_t index;
 	FREAD(&index.key_len, uint32_t, 1, fp);
-	printf("key_len: %u\n", index.key_len);
+	// printf("key_len: %u\n", index.key_len);
 	MALLOC(index.map, uint32_t, 1 << IDX_B);
 	MALLOC(index.key, uint64_t, index.key_len);
 	FREAD(index.map, uint32_t, 1ULL << IDX_B, fp);

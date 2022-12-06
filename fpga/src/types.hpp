@@ -39,12 +39,24 @@ struct ms_pos_t {
 };
 
 // limited to 1024 chromosomes
+// Query loc limited to 2097152
+// Target loc limited to 1073741824
+// Number of chromosomes limited to 1024
+// Total: 64 bits
+
+#define MS_LOC_SIZE 25
 struct loc_t {
-	uint32_t target_loc;
-	uint32_t query_loc;
+	ap_uint<30> target_loc;
+	ap_uint<21> query_loc;
 	ap_uint<10> chrom_id;
 	ap_uint<1> str;
 	ap_uint<1> EOR;
+};
+
+struct buf_metadata_t {
+	uint32_t pos;
+	uint32_t len;
+	ap_uint<1> EOS;
 };
 
 // KEY
