@@ -144,12 +144,13 @@ void query_index_key(const pos_v pos_i, const uint64_t *key_i, loc_v *const loca
 						if (key_j == end_pos) {
 							merge = 0;
 						} else {
-							const uint64_t key = key_i[key_j];
-							loc_key            = extract_key_loc(key, query_str, query_loc);
+							const uint64_t key     = key_i[key_j];
 							const uint32_t seed_id = key >> IDX_B;
 							// printf("key_j: %u\n", key_j);
 							if (seed_id != pos.seed_id) {
 								merge = 0;
+							} else {
+								loc_key = extract_key_loc(key, query_str, query_loc);
 							}
 						}
 					} else {
@@ -183,11 +184,12 @@ void query_index_key(const pos_v pos_i, const uint64_t *key_i, loc_v *const loca
 						if (key_j == end_pos) {
 							copy = 0;
 						} else {
-							const uint64_t key = key_i[key_j];
-							loc_key            = extract_key_loc(key, query_str, query_loc);
+							const uint64_t key     = key_i[key_j];
 							const uint32_t seed_id = key >> IDX_B;
 							if (seed_id != pos.seed_id) {
 								copy = 0;
+							} else {
+								loc_key = extract_key_loc(key, query_str, query_loc);
 							}
 						}
 					}
@@ -207,10 +209,11 @@ void query_index_key(const pos_v pos_i, const uint64_t *key_i, loc_v *const loca
 						copy = 0;
 					} else {
 						const uint64_t key     = key_i[key_j];
-						loc_key                = extract_key_loc(key, query_str, pos.query_loc);
 						const uint32_t seed_id = key >> IDX_B;
 						if (seed_id != pos.seed_id) {
 							copy = 0;
+						} else {
+							loc_key = extract_key_loc(key, query_str, pos.query_loc);
 						}
 					}
 				}
