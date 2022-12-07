@@ -31,7 +31,7 @@ seed_extraction_loop:
 	for (uint32_t base_n = 0; base_n < nb_bases_i; base_n++) {
 #pragma HLS PIPELINE II = window_size
 		base_t base(seq_i[base_n]);
-		ap_uint<1> write = 0, EOR = 0, out[SE_W];
+		ap_uint<1> EOR = 0, out[SE_W];
 		ap_uint<2 * SE_K> kmers[SE_W][2];
 		seed_t base_window[SE_W], base_window_2[SE_W];
 #pragma HLS array_partition type = complete variable = base_window
@@ -39,7 +39,6 @@ seed_extraction_loop:
 
 		if (base == END_OF_READ_BASE) {
 			EOR                = 1;
-			write              = 1;
 			length             = 0;
 			location           = 0;
 			previous_minimizer = {.hash = MAX, .loc = 0, .str = 0, .EOR = 1};
@@ -55,79 +54,68 @@ seed_extraction_loop:
 				window_rv >>= 2;
 				window_rv(2 * SE_W + 2 * SE_K - 3, 2 * SE_W + 2 * SE_K - 4) = (base ^ 0x4)(2, 1);
 			}
-			if (length > SE_K + SE_W - 2) {
-			kmer_gen_loop:
-				for (unsigned i = 0; i < SE_W; i++) {
+		kmer_gen_loop:
+			for (unsigned i = 0; i < SE_W; i++) {
 #pragma HLS UNROLL
-					kmers[i][0] =
-					    window(2 * SE_W - 2 * i + 2 * SE_K - 3, 2 * SE_W - 2 * i - 2) & MASK;
-					kmers[i][1] = window_rv(2 * SE_K + 2 * i - 1, 2 * i);
-				}
-			hash_loop:
-				for (unsigned i = 0; i < SE_W; i++) {
-#pragma HLS UNROLL
-					if (kmers[i][0] == kmers[i][1]) {
-						base_window[i].hash = MAX;
-					} else {
-						ap_uint<1> z        = kmers[i][0] > kmers[i][1];
-						base_window[i].hash = hash64(kmers[i][z]);
-						base_window[i].str  = z;
-						base_window[i].loc  = location + i - SE_W;
-						base_window[i].EOR  = 0;
-					}
-				}
-				// Copy to reduce the interval
-			copy_loop:
-				for (unsigned i = 0; i < SE_W; i++) {
-#pragma HLS UNROLL
-					base_window_2[i] = base_window[i];
-				}
-
-				// TODO: review
-				ap_uint<2 * SE_K> comp[SE_W / 2 + 1];
-#pragma HLS array_partition type = block variable = comp factor = 4
-			comp1_loop:
-				for (unsigned i = 0; i < SE_W / 2 + SE_W % 2; i++) {
-#pragma HLS UNROLL
-					comp[i] = (base_window_2[i].hash < base_window_2[SE_W - 1 - i].hash)
-					              ? base_window_2[i].hash
-					              : base_window_2[SE_W - 1 - i].hash;
-				}
-
-			comp2_loop:
-				for (unsigned i = 0; i < SE_W / 2 - 1 + SE_W % 2; i++) {
-					comp[SE_W / 2 - 1 + SE_W % 2] = (comp[SE_W / 2 - 1 + SE_W % 2] < comp[i])
-					                                    ? comp[SE_W / 2 - 1 + SE_W % 2]
-					                                    : comp[i];
-				}
-
-				// TODO: end review
-			find_minimizer_loop:
-				for (unsigned i = 0; i < SE_W; i++) {
-#pragma HLS UNROLL
-					out[i] = (base_window_2[i].hash == comp[SE_W / 2 - 1 + SE_W % 2]) ? 1 : 0;
-				}
-				EOR   = 0;
-				write = 1;
+				kmers[i][0] = window(2 * SE_W - 2 * i + 2 * SE_K - 3, 2 * SE_W - 2 * i - 2) & MASK;
+				kmers[i][1] = window_rv(2 * SE_K + 2 * i - 1, 2 * i);
 			}
+		hash_loop:
+			for (unsigned i = 0; i < SE_W; i++) {
+#pragma HLS UNROLL
+				if (kmers[i][0] == kmers[i][1]) {
+					base_window[i].hash = MAX;
+				} else {
+					ap_uint<1> z        = kmers[i][0] > kmers[i][1];
+					base_window[i].hash = hash64(kmers[i][z]);
+					base_window[i].str  = z;
+					base_window[i].loc  = location + i - SE_W;
+					base_window[i].EOR  = 0;
+				}
+			}
+			// Copy to reduce the interval
+		copy_loop:
+			for (unsigned i = 0; i < SE_W; i++) {
+#pragma HLS UNROLL
+				base_window_2[i] = base_window[i];
+			}
+
+			// TODO: review
+			ap_uint<2 * SE_K> comp[SE_W / 2 + 1];
+#pragma HLS array_partition type = block variable = comp factor = 4
+		comp1_loop:
+			for (unsigned i = 0; i < SE_W / 2 + SE_W % 2; i++) {
+#pragma HLS UNROLL
+				comp[i] = (base_window_2[i].hash < base_window_2[SE_W - 1 - i].hash)
+				              ? base_window_2[i].hash
+				              : base_window_2[SE_W - 1 - i].hash;
+			}
+
+		comp2_loop:
+			for (unsigned i = 0; i < SE_W / 2 - 1 + SE_W % 2; i++) {
+				comp[SE_W / 2 - 1 + SE_W % 2] =
+				    (comp[SE_W / 2 - 1 + SE_W % 2] < comp[i]) ? comp[SE_W / 2 - 1 + SE_W % 2] : comp[i];
+			}
+
+			// TODO: end review
+		find_minimizer_loop:
+			for (unsigned i = 0; i < SE_W; i++) {
+#pragma HLS UNROLL
+				out[i] = (base_window_2[i].hash == comp[SE_W / 2 - 1 + SE_W % 2]) ? 1 : 0;
+			}
+			EOR = 0;
 		}
-		if (write) {
+
+		if (length > SE_K + SE_W - 2 || EOR) {
 			if (EOR) {
 				minimizers_o << previous_minimizer;
 			} else {
-				seed_t to_write[SE_W];
-#pragma HLS array_partition type = complete variable = to_write
-			copy_2:
-				for (unsigned i = 0; i < SE_W; i++) {
-#pragma HLS UNROLL
-					to_write[i] = base_window_2[i];
-				}
 				// TODO: review
 				unsigned i;
 			first_output:
 				for (i = 0; i < SE_W; i++) {
 #pragma HLS PIPELINE II = 1
-					if (out[i] && to_write[i].loc > previous_minimizer.loc) {
+					if (out[i] && base_window_2[i].loc > previous_minimizer.loc) {
 						break;
 					}
 				}
@@ -135,14 +123,13 @@ seed_extraction_loop:
 				for (unsigned j = 0; j < SE_W; j++) {
 #pragma HLS PIPELINE II = 1
 					if (out[j] && j > i - 1) {
-						minimizers_o << to_write[j];
-						previous_minimizer = to_write[j];
+						minimizers_o << base_window_2[j];
+						previous_minimizer = base_window_2[j];
 					}
 				}
 			}
 			// TODO: end review
-			EOR   = 0;
-			write = 0;
+			EOR = 0;
 		}
 	}
 	minimizers_o << seed_t{.hash = MAX, .loc = 0, .str = 1, .EOR = 1};
