@@ -78,31 +78,34 @@ void query_index_key(const pos_v pos_i, const uint64_t *key_i, loc_v *const loca
 		const uint32_t end_pos   = pos.end_pos;
 		const uint32_t query_loc = pos.query_loc;
 		const unsigned query_str = pos.str;
+		printf("start_pos: %x end_pod: %x seed_id: %x query_loc %x\n", start_pos, end_pos, pos.seed_id,
+		       query_loc);
 
 		uint32_t new_start = start_pos;
 		for (uint32_t j = start_pos; j < end_pos; j++) {
 			const uint64_t key     = key_i[j];
-			const uint32_t seed_id = key >> IDX_B;
+			const uint32_t seed_id = key >> (LOC_SHIFT + 1);
+			printf("key: %lx seed_id: %x\n", key, seed_id);
 			if (seed_id == pos.seed_id) {
 				break;
 			}
 			new_start++;
 		}
 
-		/*
 		// DEBUG
 		unsigned nb_values = 0;
 		for (unsigned j = new_start; j < end_pos; j++) {
-		        const uint64_t key = key_i[j];
-		        uint32_t seed_id   = key >> IDX_B;
-		        if (seed_id == pos.seed_id) {
-		                nb_values++;
-		        } else {
-		                break;
-		        }
+			const uint64_t key = key_i[j];
+			uint32_t seed_id   = key >> (LOC_SHIFT + 1);
+			printf("key: %lx seed_id: %x\n", key, seed_id);
+			if (seed_id == pos.seed_id) {
+				nb_values++;
+			} else {
+				break;
+			}
 		}
-		counter += nb_values;
-		*/
+		printf("Counter: %u\n", nb_values);
+		// counter += nb_values;
 
 		// printf("new_start: %x, end_pos: %x\n", new_start, end_pos);
 		if (new_start != end_pos) {
@@ -145,7 +148,7 @@ void query_index_key(const pos_v pos_i, const uint64_t *key_i, loc_v *const loca
 							merge = 0;
 						} else {
 							const uint64_t key     = key_i[key_j];
-							const uint32_t seed_id = key >> IDX_B;
+							const uint32_t seed_id = key >> (LOC_SHIFT + 1);
 							// printf("key_j: %u\n", key_j);
 							if (seed_id != pos.seed_id) {
 								merge = 0;
@@ -185,7 +188,7 @@ void query_index_key(const pos_v pos_i, const uint64_t *key_i, loc_v *const loca
 							copy = 0;
 						} else {
 							const uint64_t key     = key_i[key_j];
-							const uint32_t seed_id = key >> IDX_B;
+							const uint32_t seed_id = key >> (LOC_SHIFT + 1);
 							if (seed_id != pos.seed_id) {
 								copy = 0;
 							} else {

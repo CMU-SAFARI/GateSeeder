@@ -56,6 +56,8 @@ void kernel(const uint32_t nb_bases_i, const uint8_t *seq_i, const uint32_t *map
 
 #else
 	query_index_key(ms_pos_0, ms_pos_1, key_0_i, key_1_i, buf_0_i, buf_1_i, location);
+#ifdef DEBUG_QUERY_INDEX_KEY
+#endif
 #endif
 #endif
 

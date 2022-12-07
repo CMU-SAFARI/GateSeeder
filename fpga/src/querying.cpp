@@ -104,11 +104,8 @@ buf_metadata_t query_index_key_MS(hls::stream<ms_pos_t> &ms_pos_i, const uint64_
 	buf_metadata_t metadata{.pos = 0, .len = 0, .EOS = 0};
 
 	while (pos.EOR != 1) {
-		/*
 		std::cout << "start_pos: " << std::hex << pos.start_pos << " end_pos: " << pos.end_pos
-		          << " seed_id: " << pos.seed_id << std::dec << " query_loc: " << pos.query_loc <<
-		std::endl;
-		          */
+		          << " seed_id: " << pos.seed_id << " query_loc: " << pos.query_loc << std::endl;
 		// Eliminate the false-positive
 		const uint32_t start_pos   = pos.start_pos.to_uint();
 		const uint32_t end_pos     = pos.end_pos.to_uint();
@@ -117,18 +114,31 @@ buf_metadata_t query_index_key_MS(hls::stream<ms_pos_t> &ms_pos_i, const uint64_
 
 		uint32_t new_start = start_pos;
 		ap_uint<1> found   = 0;
+		// TODO: if sorted by seed_id we don't need to itterate until the end
 		while (found == 0 && new_start != end_pos) {
 			const ap_uint<64> key               = ap_uint<64>(key_i[new_start]);
-			const ap_uint<seed_id_size> seed_id = key.range(LOC_SHIFT + seed_id_size, seed_id_size);
+			const ap_uint<seed_id_size> seed_id = key.range(LOC_SHIFT + 1 + seed_id_size, LOC_SHIFT + 1);
+			std::cout << "key: " << std::hex << key << " seed_id: " << seed_id << std::endl;
 			if (seed_id == pos.seed_id) {
 				found = 1;
 			}
 			new_start++;
 		}
+		// DEBUG
+		unsigned counter = 0;
+		for (unsigned i = new_start; i < end_pos; i++) {
+			const ap_uint<64> key               = ap_uint<64>(key_i[new_start]);
+			const ap_uint<seed_id_size> seed_id = key.range(LOC_SHIFT + 1 + seed_id_size, LOC_SHIFT + 1);
+			std::cout << "key: " << std::hex << key << " seed_id: " << seed_id << std::endl;
+			if (seed_id != pos.seed_id) {
+				break;
+			}
+			counter++;
+		}
+		std::cout << "Counter: " << counter << std::endl;
 
 		// If there are seed hits
 		if (new_start != end_pos) {
-			// std::cout << "Some position" << std::endl;
 
 			uint32_t buf_o_j = (metadata.pos + metadata.len) % MS_LOC_SIZE;
 
@@ -222,8 +232,9 @@ void query_index_key(hls::stream<ms_pos_t> &ms_pos_0_i, hls::stream<ms_pos_t> &m
 	while (!metadata0.EOS && !metadata1.EOS) {
 		// merge
 		metadata0 = query_index_key_MS(ms_pos_0_i, key_0_i, buf_0_i);
-		std::cout << metadata0.len << std::endl;
+		std::cout << "MS0: " << metadata0.len << std::endl;
 		metadata1 = query_index_key_MS(ms_pos_1_i, key_1_i, buf_1_i);
+		std::cout << "MS1: " << metadata1.len << std::endl;
 	}
 	location_o << loc_t{.target_loc = 0, .query_loc = 0, .chrom_id = 0, .str = 1, .EOR = 1};
 }
