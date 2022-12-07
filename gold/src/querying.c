@@ -138,11 +138,14 @@ void query_index_key(const pos_v pos_i, const uint64_t *key_i, loc_v *const loca
 					}
 
 					if (sel_key) {
+						// Copy loc_key
 						buf_o->locs[buf_o->len] = loc_key;
 						print_loc(loc_key);
+						// Check if we are not at the end
 						if (key_j == end_pos) {
 							merge = 0;
 						} else {
+							// Check if we have the good seed_id
 							const uint64_t key = key_i[key_j];
 							key_j++;
 
@@ -177,8 +180,10 @@ void query_index_key(const pos_v pos_i, const uint64_t *key_i, loc_v *const loca
 					}
 				} else {
 					// puts("TESTT");
+					// Copy
 					buf_o->locs[buf_o->len] = loc_key;
 					buf_o->len++;
+					// First check
 					int copy = key_j < end_pos;
 
 					while (copy) {
@@ -187,6 +192,7 @@ void query_index_key(const pos_v pos_i, const uint64_t *key_i, loc_v *const loca
 						key_j++;
 						const uint32_t seed_id = key >> (LOC_SHIFT + 1);
 
+						// Second check
 						if (seed_id == pos.seed_id) {
 							loc_key = extract_key_loc(key, query_str, pos.query_loc);
 

@@ -83,14 +83,17 @@ inline loc_t uint64_to_loc(uint64_t loc_i) {
 void copy_key_value(const uint64_t *key_i, loc_t &loc_key, ap_uint<1> &enable, uint64_t *buf_o, const uint32_t buf_j,
                     uint32_t &key_j, const uint32_t end_pos, const uint64_t key_i_i, const ap_uint<1> query_str_i,
                     const uint32_t query_loc_i, const ap_uint<seed_id_size> seed_id_i) {
+	// Copy loc into the buffer
 	buf_o[buf_j] = loc_to_uint64(loc_key);
-	key_j++;
+	// Check that we are not at the end
 	if (key_j == end_pos) {
 		enable = 0;
 	} else {
-		const uint64_t key                  = key_i[key_j];
+		// Check if we have the good seed_id
+		const uint64_t key = key_i[key_j];
+		key_j++;
 		const ap_uint<64> key_uint          = ap_uint<64>(key);
-		const ap_uint<seed_id_size> seed_id = key_uint.range(LOC_SHIFT + seed_id_size, seed_id_size);
+		const ap_uint<seed_id_size> seed_id = key_uint.range(LOC_SHIFT + 1 + seed_id_size, LOC_SHIFT + 1);
 		if (seed_id != seed_id_i) {
 			enable = 0;
 		} else {
@@ -160,9 +163,8 @@ buf_metadata_t query_index_key_MS(hls::stream<ms_pos_t> &ms_pos_i, const uint64_
 
 		// If there are seed hits
 		if (found) {
-			uint32_t buf_o_j = (metadata.pos + metadata.len) % MS_LOC_SIZE;
-
-			loc_t loc_key = extract_key_loc(key, query_str, query_loc);
+			uint32_t buf_o_j = (metadata.pos + metadata.len) % ms_buf_size;
+			loc_t loc_key    = extract_key_loc(key, query_str, query_loc);
 
 			// First case: need to merge
 			if (metadata.len != 0) {
@@ -173,12 +175,13 @@ buf_metadata_t query_index_key_MS(hls::stream<ms_pos_t> &ms_pos_i, const uint64_
 				ap_uint<1> merge = 1;
 				while (merge) {
 					// First compare the str, then the chrom_id, then the target_loc
-					ap_uint<41> cmp_key = (loc_key.str, loc_key.chrom_id, loc_key.target_loc);
-					ap_uint<41> cmp_buf = (loc_buf.str, loc_buf.chrom_id, loc_buf.target_loc);
+					ap_uint<40> cmp_key = (loc_key.chrom_id, loc_key.target_loc);
+					ap_uint<40> cmp_buf = (loc_buf.chrom_id, loc_buf.target_loc);
 					// write the buf value
 					if (cmp_buf <= cmp_key) {
+						// std::cout << "Write buf_value" << std::endl;
 						buf[buf_o_j] = loc_to_uint64(loc_buf);
-						buf_i_j      = (buf_i_j + 1) % MS_LOC_SIZE;
+						buf_i_j      = (buf_i_j + 1) % ms_buf_size;
 						if (buf_i_j == buf_i_end) {
 							merge = 0;
 						} else {
@@ -187,26 +190,40 @@ buf_metadata_t query_index_key_MS(hls::stream<ms_pos_t> &ms_pos_i, const uint64_
 					}
 					// write the key value
 					else {
+						// std::cout << "Write key_value" << std::endl;
 						copy_key_value(key_i, loc_key, merge, buf, buf_o_j, key_j, end_pos, key,
 						               query_str, query_loc, pos.seed_id);
 					}
-					buf_o_j = (buf_o_j + 1) % MS_LOC_SIZE;
+					buf_o_j = (buf_o_j + 1) % ms_buf_size;
 				}
+				/*
+				// DEBUG
+				const uint32_t new_pos = (metadata.pos + metadata.len) % ms_buf_size;
+				const uint32_t new_len =
+				    (buf_o_j < new_pos) ? ms_buf_size + buf_o_j - new_pos : buf_o_j - new_pos;
+				std::cout << "intermediate_len " << new_len << std::endl;
+				*/
 
 				// Copy the last values
 				if (buf_i_j != buf_i_end) {
 					while (buf_i_j != buf_i_end) {
 						buf[buf_o_j] = buf[buf_i_j];
-						buf_i_j      = (buf_i_j + 1) % MS_LOC_SIZE;
-						buf_o_j      = (buf_o_j + 1) % MS_LOC_SIZE;
+						buf_i_j      = (buf_i_j + 1) % ms_buf_size;
+						buf_o_j      = (buf_o_j + 1) % ms_buf_size;
+						/*
+						const uint32_t new_pos = (metadata.pos + metadata.len) % ms_buf_size;
+						const uint32_t new_len = (buf_o_j < new_pos)
+						                             ? ms_buf_size + buf_o_j - new_pos
+						                             : buf_o_j - new_pos;
+						std::cout << "intermediate_len " << new_len << std::endl;
+						*/
 					}
 				} else {
 					ap_uint<1> copy = 1;
 					while (copy) {
-
 						copy_key_value(key_i, loc_key, copy, buf, buf_o_j, key_j, end_pos, key,
 						               query_str, query_loc, pos.seed_id);
-						buf_o_j = (buf_o_j + 1) % MS_LOC_SIZE;
+						buf_o_j = (buf_o_j + 1) % ms_buf_size;
 					}
 				}
 			}
@@ -217,14 +234,15 @@ buf_metadata_t query_index_key_MS(hls::stream<ms_pos_t> &ms_pos_i, const uint64_
 				while (copy) {
 					copy_key_value(key_i, loc_key, copy, buf, buf_o_j, key_j, end_pos, key,
 					               query_str, query_loc, pos.seed_id);
-					buf_o_j = (buf_o_j + 1) % MS_LOC_SIZE;
+					buf_o_j = (buf_o_j + 1) % ms_buf_size;
 				}
 			}
 
 			// Update buffer metadata
+			const uint32_t new_pos = (metadata.pos + metadata.len) % ms_buf_size;
 			const uint32_t new_len =
-			    (buf_o_j < metadata.pos) ? MS_LOC_SIZE + buf_o_j - metadata.pos : buf_o_j - metadata.pos;
-			metadata.pos = (metadata.pos + metadata.len) % MS_LOC_SIZE;
+			    (buf_o_j < new_pos) ? ms_buf_size + buf_o_j - new_pos : buf_o_j - new_pos;
+			metadata.pos = new_pos;
 			metadata.len = new_len;
 
 			std::cout << std::dec << "out_len :" << metadata.len << std::endl;

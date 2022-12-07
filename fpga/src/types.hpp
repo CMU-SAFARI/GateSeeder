@@ -45,6 +45,7 @@ struct ms_pos_t {
 // Total: 64 bits
 
 #define MS_LOC_SIZE 25
+const static unsigned ms_buf_size = 1 << 25;
 struct loc_t {
 	ap_uint<30> target_loc;
 	ap_uint<21> query_loc;
