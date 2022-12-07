@@ -134,30 +134,29 @@ buf_metadata_t query_index_key_MS(hls::stream<ms_pos_t> &ms_pos_i, const uint64_
 			}
 		}
 
-		/*
 		// DEBUG
 		if (found) {
-		        unsigned counter              = 1;
-		        uint32_t debug_j              = key_j;
-		        const ap_uint<64> uint_key    = ap_uint<64>(key);
-		        ap_uint<seed_id_size> seed_id = uint_key.range(LOC_SHIFT + 1 + seed_id_size, LOC_SHIFT + 1);
+			unsigned counter              = 1;
+			uint32_t debug_j              = key_j;
+			const ap_uint<64> uint_key    = ap_uint<64>(key);
+			ap_uint<seed_id_size> seed_id = uint_key.range(LOC_SHIFT + 1 + seed_id_size, LOC_SHIFT + 1);
 
-		        std::cout << "key: " << std::hex << key << " seed_id: " << seed_id << std::endl;
+			// std::cout << "key: " << std::hex << key << " seed_id: " << seed_id << std::endl;
 
-		        while (debug_j != end_pos && seed_id == pos.seed_id) {
-		                key = key_i[debug_j];
-		                debug_j++;
+			while (debug_j != end_pos && seed_id == pos.seed_id) {
+				key = key_i[debug_j];
+				debug_j++;
 
-		                const ap_uint<64> uint_key = ap_uint<64>(key);
-		                seed_id = uint_key.range(LOC_SHIFT + 1 + seed_id_size, LOC_SHIFT + 1);
-		                if (seed_id == pos.seed_id) {
-		                        std::cout << "key: " << std::hex << key << " seed_id: " << seed_id << std::endl;
-		                        counter++;
-		                }
-		        }
-		        std::cout << "Counter: " << counter << std::endl;
+				const ap_uint<64> uint_key = ap_uint<64>(key);
+				seed_id = uint_key.range(LOC_SHIFT + 1 + seed_id_size, LOC_SHIFT + 1);
+				if (seed_id == pos.seed_id) {
+					// std::cout << "key: " << std::hex << key << " seed_id: " << seed_id <<
+					// std::endl;
+					counter++;
+				}
+			}
+			std::cout << "new_val: " << std::dec << counter << std::endl;
 		}
-		*/
 
 		// If there are seed hits
 		if (found) {
@@ -227,6 +226,8 @@ buf_metadata_t query_index_key_MS(hls::stream<ms_pos_t> &ms_pos_i, const uint64_
 			    (buf_o_j < metadata.pos) ? MS_LOC_SIZE + buf_o_j - metadata.pos : buf_o_j - metadata.pos;
 			metadata.pos = (metadata.pos + metadata.len) % MS_LOC_SIZE;
 			metadata.len = new_len;
+
+			std::cout << std::dec << "out_len :" << metadata.len << std::endl;
 		}
 		pos = ms_pos_i.read();
 		/*
@@ -246,7 +247,9 @@ buf_metadata_t query_index_key_MS(hls::stream<ms_pos_t> &ms_pos_i, const uint64_
 void query_index_key(hls::stream<ms_pos_t> &ms_pos_0_i, hls::stream<ms_pos_t> &ms_pos_1_i, const uint64_t *key_0_i,
                      const uint64_t *key_1_i, uint64_t *buf_0_i, uint64_t *buf_1_i, hls::stream<loc_t> &location_o) {
 	buf_metadata_t metadata0 = query_index_key_MS(ms_pos_0_i, key_0_i, buf_0_i);
+	std::cout << "MS0: " << std::dec << metadata0.len << std::endl;
 	buf_metadata_t metadata1 = query_index_key_MS(ms_pos_1_i, key_1_i, buf_1_i);
+	std::cout << "MS1: " << metadata1.len << std::endl;
 
 	while (!metadata0.EOS && !metadata1.EOS) {
 		// merge

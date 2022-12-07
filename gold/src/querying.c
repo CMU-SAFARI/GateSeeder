@@ -57,7 +57,7 @@ inline loc_t extract_key_loc(const uint64_t key_i, const unsigned query_str_i, c
 }
 
 inline void print_loc(loc_t loc) {
-	printf("target_loc: %u, query_loc: %u, chrom_id: %u, str: %u\n", loc.target_loc, loc.query_loc, loc.chrom_id,
+	printf("target_loc: %u, query_loc: %x, chrom_id: %x, str: %x\n", loc.target_loc, loc.query_loc, loc.chrom_id,
 	       loc.str);
 }
 
@@ -111,8 +111,10 @@ void query_index_key(const pos_v pos_i, const uint64_t *key_i, loc_v *const loca
 			// printf("buf_i_len %u + values %u\n", buf_i->len, nb_values);
 			buf_o->len = 0;
 
+			// key_j always points to the next value
 			uint32_t key_j     = new_start;
 			const uint64_t key = key_i[key_j];
+			key_j++;
 
 			loc_t loc_key = extract_key_loc(key, query_str, query_loc);
 			// printf("seed_id: %x\n", seed_id);
@@ -125,28 +127,25 @@ void query_index_key(const pos_v pos_i, const uint64_t *key_i, loc_v *const loca
 
 				int merge = 1;
 				while (merge) {
-					// First compare the str, then the chrom_id, then the target_loc
+					// First compare the chrom_id, then the target_loc
 					int sel_key = 0;
-					if (loc_key.str < loc_buf.str) {
+					if (loc_key.chrom_id < loc_buf.chrom_id) {
 						sel_key = 1;
-					} else if (loc_key.str == loc_buf.str) {
-						if (loc_key.chrom_id < loc_buf.chrom_id) {
+					} else if (loc_key.chrom_id == loc_buf.chrom_id) {
+						if (loc_key.target_loc < loc_buf.target_loc) {
 							sel_key = 1;
-						} else if (loc_key.chrom_id == loc_buf.chrom_id) {
-							if (loc_key.target_loc < loc_buf.target_loc) {
-								sel_key = 1;
-							}
 						}
 					}
 
 					if (sel_key) {
 						buf_o->locs[buf_o->len] = loc_key;
-						// print_loc(loc_key);
-						key_j++;
+						print_loc(loc_key);
 						if (key_j == end_pos) {
 							merge = 0;
 						} else {
-							const uint64_t key     = key_i[key_j];
+							const uint64_t key = key_i[key_j];
+							key_j++;
+
 							const uint32_t seed_id = key >> (LOC_SHIFT + 1);
 							// printf("key_j: %u\n", key_j);
 							if (seed_id != pos.seed_id) {
@@ -157,7 +156,7 @@ void query_index_key(const pos_v pos_i, const uint64_t *key_i, loc_v *const loca
 						}
 					} else {
 						buf_o->locs[buf_o->len] = loc_buf;
-						// print_loc(loc_buf);
+						print_loc(loc_buf);
 						buf_j++;
 						if (buf_j == buf_i->len) {
 							merge = 0;
@@ -177,22 +176,28 @@ void query_index_key(const pos_v pos_i, const uint64_t *key_i, loc_v *const loca
 						buf_o->len++;
 					}
 				} else {
-					int copy = 1;
+					// puts("TESTT");
+					buf_o->locs[buf_o->len] = loc_key;
+					buf_o->len++;
+					int copy = key_j < end_pos;
+
 					while (copy) {
-						buf_o->locs[buf_o->len] = loc_key;
 						// print_loc(loc_key);
+						const uint64_t key = key_i[key_j];
 						key_j++;
-						buf_o->len++;
+						const uint32_t seed_id = key >> (LOC_SHIFT + 1);
+
+						if (seed_id == pos.seed_id) {
+							loc_key = extract_key_loc(key, query_str, pos.query_loc);
+
+							buf_o->locs[buf_o->len] = loc_key;
+							buf_o->len++;
+						} else {
+							copy = 0;
+						}
+
 						if (key_j == end_pos) {
 							copy = 0;
-						} else {
-							const uint64_t key     = key_i[key_j];
-							const uint32_t seed_id = key >> (LOC_SHIFT + 1);
-							if (seed_id != pos.seed_id) {
-								copy = 0;
-							} else {
-								loc_key = extract_key_loc(key, query_str, query_loc);
-							}
 						}
 					}
 				}
@@ -201,27 +206,37 @@ void query_index_key(const pos_v pos_i, const uint64_t *key_i, loc_v *const loca
 			// Second case: we just need to copy
 			else {
 				// printf("INIT\n");
-				int copy = 1;
+				buf_o->locs[buf_o->len] = loc_key;
+				buf_o->len++;
+				print_loc(loc_key);
+				int copy = key_j < end_pos;
+
 				while (copy) {
-					buf_o->locs[buf_o->len] = loc_key;
-					// print_loc(loc_key);
+					const uint64_t key = key_i[key_j];
 					key_j++;
-					buf_o->len++;
+					const uint32_t seed_id = key >> (LOC_SHIFT + 1);
+
+					if (seed_id == pos.seed_id) {
+						loc_key = extract_key_loc(key, query_str, pos.query_loc);
+
+						buf_o->locs[buf_o->len] = loc_key;
+						buf_o->len++;
+						// printf("query_loc: %u\n", pos.query_loc);
+						print_loc(loc_key);
+					} else {
+						copy = 0;
+					}
+
 					if (key_j == end_pos) {
 						copy = 0;
-					} else {
-						const uint64_t key     = key_i[key_j];
-						const uint32_t seed_id = key >> IDX_B;
-						if (seed_id != pos.seed_id) {
-							copy = 0;
-						} else {
-							loc_key = extract_key_loc(key, query_str, pos.query_loc);
-						}
 					}
 				}
 			}
 
-			// printf("buf_o->len: %u\n", buf_o->len);
+			printf("len: %u\n", buf_o->len);
+			for (unsigned i = 0; i < buf_o->len; i++) {
+				print_loc(buf_o->locs[i]);
+			}
 			//  Swap the buffers
 			loc_v *tmp_buf = buf_o;
 			buf_o          = buf_i;
