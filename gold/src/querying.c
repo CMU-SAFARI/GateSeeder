@@ -85,7 +85,6 @@ void query_index_key(const pos_v pos_i, const uint64_t *key_i, loc_v *const loca
 		for (uint32_t j = start_pos; j < end_pos; j++) {
 			const uint64_t key     = key_i[j];
 			const uint32_t seed_id = key >> (LOC_SHIFT + 1);
-			printf("key: %lx seed_id: %x\n", key, seed_id);
 			if (seed_id == pos.seed_id) {
 				break;
 			}
@@ -97,8 +96,8 @@ void query_index_key(const pos_v pos_i, const uint64_t *key_i, loc_v *const loca
 		for (unsigned j = new_start; j < end_pos; j++) {
 			const uint64_t key = key_i[j];
 			uint32_t seed_id   = key >> (LOC_SHIFT + 1);
-			printf("key: %lx seed_id: %x\n", key, seed_id);
 			if (seed_id == pos.seed_id) {
+				printf("key: %lx seed_id: %x\n", key, seed_id);
 				nb_values++;
 			} else {
 				break;

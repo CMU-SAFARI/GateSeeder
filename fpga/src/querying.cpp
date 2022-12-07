@@ -112,39 +112,58 @@ buf_metadata_t query_index_key_MS(hls::stream<ms_pos_t> &ms_pos_i, const uint64_
 		const uint32_t query_loc   = pos.query_loc;
 		const ap_uint<1> query_str = pos.str;
 
-		uint32_t new_start = start_pos;
-		ap_uint<1> found   = 0;
-		// TODO: if sorted by seed_id we don't need to itterate until the end
-		while (found == 0 && new_start != end_pos) {
-			const ap_uint<64> key               = ap_uint<64>(key_i[new_start]);
-			const ap_uint<seed_id_size> seed_id = key.range(LOC_SHIFT + 1 + seed_id_size, LOC_SHIFT + 1);
-			std::cout << "key: " << std::hex << key << " seed_id: " << seed_id << std::endl;
+		uint32_t key_j = start_pos;
+		uint64_t key;
+
+		ap_uint<1> found              = 0;
+		ap_uint<1> continue_searching = 1;
+
+		// Check if we find locations with the same seed_id
+		while (continue_searching) {
+			key = key_i[key_j];
+			key_j++;
+
+			const ap_uint<64> uint_key = ap_uint<64>(key);
+			const ap_uint<seed_id_size> seed_id =
+			    uint_key.range(LOC_SHIFT + 1 + seed_id_size, LOC_SHIFT + 1);
 			if (seed_id == pos.seed_id) {
 				found = 1;
 			}
-			new_start++;
-		}
-		// DEBUG
-		unsigned counter = 0;
-		for (unsigned i = new_start; i < end_pos; i++) {
-			const ap_uint<64> key               = ap_uint<64>(key_i[new_start]);
-			const ap_uint<seed_id_size> seed_id = key.range(LOC_SHIFT + 1 + seed_id_size, LOC_SHIFT + 1);
-			std::cout << "key: " << std::hex << key << " seed_id: " << seed_id << std::endl;
-			if (seed_id != pos.seed_id) {
-				break;
+			if (key_j == end_pos || seed_id >= pos.seed_id) {
+				continue_searching = 0;
 			}
-			counter++;
 		}
-		std::cout << "Counter: " << counter << std::endl;
+
+		/*
+		// DEBUG
+		if (found) {
+		        unsigned counter              = 1;
+		        uint32_t debug_j              = key_j;
+		        const ap_uint<64> uint_key    = ap_uint<64>(key);
+		        ap_uint<seed_id_size> seed_id = uint_key.range(LOC_SHIFT + 1 + seed_id_size, LOC_SHIFT + 1);
+
+		        std::cout << "key: " << std::hex << key << " seed_id: " << seed_id << std::endl;
+
+		        while (debug_j != end_pos && seed_id == pos.seed_id) {
+		                key = key_i[debug_j];
+		                debug_j++;
+
+		                const ap_uint<64> uint_key = ap_uint<64>(key);
+		                seed_id = uint_key.range(LOC_SHIFT + 1 + seed_id_size, LOC_SHIFT + 1);
+		                if (seed_id == pos.seed_id) {
+		                        std::cout << "key: " << std::hex << key << " seed_id: " << seed_id << std::endl;
+		                        counter++;
+		                }
+		        }
+		        std::cout << "Counter: " << counter << std::endl;
+		}
+		*/
 
 		// If there are seed hits
-		if (new_start != end_pos) {
-
+		if (found) {
 			uint32_t buf_o_j = (metadata.pos + metadata.len) % MS_LOC_SIZE;
 
-			uint32_t key_j     = new_start;
-			const uint64_t key = key_i[key_j];
-			loc_t loc_key      = extract_key_loc(key, query_str, query_loc);
+			loc_t loc_key = extract_key_loc(key, query_str, query_loc);
 
 			// First case: need to merge
 			if (metadata.len != 0) {

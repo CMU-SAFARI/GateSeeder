@@ -209,7 +209,7 @@ void write_index(FILE *fp, const index_MS_t index, const target_t target, const 
 	fwrite(&index.nb_MS, sizeof(unsigned), 1, fp);
 	fwrite(index.map, sizeof(uint32_t), 1 << b, fp);
 	for (unsigned i = 0; i < index.nb_MS; i++) {
-		fwrite(index.key[i], sizeof(uint64_t), MS_size >> 2, fp);
+		fwrite(index.key[i], sizeof(uint64_t), MS_size >> 3, fp);
 	}
 	fwrite(&target.nb_sequences, sizeof(unsigned), 1, fp);
 	for (unsigned i = 0; i < target.nb_sequences; i++) {
