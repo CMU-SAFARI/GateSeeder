@@ -47,18 +47,22 @@ inline loc_t extract_key_loc(const uint64_t key_i, const unsigned query_str_i, c
 	loc.query_loc                 = query_loc_i;
 
 	// Compute the shifted target_loc
-	if (query_str_i) {
+	if (loc.str) {
 		loc.target_loc = key_target_loc + query_loc_i - SE_K + 1;
 	} else {
 		loc.target_loc = key_target_loc + LOC_OFFSET - query_loc_i;
 	}
+	printf("target_loc: %x\n", key_target_loc);
+	printf("target_loc: %x\n", key_target_loc + query_loc_i);
+	printf("target_loc: %x\n", key_target_loc + query_loc_i - SE_K + 1);
+	printf("target_loc_last: %x\n", loc.target_loc);
 
 	return loc;
 }
 
 inline void print_loc(loc_t loc) {
-	printf("target_loc: %u, query_loc: %x, chrom_id: %x, str: %x\n", loc.target_loc, loc.query_loc, loc.chrom_id,
-	       loc.str);
+	printf("target_loc: 0x%x, query_loc: 0x%x, chrom_id: 0x%x, str: 0x%x\n", loc.target_loc, loc.query_loc,
+	       loc.chrom_id, loc.str);
 }
 
 void query_index_key(const pos_v pos_i, const uint64_t *key_i, loc_v *const location_o) {

@@ -53,13 +53,19 @@ void query_index_map(hls::stream<seed_t> &seed_i, const uint32_t *map_i, hls::st
 	ms_pos_1_o << ms_pos_t{.str = 1, .EOR = 1};
 }
 
+#define LOC_OFFSET (1 << 21)
 inline loc_t extract_key_loc(const uint64_t key_i, const ap_uint<1> query_str_i, const uint32_t query_loc_i) {
 	ap_uint<64> key(key_i);
+	// std::cout << "extract_key_loc: " << std::hex << key_i << std::endl;
+	const ap_uint<1> str = key.range(42, 42) ^ query_str_i;
+	ap_uint<30> target_loc =
+	    key.range(29, 0) + (str ? ap_uint<30>(query_loc_i - SE_K + 1) : ap_uint<30>(LOC_OFFSET - query_loc_i));
+	// std::cout << "target_loc: " << std::hex << target_loc << std::endl;
 	return loc_t{
-	    .target_loc = key.range(29, 0),
+	    .target_loc = target_loc,
 	    .query_loc  = ap_uint<21>(query_loc_i),
 	    .chrom_id   = key.range(41, 32),
-	    .str        = key.range(42, 42) ^ query_str_i,
+	    .str        = str,
 	    .EOR        = ap_uint<1>(0),
 	};
 }
@@ -81,8 +87,8 @@ inline loc_t uint64_to_loc(uint64_t loc_i) {
 }
 
 void copy_key_value(const uint64_t *key_i, loc_t &loc_key, ap_uint<1> &enable, uint64_t *buf_o, const uint32_t buf_j,
-                    uint32_t &key_j, const uint32_t end_pos, const uint64_t key_i_i, const ap_uint<1> query_str_i,
-                    const uint32_t query_loc_i, const ap_uint<seed_id_size> seed_id_i) {
+                    uint32_t &key_j, const uint32_t end_pos, const ap_uint<1> query_str_i, const uint32_t query_loc_i,
+                    const ap_uint<seed_id_size> seed_id_i) {
 	// Copy loc into the buffer
 	buf_o[buf_j] = loc_to_uint64(loc_key);
 	// Check that we are not at the end
@@ -97,7 +103,7 @@ void copy_key_value(const uint64_t *key_i, loc_t &loc_key, ap_uint<1> &enable, u
 		if (seed_id != seed_id_i) {
 			enable = 0;
 		} else {
-			loc_key = extract_key_loc(key_i_i, query_str_i, query_loc_i);
+			loc_key = extract_key_loc(key, query_str_i, query_loc_i);
 		}
 	}
 }
@@ -137,34 +143,38 @@ buf_metadata_t query_index_key_MS(hls::stream<ms_pos_t> &ms_pos_i, const uint64_
 			}
 		}
 
+		/*
 		// DEBUG
 		if (found) {
-			unsigned counter              = 1;
-			uint32_t debug_j              = key_j;
-			const ap_uint<64> uint_key    = ap_uint<64>(key);
-			ap_uint<seed_id_size> seed_id = uint_key.range(LOC_SHIFT + 1 + seed_id_size, LOC_SHIFT + 1);
+		        uint64_t key_debug            = key;
+		        unsigned counter              = 1;
+		        uint32_t debug_j              = key_j;
+		        const ap_uint<64> uint_key    = ap_uint<64>(key_debug);
+		        ap_uint<seed_id_size> seed_id = uint_key.range(LOC_SHIFT + 1 + seed_id_size, LOC_SHIFT + 1);
 
-			// std::cout << "key: " << std::hex << key << " seed_id: " << seed_id << std::endl;
+		        std::cout << "key: " << std::hex << key_debug << " seed_id: " << seed_id << std::endl;
 
-			while (debug_j != end_pos && seed_id == pos.seed_id) {
-				key = key_i[debug_j];
-				debug_j++;
+		        while (debug_j != end_pos && seed_id == pos.seed_id) {
+		                key_debug = key_i[debug_j];
+		                debug_j++;
 
-				const ap_uint<64> uint_key = ap_uint<64>(key);
-				seed_id = uint_key.range(LOC_SHIFT + 1 + seed_id_size, LOC_SHIFT + 1);
-				if (seed_id == pos.seed_id) {
-					// std::cout << "key: " << std::hex << key << " seed_id: " << seed_id <<
-					// std::endl;
-					counter++;
-				}
-			}
-			std::cout << "new_val: " << std::dec << counter << std::endl;
+		                const ap_uint<64> uint_key = ap_uint<64>(key_debug);
+		                seed_id = uint_key.range(LOC_SHIFT + 1 + seed_id_size, LOC_SHIFT + 1);
+		                if (seed_id == pos.seed_id) {
+		                        std::cout << "key: " << std::hex << key_debug << " seed_id: " << seed_id
+		                                  << std::endl;
+		                        counter++;
+		                }
+		        }
+		        std::cout << "new_val: " << std::dec << counter << std::endl;
 		}
+		*/
 
 		// If there are seed hits
 		if (found) {
 			uint32_t buf_o_j = (metadata.pos + metadata.len) % ms_buf_size;
 			loc_t loc_key    = extract_key_loc(key, query_str, query_loc);
+			// std::cout << "key: " << std::hex << key << std::endl;
 
 			// First case: need to merge
 			if (metadata.len != 0) {
@@ -191,7 +201,7 @@ buf_metadata_t query_index_key_MS(hls::stream<ms_pos_t> &ms_pos_i, const uint64_
 					// write the key value
 					else {
 						// std::cout << "Write key_value" << std::endl;
-						copy_key_value(key_i, loc_key, merge, buf, buf_o_j, key_j, end_pos, key,
+						copy_key_value(key_i, loc_key, merge, buf, buf_o_j, key_j, end_pos,
 						               query_str, query_loc, pos.seed_id);
 					}
 					buf_o_j = (buf_o_j + 1) % ms_buf_size;
@@ -221,7 +231,7 @@ buf_metadata_t query_index_key_MS(hls::stream<ms_pos_t> &ms_pos_i, const uint64_
 				} else {
 					ap_uint<1> copy = 1;
 					while (copy) {
-						copy_key_value(key_i, loc_key, copy, buf, buf_o_j, key_j, end_pos, key,
+						copy_key_value(key_i, loc_key, copy, buf, buf_o_j, key_j, end_pos,
 						               query_str, query_loc, pos.seed_id);
 						buf_o_j = (buf_o_j + 1) % ms_buf_size;
 					}
@@ -232,8 +242,9 @@ buf_metadata_t query_index_key_MS(hls::stream<ms_pos_t> &ms_pos_i, const uint64_
 			else {
 				ap_uint<1> copy = 1;
 				while (copy) {
-					copy_key_value(key_i, loc_key, copy, buf, buf_o_j, key_j, end_pos, key,
-					               query_str, query_loc, pos.seed_id);
+					// std::cout << "key: " << std::hex << loc_to_uint64(loc_key) << std::endl;
+					copy_key_value(key_i, loc_key, copy, buf, buf_o_j, key_j, end_pos, query_str,
+					               query_loc, pos.seed_id);
 					buf_o_j = (buf_o_j + 1) % ms_buf_size;
 				}
 			}
@@ -245,7 +256,15 @@ buf_metadata_t query_index_key_MS(hls::stream<ms_pos_t> &ms_pos_i, const uint64_
 			metadata.pos = new_pos;
 			metadata.len = new_len;
 
+			/*
 			std::cout << std::dec << "out_len :" << metadata.len << std::endl;
+			for (unsigned i = new_pos; i < new_pos + new_len; i++) {
+			        loc_t loc = uint64_to_loc(buf[i]);
+			        std::cout << std::hex << "target_loc: " << loc.target_loc
+			                  << " query_loc: " << loc.query_loc << " chrom_id: " << loc.chrom_id
+			                  << std::endl;
+			}
+			*/
 		}
 		pos = ms_pos_i.read();
 		/*
@@ -265,9 +284,23 @@ buf_metadata_t query_index_key_MS(hls::stream<ms_pos_t> &ms_pos_i, const uint64_
 void query_index_key(hls::stream<ms_pos_t> &ms_pos_0_i, hls::stream<ms_pos_t> &ms_pos_1_i, const uint64_t *key_0_i,
                      const uint64_t *key_1_i, uint64_t *buf_0_i, uint64_t *buf_1_i, hls::stream<loc_t> &location_o) {
 	buf_metadata_t metadata0 = query_index_key_MS(ms_pos_0_i, key_0_i, buf_0_i);
+	// DEBUG
 	std::cout << "MS0: " << std::dec << metadata0.len << std::endl;
+	for (unsigned i = 0; i < metadata0.len; i++) {
+		loc_t loc = uint64_to_loc(buf_0_i[i + metadata0.pos]);
+		std::cout << std::hex << "target_loc: " << loc.target_loc << " query_loc: " << loc.query_loc
+		          << " chrom_id: " << loc.chrom_id << " str: " << loc.str << std::endl;
+	}
+
 	buf_metadata_t metadata1 = query_index_key_MS(ms_pos_1_i, key_1_i, buf_1_i);
-	std::cout << "MS1: " << metadata1.len << std::endl;
+
+	// DEBUG
+	std::cout << "MS1: " << std::dec << metadata1.len << std::endl;
+	for (unsigned i = 0; i < metadata1.len; i++) {
+		loc_t loc = uint64_to_loc(buf_1_i[i + metadata1.pos]);
+		std::cout << std::hex << "target_loc: " << loc.target_loc << " query_loc: " << loc.query_loc
+		          << " chrom_id: " << loc.chrom_id << std::endl;
+	}
 
 	while (!metadata0.EOS && !metadata1.EOS) {
 		// merge

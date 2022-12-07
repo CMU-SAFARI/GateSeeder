@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
 			extract_seeds_mapping(input.reads[i].seq, input.reads[i].len, &minimizers, 0);
 #ifdef DEBUG_SEED_EXTRACTION
 			for (uint32_t j = 0; j < minimizers.len; j++) {
-				printf("hash: %010lx, loc: %u\n", minimizers.seeds[j].hash, minimizers.seeds[j].loc);
+				printf("hash: %010lx, loc: %x\n", minimizers.seeds[j].hash, minimizers.seeds[j].loc);
 			}
 #endif
 			query_index_map(minimizers, index.map, &key_pos);
