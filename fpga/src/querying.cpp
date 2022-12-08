@@ -113,8 +113,10 @@ buf_metadata_t query_index_key_MS(hls::stream<ms_pos_t> &ms_pos_i, const uint64_
 	buf_metadata_t metadata{.pos = 0, .len = 0, .EOS = 0};
 
 	while (pos.EOR != 1) {
+		/*
 		std::cout << "start_pos: " << std::hex << pos.start_pos << " end_pos: " << pos.end_pos
 		          << " seed_id: " << pos.seed_id << " query_loc: " << pos.query_loc << std::endl;
+		          */
 		// Eliminate the false-positive
 		const uint32_t start_pos   = pos.start_pos.to_uint();
 		const uint32_t end_pos     = pos.end_pos.to_uint();
@@ -185,8 +187,8 @@ buf_metadata_t query_index_key_MS(hls::stream<ms_pos_t> &ms_pos_i, const uint64_
 				ap_uint<1> merge = 1;
 				while (merge) {
 					// First compare the str, then the chrom_id, then the target_loc
-					ap_uint<40> cmp_key = (loc_key.chrom_id, loc_key.target_loc);
-					ap_uint<40> cmp_buf = (loc_buf.chrom_id, loc_buf.target_loc);
+					const ap_uint<40> cmp_key = (loc_key.chrom_id, loc_key.target_loc);
+					const ap_uint<40> cmp_buf = (loc_buf.chrom_id, loc_buf.target_loc);
 					// write the buf value
 					if (cmp_buf <= cmp_key) {
 						// std::cout << "Write buf_value" << std::endl;
@@ -281,33 +283,86 @@ buf_metadata_t query_index_key_MS(hls::stream<ms_pos_t> &ms_pos_i, const uint64_
 	return metadata;
 }
 
+void merge_buf(const uint64_t *buf_0_i, const uint64_t *buf_1_i, const buf_metadata_t metadata_0_i,
+               const buf_metadata_t metadata_1_i, hls::stream<loc_t> &location_o) {
+	uint32_t pos0_j = metadata_0_i.pos;
+	uint32_t pos1_j = metadata_1_i.pos;
+
+	const uint32_t end0 = (metadata_0_i.pos + metadata_0_i.len) % ms_buf_size;
+	const uint32_t end1 = (metadata_1_i.pos + metadata_1_i.len) % ms_buf_size;
+	/*
+	std::cout << "pos0: " << std::hex << metadata_0_i.pos << std::dec << " len0: " << metadata_0_i.len << std::endl;
+	std::cout << "pos1: " << std::hex << metadata_1_i.pos << std::dec << " len1: " << metadata_1_i.len << std::endl;
+	*/
+
+	// If locations
+	if (pos0_j != end0 || pos1_j != end1) {
+		loc_t loc0 = uint64_to_loc(buf_0_i[pos0_j]);
+		loc_t loc1 = uint64_to_loc(buf_1_i[pos1_j]);
+
+		// If we need to merge
+		while (pos0_j != end0 && pos1_j != end1) {
+			const ap_uint<40> cmp0 = (loc0.chrom_id, loc0.target_loc);
+			const ap_uint<40> cmp1 = (loc1.chrom_id, loc1.target_loc);
+			if (cmp0 <= cmp1) {
+				location_o << loc0;
+				pos0_j = (pos0_j + 1) % ms_buf_size;
+				loc0   = uint64_to_loc(buf_0_i[pos0_j]);
+			} else {
+				location_o << loc1;
+				pos1_j = (pos1_j + 1) % ms_buf_size;
+				loc1   = uint64_to_loc(buf_1_i[pos1_j]);
+			}
+		}
+
+		// Copy the remaining values
+		if (pos0_j == end0) {
+			while (pos1_j != end1) {
+				location_o << loc1;
+				pos1_j = (pos1_j + 1) % ms_buf_size;
+				loc1   = uint64_to_loc(buf_1_i[pos1_j]);
+			}
+		} else {
+			while (pos0_j != end0) {
+				location_o << loc0;
+				pos0_j = (pos0_j + 1) % ms_buf_size;
+				loc0   = uint64_to_loc(buf_0_i[pos0_j]);
+			}
+		}
+	}
+	location_o << loc_t{.target_loc = 0, .query_loc = 0, .chrom_id = 0, .str = 0, .EOR = 1};
+}
+
 void query_index_key(hls::stream<ms_pos_t> &ms_pos_0_i, hls::stream<ms_pos_t> &ms_pos_1_i, const uint64_t *key_0_i,
                      const uint64_t *key_1_i, uint64_t *buf_0_i, uint64_t *buf_1_i, hls::stream<loc_t> &location_o) {
 	buf_metadata_t metadata0 = query_index_key_MS(ms_pos_0_i, key_0_i, buf_0_i);
 	// DEBUG
+	/*
 	std::cout << "MS0: " << std::dec << metadata0.len << std::endl;
 	for (unsigned i = 0; i < metadata0.len; i++) {
-		loc_t loc = uint64_to_loc(buf_0_i[i + metadata0.pos]);
-		std::cout << std::hex << "target_loc: " << loc.target_loc << " query_loc: " << loc.query_loc
-		          << " chrom_id: " << loc.chrom_id << " str: " << loc.str << std::endl;
+	        loc_t loc = uint64_to_loc(buf_0_i[i + metadata0.pos]);
+	        std::cout << std::hex << "target_loc: " << loc.target_loc << " query_loc: " << loc.query_loc
+	                  << " chrom_id: " << loc.chrom_id << " str: " << loc.str << std::endl;
 	}
+	*/
 
 	buf_metadata_t metadata1 = query_index_key_MS(ms_pos_1_i, key_1_i, buf_1_i);
 
 	// DEBUG
+	/*
 	std::cout << "MS1: " << std::dec << metadata1.len << std::endl;
 	for (unsigned i = 0; i < metadata1.len; i++) {
-		loc_t loc = uint64_to_loc(buf_1_i[i + metadata1.pos]);
-		std::cout << std::hex << "target_loc: " << loc.target_loc << " query_loc: " << loc.query_loc
-		          << " chrom_id: " << loc.chrom_id << std::endl;
+	        loc_t loc = uint64_to_loc(buf_1_i[i + metadata1.pos]);
+	        std::cout << std::hex << "target_loc: " << loc.target_loc << " query_loc: " << loc.query_loc
+	                  << " chrom_id: " << loc.chrom_id << std::endl;
 	}
+	*/
 
 	while (!metadata0.EOS && !metadata1.EOS) {
 		// merge
+		merge_buf(buf_0_i, buf_1_i, metadata0, metadata1, location_o);
 		metadata0 = query_index_key_MS(ms_pos_0_i, key_0_i, buf_0_i);
-		std::cout << "MS0: " << metadata0.len << std::endl;
 		metadata1 = query_index_key_MS(ms_pos_1_i, key_1_i, buf_1_i);
-		std::cout << "MS1: " << metadata1.len << std::endl;
 	}
 	location_o << loc_t{.target_loc = 0, .query_loc = 0, .chrom_id = 0, .str = 1, .EOR = 1};
 }
