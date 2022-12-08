@@ -366,3 +366,14 @@ void query_index_key(hls::stream<ms_pos_t> &ms_pos_0_i, hls::stream<ms_pos_t> &m
 	}
 	location_o << loc_t{.target_loc = 0, .query_loc = 0, .chrom_id = 0, .str = 1, .EOR = 1};
 }
+
+void write_locations(hls::stream<loc_t> &location_i, uint64_t *location_o) {
+	loc_t loc  = location_i.read();
+	uint32_t i = 0;
+	while (loc.EOR != 1 || loc.str != 1) {
+		location_o[i] = loc_to_uint64(loc);
+		i++;
+		loc = location_i.read();
+	}
+	location_o[i] = UINT64_MAX;
+}
