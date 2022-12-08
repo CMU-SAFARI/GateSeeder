@@ -33,10 +33,15 @@ void kernel(const uint32_t nb_bases_i, const uint8_t *seq_i, const uint32_t *map
 	extract_seeds(seq_i, nb_bases_i, seed);
 
 #ifdef DEBUG_SEED_EXTRACTION
+	unsigned counter = 0;
 	while (!seed.empty()) {
 		seed_t s = seed.read();
 		std::cout << "hash: " << std::hex << s.hash << " loc: " << s.loc << std::endl;
+		if (s.EOR == 0) {
+			counter++;
+		}
 	}
+	std::cout << "Nb_seeds: " << std::dec << counter << std::endl;
 #else
 	query_index_map(seed, map_i, ms_pos_0, ms_pos_1);
 

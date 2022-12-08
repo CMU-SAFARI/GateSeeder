@@ -22,9 +22,9 @@ ap_uint<64> hash64(ap_uint<64> key) {
 
 void extract_seeds(const uint8_t *seq_i, const uint32_t nb_bases_i, hls::stream<seed_t> &minimizers_o) {
 #pragma HLS INTERFACE m_axi port = seq_i offset = slave bundle = gmem0 depth = mem_size
-	seed_t previous_minimizer;
-	ap_uint<32> location = 0;
-	ap_uint<32> length   = 0;
+	seed_t previous_minimizer = {.hash = MAX, .loc = 0, .str = 0, .EOR = 1};
+	ap_uint<32> location      = 0;
+	ap_uint<32> length        = 0;
 	ap_uint<2 * SE_K + 2 * SE_W - 2> window, window_rv;
 
 seed_extraction_loop:
@@ -72,7 +72,13 @@ seed_extraction_loop:
 					base_window[i].loc  = location + i - SE_W;
 					base_window[i].EOR  = 0;
 				}
+				// DEBUG
+				/*
+				std::cout << std::hex << "hash : " << base_window[i].hash
+				          << " loc: " << base_window[i].loc << std::endl;
+				          */
 			}
+
 			// Copy to reduce the interval
 		copy_loop:
 			for (unsigned i = 0; i < SE_W; i++) {
@@ -99,36 +105,39 @@ seed_extraction_loop:
 
 			// TODO: end review
 		find_minimizer_loop:
+			/*
+			std::cout << "prev_minimum: hash: " << std::hex << previous_minimizer.hash
+			          << " loc: " << previous_minimizer.loc << std::endl;
+			          */
 			for (unsigned i = 0; i < SE_W; i++) {
 #pragma HLS UNROLL
 				out[i] = (base_window_2[i].hash == comp[SE_W / 2 - 1 + SE_W % 2]) ? 1 : 0;
+				/*
+				// DEBUG
+				if (out[i] == 1) {
+				        std::cout << "minimum: hash: " << std::hex << base_window_2[i].hash
+				                  << " loc: " << base_window_2[i].loc << std::endl;
+				}
+				*/
 			}
 			EOR = 0;
 		}
 
+		// Write
 		if (length > SE_K + SE_W - 2 || EOR) {
 			if (EOR) {
 				minimizers_o << previous_minimizer;
 			} else {
-				// TODO: review
-				unsigned i;
-			first_output:
-				for (i = 0; i < SE_W; i++) {
+				seed_t new_previous_minimizer = previous_minimizer;
+				for (unsigned i = 0; i < SE_W; i++) {
 #pragma HLS PIPELINE II = 1
 					if (out[i] && base_window_2[i].loc > previous_minimizer.loc) {
-						break;
+						minimizers_o << base_window_2[i];
+						new_previous_minimizer = base_window_2[i];
 					}
 				}
-			output:
-				for (unsigned j = 0; j < SE_W; j++) {
-#pragma HLS PIPELINE II = 1
-					if (out[j] && j > i - 1) {
-						minimizers_o << base_window_2[j];
-						previous_minimizer = base_window_2[j];
-					}
-				}
+				previous_minimizer = new_previous_minimizer;
 			}
-			// TODO: end review
 			EOR = 0;
 		}
 	}

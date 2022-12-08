@@ -52,6 +52,7 @@ int main(int argc, char *argv[]) {
 			for (uint32_t j = 0; j < minimizers.len; j++) {
 				printf("hash: %010lx, loc: %x\n", minimizers.seeds[j].hash, minimizers.seeds[j].loc);
 			}
+			printf("Nb_seeds: %u\n", minimizers.len);
 #endif
 			query_index_map(minimizers, index.map, &key_pos);
 
