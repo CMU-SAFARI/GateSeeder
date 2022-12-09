@@ -36,8 +36,10 @@ clean:
 	$(RM) *.o *.d $(TB)
 
 cosim:
-	export LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LIBRARY_PATH
-	$(HLS_ROOT)/bin/vitis_hls scripts/cosim.tcl
+	LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$(LIBRARY_PATH) $(HLS_ROOT)/bin/vitis_hls scripts/cosim.tcl
+
+impl:
+	LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$(LIBRARY_PATH) $(HLS_ROOT)/bin/vitis_hls scripts/impl.tcl
 
 .PHONY: clean cosim
 -include $(wildcard *.d)

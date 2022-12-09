@@ -138,6 +138,7 @@ query_index_key_MS_loop:
 		// Check if we find locations with the same seed_id
 	search_key_loop:
 		while (continue_searching) {
+#pragma HLS pipeline off
 			key = key_i[key_j];
 			key_j++;
 
@@ -194,6 +195,7 @@ query_index_key_MS_loop:
 				ap_uint<1> merge = 1;
 			query_index_key_MS_merge_loop:
 				while (merge) {
+#pragma HLS pipeline off
 					// First compare the str, then the chrom_id, then the target_loc
 					const ap_uint<40> cmp_key = (loc_key.chrom_id, loc_key.target_loc);
 					const ap_uint<40> cmp_buf = (loc_buf.chrom_id, loc_buf.target_loc);
@@ -227,7 +229,8 @@ query_index_key_MS_loop:
 				// Copy the last values
 				if (buf_i_j != buf_i_end) {
 				query_index_key_MS_copy0_loop:
-					while (buf_i_j != buf_i_end) {
+					do {
+#pragma HLS pipeline off
 						buf[buf_o_j] = buf[buf_i_j];
 						buf_i_j      = (buf_i_j + 1) % MS_BUF_LEN;
 						buf_o_j      = (buf_o_j + 1) % MS_BUF_LEN;
@@ -238,15 +241,16 @@ query_index_key_MS_loop:
 						                             : buf_o_j - new_pos;
 						std::cout << "intermediate_len " << new_len << std::endl;
 						*/
-					}
+					} while (buf_i_j != buf_i_end);
 				} else {
 					ap_uint<1> copy = 1;
 				query_index_key_MS_copy1_loop:
-					while (copy) {
+					do {
+#pragma HLS pipeline off
 						copy_key_value(key_i, loc_key, copy, buf, buf_o_j, key_j, end_pos,
 						               query_str, query_loc, pos.seed_id);
 						buf_o_j = (buf_o_j + 1) % MS_BUF_LEN;
-					}
+					} while (copy);
 				}
 			}
 
@@ -255,6 +259,7 @@ query_index_key_MS_loop:
 				ap_uint<1> copy = 1;
 			query_index_key_MS_init_loop:
 				while (copy) {
+#pragma HLS pipeline off
 					// std::cout << "key: " << std::hex << loc_to_uint64(loc_key) << std::endl;
 					copy_key_value(key_i, loc_key, copy, buf, buf_o_j, key_j, end_pos, query_str,
 					               query_loc, pos.seed_id);
@@ -311,15 +316,17 @@ void merge_buf(const uint64_t *buf_0_i, const uint64_t *buf_1_i, const buf_metad
 		loc_t loc0 = uint64_to_loc(buf_0_i[pos0_j]);
 		loc_t loc1 = uint64_to_loc(buf_1_i[pos1_j]);
 
-		// If we need to merge
+	// If we need to merge
 	merge_buf_merge_loop:
 		while (pos0_j != end0 && pos1_j != end1) {
+			// loc0 and loc1 have an inter dependency
+#pragma HLS pipeline off
 			const ap_uint<40> cmp0 = (loc0.chrom_id, loc0.target_loc);
 			const ap_uint<40> cmp1 = (loc1.chrom_id, loc1.target_loc);
 			if (cmp0 <= cmp1) {
 				location_o << loc0;
-				pos0_j = (pos0_j + 1) % MS_BUF_LEN;
 				loc0   = uint64_to_loc(buf_0_i[pos0_j]);
+				pos0_j = (pos0_j + 1) % MS_BUF_LEN;
 			} else {
 				location_o << loc1;
 				pos1_j = (pos1_j + 1) % MS_BUF_LEN;

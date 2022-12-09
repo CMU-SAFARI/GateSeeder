@@ -5,4 +5,4 @@ add_files -tb "util_src/parsing.c"
 set_top kernel
 open_solution -flow_target vitis solution1
 set_part {xcu280-fsvh2892-2L-e}
-create_clock -period "400MHz"
+create_clock -period "300MHz"

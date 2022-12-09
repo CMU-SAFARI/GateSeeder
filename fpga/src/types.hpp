@@ -6,6 +6,7 @@
 #define SE_W 12
 #define SE_K 15
 #define SEQ_LEN 1024
+#define OUT_LEN 1024
 
 // str = 0 and EOR = 1: end of read
 // str = 1 and EOR = 1: end of file
