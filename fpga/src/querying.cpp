@@ -1,10 +1,13 @@
 #include "querying.hpp"
+#include <string.h>
 
 void query_index_map(hls::stream<seed_t> &seed_i, const uint32_t *map_i, hls::stream<ms_pos_t> &ms_pos_0_o,
                      hls::stream<ms_pos_t> &ms_pos_1_o) {
 	seed_t seed = seed_i.read();
 
+query_index_map_loop:
 	while (seed.str == 0 || seed.EOR == 0) {
+#pragma HLS pipeline II = 2
 		if (seed.EOR == 1) {
 			ms_pos_0_o << ms_pos_t{
 			    .start_pos = 0, .end_pos = 0, .seed_id = 0, .query_loc = 0, .str = 0, .EOR = 1};
@@ -114,6 +117,7 @@ buf_metadata_t query_index_key_MS(hls::stream<ms_pos_t> &ms_pos_i, const uint64_
 	ms_pos_t pos = ms_pos_i.read();
 	buf_metadata_t metadata{.pos = 0, .len = 0, .EOS = 0};
 
+query_index_key_MS_loop:
 	while (pos.EOR == 0) {
 		/*
 		std::cout << "start_pos: " << std::hex << pos.start_pos << " end_pos: " << pos.end_pos
@@ -132,6 +136,7 @@ buf_metadata_t query_index_key_MS(hls::stream<ms_pos_t> &ms_pos_i, const uint64_
 		ap_uint<1> continue_searching = 1;
 
 		// Check if we find locations with the same seed_id
+	search_key_loop:
 		while (continue_searching) {
 			key = key_i[key_j];
 			key_j++;
@@ -187,6 +192,7 @@ buf_metadata_t query_index_key_MS(hls::stream<ms_pos_t> &ms_pos_i, const uint64_
 
 				loc_t loc_buf    = uint64_to_loc(buf[buf_i_j]);
 				ap_uint<1> merge = 1;
+			query_index_key_MS_merge_loop:
 				while (merge) {
 					// First compare the str, then the chrom_id, then the target_loc
 					const ap_uint<40> cmp_key = (loc_key.chrom_id, loc_key.target_loc);
@@ -220,6 +226,7 @@ buf_metadata_t query_index_key_MS(hls::stream<ms_pos_t> &ms_pos_i, const uint64_
 
 				// Copy the last values
 				if (buf_i_j != buf_i_end) {
+				query_index_key_MS_copy0_loop:
 					while (buf_i_j != buf_i_end) {
 						buf[buf_o_j] = buf[buf_i_j];
 						buf_i_j      = (buf_i_j + 1) % MS_BUF_LEN;
@@ -234,6 +241,7 @@ buf_metadata_t query_index_key_MS(hls::stream<ms_pos_t> &ms_pos_i, const uint64_
 					}
 				} else {
 					ap_uint<1> copy = 1;
+				query_index_key_MS_copy1_loop:
 					while (copy) {
 						copy_key_value(key_i, loc_key, copy, buf, buf_o_j, key_j, end_pos,
 						               query_str, query_loc, pos.seed_id);
@@ -245,6 +253,7 @@ buf_metadata_t query_index_key_MS(hls::stream<ms_pos_t> &ms_pos_i, const uint64_
 			// Second case: Initialization
 			else {
 				ap_uint<1> copy = 1;
+			query_index_key_MS_init_loop:
 				while (copy) {
 					// std::cout << "key: " << std::hex << loc_to_uint64(loc_key) << std::endl;
 					copy_key_value(key_i, loc_key, copy, buf, buf_o_j, key_j, end_pos, query_str,
@@ -303,6 +312,7 @@ void merge_buf(const uint64_t *buf_0_i, const uint64_t *buf_1_i, const buf_metad
 		loc_t loc1 = uint64_to_loc(buf_1_i[pos1_j]);
 
 		// If we need to merge
+	merge_buf_merge_loop:
 		while (pos0_j != end0 && pos1_j != end1) {
 			const ap_uint<40> cmp0 = (loc0.chrom_id, loc0.target_loc);
 			const ap_uint<40> cmp1 = (loc1.chrom_id, loc1.target_loc);
@@ -319,12 +329,14 @@ void merge_buf(const uint64_t *buf_0_i, const uint64_t *buf_1_i, const buf_metad
 
 		// Copy the remaining values
 		if (pos0_j == end0) {
+		merge_buf_copy0_loop:
 			while (pos1_j != end1) {
 				location_o << loc1;
 				pos1_j = (pos1_j + 1) % MS_BUF_LEN;
 				loc1   = uint64_to_loc(buf_1_i[pos1_j]);
 			}
 		} else {
+		merge_buf_copy1_loop:
 			while (pos0_j != end0) {
 				location_o << loc0;
 				pos0_j = (pos0_j + 1) % MS_BUF_LEN;
@@ -360,6 +372,7 @@ void query_index_key(hls::stream<ms_pos_t> &ms_pos_0_i, hls::stream<ms_pos_t> &m
 	}
 	*/
 
+query_index_key_loop:
 	while (!metadata0.EOS && !metadata1.EOS) {
 		// merge
 		merge_buf(buf_0_i, buf_1_i, metadata0, metadata1, location_o);
@@ -372,6 +385,7 @@ void query_index_key(hls::stream<ms_pos_t> &ms_pos_0_i, hls::stream<ms_pos_t> &m
 void write_locations(hls::stream<loc_t> &location_i, uint64_t *location_o) {
 	loc_t loc  = location_i.read();
 	uint32_t i = 0;
+write_locations_loop:
 	while (loc.EOR != 1 || loc.str != 1) {
 		location_o[i] = loc_to_uint64(loc);
 		i++;
