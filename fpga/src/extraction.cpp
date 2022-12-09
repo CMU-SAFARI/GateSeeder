@@ -21,7 +21,6 @@ ap_uint<64> hash64(ap_uint<64> key) {
 }
 
 void extract_seeds(const uint8_t *seq_i, const uint32_t nb_bases_i, hls::stream<seed_t> &minimizers_o) {
-#pragma HLS INTERFACE m_axi port = seq_i offset = slave bundle = gmem0 depth = mem_size
 	seed_t previous_minimizer = {.hash = MAX, .loc = 0, .str = 0, .EOR = 1};
 	ap_uint<32> location      = 0;
 	ap_uint<32> length        = 0;

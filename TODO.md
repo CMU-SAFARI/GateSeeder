@@ -1,3 +1,3 @@
 # TODO
 
-* Finish golden model for query key
+* Parsing function use Malloc, need to use mmap for host program

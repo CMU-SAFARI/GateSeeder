@@ -1,6 +1,6 @@
 CXX	:= g++
 
-HLS_ROOT	?= /opt/xilinx/Vitis_HLS/2022.1
+HLS_ROOT	?= /opt/Xilinx/Vitis_HLS/2022.1
 
 
 SRC_DIR		:= src
@@ -35,5 +35,9 @@ $(TB_OBJS): CPPFLAGS+=-I$(UTIL_SRC_DIR) -I$(SRC_DIR)
 clean:
 	$(RM) *.o *.d $(TB)
 
-.PHONY: clean
+cosim:
+	export LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LIBRARY_PATH
+	$(HLS_ROOT)/bin/vitis_hls scripts/cosim.tcl
+
+.PHONY: clean cosim
 -include $(wildcard *.d)

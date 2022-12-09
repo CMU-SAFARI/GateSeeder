@@ -35,11 +35,17 @@ void open_fastq(const char *file_name) {
 		err(1, "fstat");
 	}
 	fastq_file_len = statbuf.st_size;
+	/*
 	fastq_file_ptr =
 	    (uint8_t *)mmap(NULL, fastq_file_len, PROT_READ, MAP_SHARED | MAP_POPULATE | MAP_NONBLOCK, fastq_fd, 0);
 	if (fastq_file_ptr == MAP_FAILED) {
-		err(1, "%s:%d, mmap", __FILE__, __LINE__);
+	        err(1, "%s:%d, mmap", __FILE__, __LINE__);
 	}
+	*/
+	// With Malloc and copy
+	FILE *fp = fopen(file_name, "rb");
+	MALLOC(fastq_file_ptr, uint8_t, fastq_file_len);
+	FREAD(fastq_file_ptr, uint8_t, fastq_file_len, fp);
 	fastq_file_pos = 0;
 	MALLOC(fastq_buf, uint8_t, MAX_SEQ_LEN);
 }

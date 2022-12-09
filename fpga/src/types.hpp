@@ -1,9 +1,11 @@
 #ifndef TYPES_HPP
 #define TYPES_HPP
 #include "ap_int.h"
+#include <cstdint>
 
 #define SE_W 12
 #define SE_K 15
+#define SEQ_LEN 1024
 
 // str = 0 and EOR = 1: end of read
 // str = 1 and EOR = 1: end of file
@@ -15,6 +17,8 @@ struct seed_t {
 };
 
 #define BUCKET_ID_SIZE 26
+#define MAP_LEN (1 << BUCKET_ID_SIZE)
+
 const static unsigned bucket_id_msb = BUCKET_ID_SIZE - 1;
 const static unsigned seed_id_lsb   = BUCKET_ID_SIZE;
 const static unsigned seed_id_msb   = 2 * SE_K - 1;
@@ -24,6 +28,8 @@ const static unsigned seed_id_size  = seed_id_msb - bucket_id_msb;
 // |--MS ID --|-- MS POS --|
 //  31         24         0
 #define MS_POS_SIZE 25
+#define KEY_LEN (1 << MS_POS_SIZE)
+
 const static unsigned ms_id_size = 32 - MS_POS_SIZE;
 const static unsigned ms_pos_msb = MS_POS_SIZE - 1;
 const static unsigned ms_id_lsb  = MS_POS_SIZE;
@@ -44,8 +50,7 @@ struct ms_pos_t {
 // Number of chromosomes limited to 1024
 // Total: 64 bits
 
-#define MS_LOC_SIZE 25
-const static unsigned ms_buf_size = 1 << 25;
+#define MS_BUF_LEN (1 << 25)
 struct loc_t {
 	ap_uint<30> target_loc;
 	ap_uint<21> query_loc;

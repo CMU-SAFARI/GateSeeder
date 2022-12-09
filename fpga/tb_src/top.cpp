@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
 	index_t index = parse_index(argv[1]);
 
 	/*
-	//DEBUG
+	// DEBUG
 	printf("MAP\n");
 	uint32_t prev = 0;
 	for (uint32_t i = 0; i < 200; i++) {
@@ -42,15 +42,15 @@ int main(int argc, char *argv[]) {
 	*/
 	read_buf_t read_buf;
 	open_fastq(argv[2]);
-	read_buf_init(&read_buf, 1 << 30);
+	read_buf_init(&read_buf, 1 << 20);
 
 	uint64_t *results;
-	MALLOC(results, uint64_t, 1 << 30);
+	MALLOC(results, uint64_t, 1 << 20);
 
 	uint64_t *buf_0_i;
-	MALLOC(buf_0_i, uint64_t, 1 << 25);
+	MALLOC(buf_0_i, uint64_t, 1 << 20);
 	uint64_t *buf_1_i;
-	MALLOC(buf_1_i, uint64_t, 1 << 25);
+	MALLOC(buf_1_i, uint64_t, 1 << 20);
 
 	while (parse_fastq(&read_buf) == 0) {
 		kernel(read_buf.len, read_buf.seq, index.map, index.key[0], index.key[1], buf_0_i, buf_1_i, results);
