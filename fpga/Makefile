@@ -7,6 +7,8 @@ SRC_DIR		:= src
 SRCS		= $(wildcard $(SRC_DIR)/*.cpp)
 OBJS		= $(SRCS:$(SRC_DIR)/%.cpp=%.o)
 
+SRCS_HPP = $(wildcard $(SRC_DIR)/*.hpp)
+
 TB_SRC_DIR	:= tb_src
 TB_SRCS		= $(wildcard $(TB_SRC_DIR)/*.cpp)
 TB_OBJS		= $(TB_SRCS:$(TB_SRC_DIR)/%.cpp=%.o)
@@ -35,11 +37,14 @@ $(TB_OBJS): CPPFLAGS+=-I$(UTIL_SRC_DIR) -I$(SRC_DIR)
 clean:
 	$(RM) *.o *.d $(TB)
 
+sim: $(TB)
+	./$< ../indexing/index.ali ../test/dummy1.fastq 4
+
 cosim:
 	LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$(LIBRARY_PATH) $(HLS_ROOT)/bin/vitis_hls scripts/cosim.tcl
 
-impl:
+demeter.xo: $(SRCS) $(SRCS_HPP)
 	LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$(LIBRARY_PATH) $(HLS_ROOT)/bin/vitis_hls scripts/impl.tcl
 
-.PHONY: clean cosim
+.PHONY: clean sim cosim
 -include $(wildcard *.d)
