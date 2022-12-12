@@ -28,12 +28,12 @@ void kernel(const uint32_t nb_bases_i, const uint8_t seq_i[SEQ_LEN], const uint3
 
 #pragma HLS dataflow
 
-	hls::stream<seed_t> seed;
+	hls::stream<seed_t, 64> seed;
 
-	hls::stream<ms_pos_t> ms_pos_0;
-	hls::stream<ms_pos_t> ms_pos_1;
+	hls::stream<ms_pos_t, 64> ms_pos_0;
+	hls::stream<ms_pos_t, 64> ms_pos_1;
 
-	hls::stream<loc_t> location;
+	hls::stream<loc_t, 64> location;
 
 	extract_seeds(seq_i, nb_bases_i, seed);
 

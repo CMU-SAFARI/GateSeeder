@@ -1,7 +1,8 @@
 CXX	:= g++
 
-HLS_ROOT	?= /opt/Xilinx/Vitis_HLS/2022.1
-
+XILINX_ROOT	?= /opt/Xilinx
+HLS_ROOT	= $(XILINX_ROOT)/Vitis_HLS/2022.1
+VITIS_ROOT	= $(XILINX_ROOT)/Vitis/2022.1
 
 SRC_DIR		:= src
 SRCS		= $(wildcard $(SRC_DIR)/*.cpp)
@@ -25,6 +26,12 @@ CXXFLAGS	= -O3 -g $(DEPFLAGS) -Wall -Wextra
 
 TB			= tb.x
 
+
+XOBJ		= demeter.xo
+XCLBIN		= demeter.xclbin
+CONFIG		= config/demeter.cfg
+
+
 $(TB): $(OBJS) $(TB_OBJS) $(UTIL_OBJS)
 	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
 $(TB): LDLIBS+=-lstdc++
@@ -43,8 +50,13 @@ sim: $(TB)
 cosim:
 	LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$(LIBRARY_PATH) $(HLS_ROOT)/bin/vitis_hls scripts/cosim.tcl
 
-demeter.xo: $(SRCS) $(SRCS_HPP)
+$(XOBJ): $(SRCS) $(SRCS_HPP)
 	LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$(LIBRARY_PATH) $(HLS_ROOT)/bin/vitis_hls scripts/impl.tcl
+
+$(XCLBIN): $(XOBJ) $(CONFIG)
+	LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$(LIBRARY_PATH) $(VITIS_ROOT)/bin/v++ -t hw --link $(XOBJ) -o $@ --config $(CONFIG)
+
+
 
 .PHONY: clean sim cosim
 -include $(wildcard *.d)
