@@ -42,13 +42,13 @@ sim: $(TB)
 	./$< ../indexing/index.ali ../test/dummy1.fastq 4
 
 cosim:
-	LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$(LIBRARY_PATH) vitis_hls scripts/cosim.tcl
+	vitis_hls scripts/cosim.tcl
 
 $(XOBJ): $(SRCS) $(SRCS_HPP)
-	LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$(LIBRARY_PATH) vitis_hls scripts/impl.tcl
+	vitis_hls scripts/impl.tcl
 
 $(XCLBIN): $(XOBJ) $(CONFIG)
-	LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$(LIBRARY_PATH) v++ -t hw --link $(XOBJ) -o $@ --config $(CONFIG)
+	v++ -t hw --link $(XOBJ) -o $@ --config $(CONFIG)
 
 .PHONY: clean sim cosim
 -include $(wildcard *.d)
