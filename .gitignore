@@ -1,8 +1,9 @@
 *.d
 *.o
+*.log
+*.xo
+*.paf
 tags
-aloha_index
-main
 indexdna
 map-pacbio
 map-illumina
