@@ -25,7 +25,7 @@ static size_t fastq_file_len;
 static size_t fastq_file_pos;
 static uint8_t *fastq_buf;
 
-void open_fastq(const char *file_name) {
+void open_fastq(int param, const char *file_name) {
 	struct stat statbuf;
 	fastq_fd = open(file_name, O_RDONLY);
 	if (fastq_fd == -1) {
@@ -35,17 +35,18 @@ void open_fastq(const char *file_name) {
 		err(1, "fstat");
 	}
 	fastq_file_len = statbuf.st_size;
-	/*
-	fastq_file_ptr =
-	    (uint8_t *)mmap(NULL, fastq_file_len, PROT_READ, MAP_SHARED | MAP_POPULATE | MAP_NONBLOCK, fastq_fd, 0);
-	if (fastq_file_ptr == MAP_FAILED) {
-	        err(1, "%s:%d, mmap", __FILE__, __LINE__);
+	if (param == OPEN_MMAP) {
+		fastq_file_ptr = (uint8_t *)mmap(NULL, fastq_file_len, PROT_READ,
+		                                 MAP_SHARED | MAP_POPULATE | MAP_NONBLOCK, fastq_fd, 0);
+		if (fastq_file_ptr == MAP_FAILED) {
+			err(1, "%s:%d, mmap", __FILE__, __LINE__);
+		}
+	} else {
+		// With Malloc and copy
+		FILE *fp = fopen(file_name, "rb");
+		MALLOC(fastq_file_ptr, uint8_t, fastq_file_len);
+		FREAD(fastq_file_ptr, uint8_t, fastq_file_len, fp);
 	}
-	*/
-	// With Malloc and copy
-	FILE *fp = fopen(file_name, "rb");
-	MALLOC(fastq_file_ptr, uint8_t, fastq_file_len);
-	FREAD(fastq_file_ptr, uint8_t, fastq_file_len, fp);
 	fastq_file_pos = 0;
 	MALLOC(fastq_buf, uint8_t, MAX_SEQ_LEN);
 }

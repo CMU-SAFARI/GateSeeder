@@ -22,7 +22,10 @@ typedef struct {
 	uint64_t **key;
 } index_t;
 
-void open_fastq(const char *const file_name);
+#define OPEN_MALLOC 0
+#define OPEN_MMAP 1
+
+void open_fastq(int param, const char *const file_name);
 void read_buf_init(read_buf_t *const buf, const uint32_t capacity);
 int parse_fastq(read_buf_t *const buf);
 void close_fastq();
