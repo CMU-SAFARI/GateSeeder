@@ -37,14 +37,14 @@ $(TB_OBJS): CPPFLAGS+=-I$(UTIL_SRC_DIR) -I$(SRC_DIR) -I$(XILINX_VITIS_HLS)/inclu
 $(OBJS): CPPFLAGS+=-I$(XILINX_VITIS_HLS)/include
 
 #$(OBJS): CPPFLAGS+=-DDEBUG_SEED_EXTRACTION
-#$(OBJS): CPPFLAGS+=-DDEBUG_QUERY_INDEX_MAP
-#$(OBJS): CPPFLAGS+=-DDEBUG_QUERY_INDEX_KEY
+#$(TB_OBJS) $(OBJS): CPPFLAGS+=-DDEBUG_QUERY_INDEX_MAP
+#$(TB_OBJS) $(OBJS): CPPFLAGS+=-DDEBUG_QUERY_INDEX_KEY
 
 clean:
 	$(RM) *.o *.d $(SIM) *.log *.xo $(HOST)
 
 sim: $(SIM)
-	./$< /mnt/scratch/jeudine/chr2-3.dti ../test/dummy1.fastq
+	./$< /mnt/scratch/jeudine/chr2-3.dti ../test/dummy.fastq
 
 cosim:
 	vitis_hls scripts/cosim.tcl

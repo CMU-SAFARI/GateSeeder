@@ -1,18 +1,15 @@
 #include "querying.hpp"
 #include <string.h>
 
-void query_index_map(hls::stream<seed_t> &seed_i, const uint32_t *map_i, hls::stream<ms_pos_t> &ms_pos_0_o,
-                     hls::stream<ms_pos_t> &ms_pos_1_o) {
+void query_index_map(hls::stream<seed_t> &seed_i, const uint32_t *map_i, hls::stream<ms_pos_t> &ms_pos_o) {
 	seed_t seed = seed_i.read();
 
 query_index_map_loop:
 	while (seed.str == 0 || seed.EOR == 0) {
 #pragma HLS pipeline II = 2
 		if (seed.EOR == 1) {
-			ms_pos_0_o << ms_pos_t{
-			    .start_pos = 0, .end_pos = 0, .seed_id = 0, .query_loc = 0, .str = 0, .EOR = 1};
-			ms_pos_1_o << ms_pos_t{
-			    .start_pos = 0, .end_pos = 0, .seed_id = 0, .query_loc = 0, .str = 0, .EOR = 1};
+			ms_pos_o << ms_pos_t{
+			    .start_pos = 0, .end_pos = 0, .ms_id = 0, .seed_id = 0, .query_loc = 0, .str = 0, .EOR = 1};
 		} else {
 			const uint32_t bucket_id = seed.hash.range(bucket_id_msb, 0).to_uint();
 			// access the map
@@ -24,11 +21,12 @@ query_index_map_loop:
 			// If there are some locations
 			if (start != end) {
 
-				// find out in which MS are the locations
-				const ap_uint<ms_id_size> ms_id_start = start.range(31, ms_id_lsb);
-				const ap_uint<ms_id_size> ms_id       = end.range(31, ms_id_lsb);
-
 				ms_pos_t ms_pos;
+
+				// find out in which MS are the locations
+				const ap_uint<MS_ID_SIZE> ms_id_start = start.range(31, ms_id_lsb);
+				ms_pos.ms_id                          = end.range(31, ms_id_lsb);
+
 				ms_pos.end_pos   = end.range(ms_pos_msb, 0);
 				ms_pos.seed_id   = seed.hash.range(seed_id_msb, seed_id_lsb);
 				ms_pos.query_loc = seed.loc.to_uint();
@@ -36,26 +34,19 @@ query_index_map_loop:
 				ms_pos.EOR       = 0;
 
 				// In case we are at the begining of a MS
-				if (ms_id != ms_id_start) {
+				if (ms_pos.ms_id != ms_id_start) {
 					ms_pos.start_pos = 0;
 				} else {
 					ms_pos.start_pos = start.range(ms_pos_msb, 0);
 				}
 
-				switch (ms_id) {
-					case 0:
-						ms_pos_0_o << ms_pos;
-						break;
-					default:
-						ms_pos_1_o << ms_pos;
-						break;
-				}
+				ms_pos_o << ms_pos;
 			}
 		}
 		seed = seed_i.read();
 	}
-	ms_pos_0_o << ms_pos_t{.start_pos = 0, .end_pos = 0, .seed_id = 0, .query_loc = 0, .str = 1, .EOR = 1};
-	ms_pos_1_o << ms_pos_t{.start_pos = 0, .end_pos = 0, .seed_id = 0, .query_loc = 0, .str = 1, .EOR = 1};
+	ms_pos_o << ms_pos_t{
+	    .start_pos = 0, .end_pos = 0, .ms_id = 0, .seed_id = 0, .query_loc = 0, .str = 1, .EOR = 1};
 }
 
 #define LOC_OFFSET (1 << 21)
@@ -91,29 +82,25 @@ inline loc_t uint64_to_loc(uint64_t loc_i) {
 	};
 }
 
-void copy_key_value(const uint64_t *key_i, loc_t &loc_key, ap_uint<1> &enable, uint64_t *buf_o, const uint32_t buf_j,
-                    uint32_t &key_j, const uint32_t end_pos, const ap_uint<1> query_str_i, const uint32_t query_loc_i,
-                    const ap_uint<seed_id_size> seed_id_i) {
-	// Copy loc into the buffer
-	buf_o[buf_j] = loc_to_uint64(loc_key);
-	// Check that we are not at the end
-	if (key_j == end_pos) {
-		enable = 0;
-	} else {
-		// Check if we have the good seed_id
-		const uint64_t key = key_i[key_j];
-		key_j++;
-		const ap_uint<64> key_uint          = ap_uint<64>(key);
-		const ap_uint<seed_id_size> seed_id = key_uint.range(LOC_SHIFT + 1 + seed_id_size, LOC_SHIFT + 1);
-		if (seed_id != seed_id_i) {
-			enable = 0;
-		} else {
-			loc_key = extract_key_loc(key, query_str_i, query_loc_i);
+void query_index_key_MS(const uint32_t start_pos_i, const uint32_t end_pos_i, const ap_uint<seed_id_size> seed_id_i,
+                        const uint64_t *const key_i, hls::stream<uint64_t> &loc_o) {
+	// Check if we find locations with the same seed_id
+search_key_loop:
+	for (uint32_t key_j = start_pos_i; key_j < end_pos_i; key_j++) {
+		uint64_t key = key_i[key_j];
+
+		const ap_uint<64> uint_key          = ap_uint<64>(key);
+		const ap_uint<seed_id_size> seed_id = uint_key.range(LOC_SHIFT + 1 + seed_id_size, LOC_SHIFT + 1);
+
+		if (seed_id == seed_id_i) {
+			// Copy the locations
+			loc_o << key;
 		}
 	}
 }
 
-void query_index_key(hls::stream<ms_pos_t> &ms_pos_i, const uint64_t *key_i, hls::stream<uint64_t> &loc_o) {
+void query_index_key(hls::stream<ms_pos_t> &ms_pos_i, const uint64_t *const key_0_i, const uint64_t *const key_1_i,
+                     hls::stream<uint64_t> &loc_o) {
 	ms_pos_t pos = ms_pos_i.read();
 
 query_index_key_loop:
@@ -126,19 +113,13 @@ query_index_key_loop:
 			const uint32_t start_pos = pos.start_pos.to_uint();
 			const uint32_t end_pos   = pos.end_pos.to_uint();
 
-			// Check if we find locations with the same seed_id
-		search_key_loop:
-			for (uint32_t key_j = start_pos; key_j < end_pos; key_j++) {
-				uint64_t key = key_i[key_j];
-
-				const ap_uint<64> uint_key = ap_uint<64>(key);
-				const ap_uint<seed_id_size> seed_id =
-				    uint_key.range(LOC_SHIFT + 1 + seed_id_size, LOC_SHIFT + 1);
-
-				if (seed_id == pos.seed_id) {
-					// Copy the locations
-					loc_o << key;
-				}
+			switch (pos.ms_id) {
+				case 0:
+					query_index_key_MS(start_pos, end_pos, pos.seed_id, key_0_i, loc_o);
+					break;
+				default:
+					query_index_key_MS(start_pos, end_pos, pos.seed_id, key_1_i, loc_o);
+					break;
 			}
 		}
 		pos = ms_pos_i.read();

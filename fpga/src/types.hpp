@@ -29,9 +29,9 @@ const static unsigned seed_id_size  = seed_id_msb - bucket_id_msb;
 // |--MS ID --|-- MS POS --|
 //  31         24         0
 #define MS_POS_SIZE 25
+#define MS_ID_SIZE (32 - MS_POS_SIZE)
 #define KEY_LEN (1 << MS_POS_SIZE)
 
-const static unsigned ms_id_size = 32 - MS_POS_SIZE;
 const static unsigned ms_pos_msb = MS_POS_SIZE - 1;
 const static unsigned ms_id_lsb  = MS_POS_SIZE;
 // str = 0 and EOR = 1: end of read
@@ -39,6 +39,7 @@ const static unsigned ms_id_lsb  = MS_POS_SIZE;
 struct ms_pos_t {
 	ap_uint<MS_POS_SIZE> start_pos;
 	ap_uint<MS_POS_SIZE> end_pos;
+	ap_uint<MS_ID_SIZE> ms_id;
 	ap_uint<seed_id_size> seed_id;
 	uint32_t query_loc;
 	ap_uint<1> str;
@@ -51,7 +52,7 @@ struct ms_pos_t {
 // Number of chromosomes limited to 1024
 // Total: 64 bits
 
-#define MS_BUF_LEN (1 << 25)
+#define OUT_LEN (1 << 25)
 struct loc_t {
 	ap_uint<30> target_loc;
 	ap_uint<21> query_loc;

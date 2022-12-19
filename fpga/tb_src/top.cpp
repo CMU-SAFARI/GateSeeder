@@ -49,18 +49,20 @@ int main(int argc, char *argv[]) {
 	uint64_t *results;
 	MALLOC(results, uint64_t, 1 << 28);
 
-	uint64_t *out_0_o;
-	MALLOC(out_0_o, uint64_t, 1 << 20);
-	uint64_t *out_1_o;
-	MALLOC(out_1_o, uint64_t, 1 << 20);
+	uint64_t *out_o;
+	MALLOC(out_o, uint64_t, 1 << 20);
 
 	while (parse_fastq(&read_buf) == 0) {
 		std::cout << "read buf len: " << read_buf.len << std::endl;
-		kernel(read_buf.len, read_buf.seq, index.map, index.key[0], index.key[1], out_0_o, out_1_o);
-		print_results(out_0_o);
+		kernel(read_buf.len, read_buf.seq, index.map, index.key[0], index.key[1], out_o);
+#if !defined(DEBUG_QUERY_INDEX_MAP) && !defined(DEBUG_QUERY_INDEX_KEY) && !defined(DEBUG_SEED_EXTRACTION)
+		print_results(out_o);
+#endif
 	}
-	kernel(read_buf.len, read_buf.seq, index.map, index.key[0], index.key[1], out_0_o, out_1_o);
-	print_results(out_0_o);
+	kernel(read_buf.len, read_buf.seq, index.map, index.key[0], index.key[1], out_o);
+#if !defined(DEBUG_QUERY_INDEX_MAP) && !defined(DEBUG_QUERY_INDEX_KEY) && !defined(DEBUG_SEED_EXTRACTION)
+	print_results(out_o);
+#endif
 
 	return 0;
 }
