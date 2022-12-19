@@ -44,7 +44,7 @@ clean:
 	$(RM) *.o *.d $(SIM) *.log *.xo $(HOST)
 
 sim: $(SIM)
-	./$< /mnt/scratch/jeudine/chr2-3.dti /mnt/scratch/jeudine/ONT_10000.fastq
+	./$< /mnt/scratch/jeudine/chr2-3.dti ../test/dummy1.fastq
 
 cosim:
 	vitis_hls scripts/cosim.tcl

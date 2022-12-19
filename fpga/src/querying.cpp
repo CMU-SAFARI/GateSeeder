@@ -113,81 +113,22 @@ void copy_key_value(const uint64_t *key_i, loc_t &loc_key, ap_uint<1> &enable, u
 	}
 }
 
-/*
-void query_index_key(hls::stream<ms_pos_t> &ms_pos_i, const uint64_t *key_i, uint64_t *out_o) {
-        ms_pos_t pos     = ms_pos_i.read();
-        uint32_t out_pos = 0;
-
-query_index_key_loop:
-        while (pos.EOR == 0 || pos.str == 0) {
-                // EOR
-                if (pos.EOR == 1) {
-                        out_o[out_pos] = 1ULL << 63;
-                        out_pos++;
-                } else {
-                        // Eliminate the false-positive
-                        const uint32_t start_pos = pos.start_pos.to_uint();
-                        const uint32_t end_pos   = pos.end_pos.to_uint();
-                        // const uint32_t query_loc   = pos.query_loc;
-                        // const ap_uint<1> query_str = pos.str;
-
-                        uint32_t key_j = start_pos;
-                        uint64_t key;
-
-                        ap_uint<1> continue_searching = 1;
-
-                        // Check if we find locations with the same seed_id
-                search_key_loop:
-                        while (continue_searching) {
-#pragma HLS pipeline off
-                                key = key_i[key_j];
-                                key_j++;
-
-                                const ap_uint<64> uint_key = ap_uint<64>(key);
-                                const ap_uint<seed_id_size> seed_id =
-                                    uint_key.range(LOC_SHIFT + 1 + seed_id_size, LOC_SHIFT + 1);
-
-                                if (seed_id == pos.seed_id) {
-                                        // Copy the locations
-                                        out_o[out_pos] = key;
-                                        out_pos++;
-                                }
-
-                                if (key_j == end_pos || seed_id > pos.seed_id) {
-                                        continue_searching = 0;
-                                }
-                        }
-                }
-                pos = ms_pos_i.read();
-        }
-        out_o[out_pos] = UINT64_MAX;
-        out_pos++;
-        return;
-}
-*/
-
-void query_index_key(hls::stream<ms_pos_t> &ms_pos_i, const uint64_t *key_i, uint64_t *out_o) {
-	ms_pos_t pos     = ms_pos_i.read();
-	uint32_t out_pos = 0;
+void query_index_key(hls::stream<ms_pos_t> &ms_pos_i, const uint64_t *key_i, hls::stream<uint64_t> &loc_o) {
+	ms_pos_t pos = ms_pos_i.read();
 
 query_index_key_loop:
 	while (pos.EOR == 0 || pos.str == 0) {
 #pragma HLS loop_flatten off
 		// EOR
 		if (pos.EOR == 1) {
-			out_o[out_pos] = 1ULL << 63;
-			out_pos++;
+			loc_o << (1ULL << 63);
 		} else {
-			// Eliminate the false-positive
 			const uint32_t start_pos = pos.start_pos.to_uint();
 			const uint32_t end_pos   = pos.end_pos.to_uint();
-			// const uint32_t query_loc   = pos.query_loc;
-			// const ap_uint<1> query_str = pos.str;
 
 			// Check if we find locations with the same seed_id
 		search_key_loop:
 			for (uint32_t key_j = start_pos; key_j < end_pos; key_j++) {
-				//#pragma HLS pipeline off
 				uint64_t key = key_i[key_j];
 
 				const ap_uint<64> uint_key = ap_uint<64>(key);
@@ -196,14 +137,23 @@ query_index_key_loop:
 
 				if (seed_id == pos.seed_id) {
 					// Copy the locations
-					out_o[out_pos] = key;
-					out_pos++;
+					loc_o << key;
 				}
 			}
 		}
 		pos = ms_pos_i.read();
 	}
-	out_o[out_pos] = UINT64_MAX;
-	out_pos++;
-	return;
+	loc_o << UINT64_MAX;
+}
+
+void write_loc(hls::stream<uint64_t> &loc_i, uint64_t *const loc_o) {
+	uint64_t loc   = loc_i.read();
+	uint32_t loc_j = 0;
+write_loc_loop:
+	while (loc != UINT64_MAX) {
+		loc_o[loc_j] = loc;
+		loc_j++;
+		loc = loc_i.read();
+	}
+	loc_o[loc_j] = UINT64_MAX;
 }

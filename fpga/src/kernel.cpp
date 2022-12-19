@@ -5,8 +5,8 @@
 #include <stdint.h>
 
 void kernel(const uint32_t nb_bases_i, const uint8_t seq_i[SEQ_LEN], const uint32_t map_i[MAP_LEN],
-            const uint64_t key_0_i[KEY_LEN], const uint64_t key_1_i[KEY_LEN], uint64_t out_0_o[MS_BUF_LEN],
-            uint64_t out_1_o[MS_BUF_LEN]) {
+            const uint64_t key_0_i[KEY_LEN], const uint64_t key_1_i[KEY_LEN], uint64_t out_0_o[MS_BUF_LEN / 2],
+            uint64_t out_1_o[MS_BUF_LEN / 2]) {
 
 #pragma HLS INTERFACE m_axi port = seq_i bundle = gmem0
 
@@ -26,10 +26,13 @@ void kernel(const uint32_t nb_bases_i, const uint8_t seq_i[SEQ_LEN], const uint3
 
 #pragma HLS dataflow
 
-	hls::stream<seed_t, 64> seed;
+	hls::stream<seed_t, 1024> seed;
 
-	hls::stream<ms_pos_t, 64> ms_pos_0;
-	hls::stream<ms_pos_t, 64> ms_pos_1;
+	hls::stream<ms_pos_t, 1024> ms_pos_0;
+	hls::stream<ms_pos_t, 1024> ms_pos_1;
+
+	hls::stream<uint64_t, 1024> loc_0;
+	hls::stream<uint64_t, 1024> loc_1;
 
 	extract_seeds(seq_i, nb_bases_i, seed);
 
@@ -62,8 +65,11 @@ void kernel(const uint32_t nb_bases_i, const uint8_t seq_i[SEQ_LEN], const uint3
 
 #else
 
-	query_index_key(ms_pos_0, key_0_i, out_0_o);
-	query_index_key(ms_pos_1, key_1_i, out_1_o);
+	query_index_key(ms_pos_0, key_0_i, loc_0);
+	query_index_key(ms_pos_1, key_1_i, loc_1);
+
+	write_loc(loc_0, out_0_o);
+	write_loc(loc_1, out_1_o);
 
 #ifdef DEBUG_QUERY_INDEX_KEY
 	unsigned counter = 0;
