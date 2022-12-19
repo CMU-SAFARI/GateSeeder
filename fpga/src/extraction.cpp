@@ -129,7 +129,6 @@ seed_extraction_loop:
 			} else {
 				seed_t new_previous_minimizer = previous_minimizer;
 				for (unsigned i = 0; i < SE_W; i++) {
-#pragma HLS PIPELINE II = 1
 					if (out[i] && base_window_2[i].loc > previous_minimizer.loc) {
 						minimizers_o << base_window_2[i];
 						new_previous_minimizer = base_window_2[i];

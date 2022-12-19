@@ -30,10 +30,11 @@ XOBJ		= demeter.xo
 XCLBIN		= demeter.xclbin
 CONFIG		= config/demeter.cfg
 
-$(SIM): $(OBJS) $(SIM_OBJS) $(UTIL_OBJS)
+$(SIM): $(OBJS) $(TB_OBJS) $(UTIL_OBJS)
 	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
 $(SIM): LDLIBS+=-lstdc++
 $(TB_OBJS): CPPFLAGS+=-I$(UTIL_SRC_DIR) -I$(SRC_DIR) -I$(XILINX_VITIS_HLS)/include
+$(OBJS): CPPFLAGS+=-I$(XILINX_VITIS_HLS)/include
 
 #$(OBJS): CPPFLAGS+=-DDEBUG_SEED_EXTRACTION
 #$(OBJS): CPPFLAGS+=-DDEBUG_QUERY_INDEX_MAP
@@ -43,7 +44,7 @@ clean:
 	$(RM) *.o *.d $(SIM) *.log *.xo $(HOST)
 
 sim: $(SIM)
-	./$< ../indexing/index.ali ../test/dummy1.fastq 4
+	./$< /mnt/scratch/jeudine/chr2-3.dti /mnt/scratch/jeudine/ONT_10000.fastq
 
 cosim:
 	vitis_hls scripts/cosim.tcl

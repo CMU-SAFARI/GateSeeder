@@ -64,11 +64,13 @@ int main(int argc, char *argv[]) {
 			puts("");
 #endif
 			query_index_key(key_pos, index.key, &loc);
+			/*
 			printf("loc_len: %u\n", loc.len);
 			for (uint32_t j = 0; j < loc.len; j++) {
-				printf("target_loc: %x, query_loc: %x, chrom_id: %x, str: %x\n", loc.locs[j].target_loc,
-				       loc.locs[j].query_loc, loc.locs[j].chrom_id, loc.locs[j].str);
+			        printf("target_loc: %x, query_loc: %x, chrom_id: %x, str: %x\n", loc.locs[j].target_loc,
+			               loc.locs[j].query_loc, loc.locs[j].chrom_id, loc.locs[j].str);
 			}
+			*/
 			free(loc.locs);
 		}
 

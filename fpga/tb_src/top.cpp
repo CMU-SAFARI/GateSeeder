@@ -23,7 +23,7 @@ void print_results(uint64_t *results) {
 }
 
 int main(int argc, char *argv[]) {
-	if (argc != 4) {
+	if (argc != 3) {
 		cerr << "[ERROR] Wrong number of arguments" << endl;
 		exit(2);
 	}
@@ -41,23 +41,26 @@ int main(int argc, char *argv[]) {
 	}
 	*/
 	read_buf_t read_buf;
-	open_fastq(argv[2]);
+	open_fastq(OPEN_MMAP, argv[2]);
 	read_buf_init(&read_buf, 1 << 20);
 
-	uint64_t *results;
-	MALLOC(results, uint64_t, 1 << 20);
+	std::cout << "Read file open\n";
 
-	uint64_t *buf_0_i;
-	MALLOC(buf_0_i, uint64_t, 1 << 20);
-	uint64_t *buf_1_i;
-	MALLOC(buf_1_i, uint64_t, 1 << 20);
+	uint64_t *results;
+	MALLOC(results, uint64_t, 1 << 28);
+
+	uint64_t *out_0_o;
+	MALLOC(out_0_o, uint64_t, 1 << 20);
+	uint64_t *out_1_o;
+	MALLOC(out_1_o, uint64_t, 1 << 20);
 
 	while (parse_fastq(&read_buf) == 0) {
-		kernel(read_buf.len, read_buf.seq, index.map, index.key[0], index.key[1], buf_0_i, buf_1_i, results);
-		print_results(results);
+		std::cout << "read buf len: " << read_buf.len << std::endl;
+		kernel(read_buf.len, read_buf.seq, index.map, index.key[0], index.key[1], out_0_o, out_1_o);
+		print_results(out_0_o);
 	}
-	kernel(read_buf.len, read_buf.seq, index.map, index.key[0], index.key[1], buf_0_i, buf_1_i, results);
-	print_results(results);
+	kernel(read_buf.len, read_buf.seq, index.map, index.key[0], index.key[1], out_0_o, out_1_o);
+	print_results(out_0_o);
 
 	return 0;
 }
