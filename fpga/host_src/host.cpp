@@ -33,8 +33,12 @@ int main(int argc, char *argv[]) {
 
 	index_t index = parse_index(argv[2]);
 	open_fastq(OPEN_MMAP, argv[3]);
-	read_buf_t read_buf;
-	read_buf_init(&read_buf, BATCH_SIZE);
+
+	read_buf_t read_buf_0;
+	read_buf_init(&read_buf_0, BATCH_SIZE);
+
+	read_buf_t read_buf_1;
+	read_buf_init(&read_buf_1, BATCH_SIZE);
 
 	// Setup the Environment
 	unsigned device_index  = 0;
@@ -43,16 +47,20 @@ int main(int argc, char *argv[]) {
 	auto device = xrt::device(device_index);
 	std::cout << "Load the xclbin " << binaryFile << std::endl;
 	auto uuid = device.load_xclbin(binaryFile);
-	auto krnl = xrt::kernel(device, uuid, "kernel");
+
+	auto krnl0 = xrt::kernel(device, uuid, "kernel:{krnl0}");
+	auto krnl1 = xrt::kernel(device, uuid, "kernel:{krnl1}");
 
 	// TODO: for the key create an array with the right size
 	//  Create the buffer objects
-	auto seq_i   = xrt::bo(device, MS_SIZE, krnl.group_id(1));
-	auto map_i   = xrt::bo(device, MS_SIZE, krnl.group_id(2));
-	auto key_0_i = xrt::bo(device, MS_SIZE, krnl.group_id(3));
-	auto key_1_i = xrt::bo(device, MS_SIZE, krnl.group_id(4));
-	auto out_0_o = xrt::bo(device, MS_SIZE, krnl.group_id(5));
-	auto out_1_o = xrt::bo(device, MS_SIZE, krnl.group_id(6));
+	auto map_i   = xrt::bo(device, MS_SIZE, krnl0.group_id(2));
+	auto key_0_i = xrt::bo(device, MS_SIZE, krnl0.group_id(3));
+	auto key_1_i = xrt::bo(device, MS_SIZE, krnl0.group_id(4));
+
+	auto seq_i_0 = xrt::bo(device, MS_SIZE, krnl0.group_id(1));
+	auto out_o_0 = xrt::bo(device, MS_SIZE, krnl0.group_id(5));
+	auto seq_i_1 = xrt::bo(device, MS_SIZE, krnl1.group_id(1));
+	auto out_o_1 = xrt::bo(device, MS_SIZE, krnl1.group_id(5));
 
 	std::cout << "Alloc done\n";
 
@@ -72,7 +80,9 @@ int main(int argc, char *argv[]) {
 	MALLOC(res, uint64_t, (1 << 30));
 
 	bool first_exec = true;
-	xrt::run run;
+
+	xrt::run run_0;
+	xrt::run run_1;
 
 	struct timespec start_exec, end_exec, start, end;
 	double host_dev_time = 0;
@@ -82,65 +92,114 @@ int main(int argc, char *argv[]) {
 	clock_gettime(CLOCK_MONOTONIC, &start_exec);
 
 	clock_gettime(CLOCK_MONOTONIC, &start);
-	while (parse_fastq(&read_buf) == 0) {
+	int parse_0 = parse_fastq(&read_buf_0);
+	int parse_1 = parse_fastq(&read_buf_1);
+
+	while (parse_0 == 0 && parse_1 == 0) {
 		clock_gettime(CLOCK_MONOTONIC, &end);
 		read_time += (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
 
 		clock_gettime(CLOCK_MONOTONIC, &start);
-		seq_i.write(read_buf.seq);
-		seq_i.sync(XCL_BO_SYNC_BO_TO_DEVICE);
+		seq_i_0.write(read_buf_0.seq);
+		seq_i_1.write(read_buf_1.seq);
+
+		seq_i_0.sync(XCL_BO_SYNC_BO_TO_DEVICE);
+		seq_i_1.sync(XCL_BO_SYNC_BO_TO_DEVICE);
 		clock_gettime(CLOCK_MONOTONIC, &end);
 
 		host_dev_time += (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
-		std::cout << "[INFO] Sequence length: " << read_buf.len << std::endl;
+		std::cout << "[INFO] Sequence length 0: " << read_buf_0.len << std::endl;
+		std::cout << "[INFO] Sequence length 1: " << read_buf_1.len << std::endl;
 
 		clock_gettime(CLOCK_MONOTONIC, &start);
 		if (first_exec) {
-			run        = krnl(read_buf.len, seq_i, map_i, key_0_i, key_1_i, out_0_o, out_1_o);
+			run_0      = krnl0(read_buf_0.len, seq_i_0, map_i, key_0_i, key_1_i, out_o_0);
+			run_1      = krnl1(read_buf_1.len, seq_i_1, map_i, key_0_i, key_1_i, out_o_1);
 			first_exec = false;
 		} else {
-			run.set_arg(0, read_buf.len);
-			run.start();
+			run_0.set_arg(0, read_buf_0.len);
+			run_0.start();
+
+			run_1.set_arg(0, read_buf_1.len);
+			run_1.start();
 		}
-		run.wait();
+
+		run_0.wait();
+		run_1.wait();
+
 		clock_gettime(CLOCK_MONOTONIC, &end);
 		krnl_time += (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
 
 		clock_gettime(CLOCK_MONOTONIC, &start);
-		out_0_o.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
-		out_0_o.read(res);
+		out_o_0.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
+		out_o_1.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
+
+		out_o_0.read(res);
+		out_o_1.read(res);
 		clock_gettime(CLOCK_MONOTONIC, &end);
 		dev_host_time += (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
 		clock_gettime(CLOCK_MONOTONIC, &start);
+
+		parse_0 = parse_fastq(&read_buf_0);
+		parse_1 = parse_fastq(&read_buf_1);
 	}
 	clock_gettime(CLOCK_MONOTONIC, &end);
 	read_time += (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
 
 	clock_gettime(CLOCK_MONOTONIC, &start);
-	seq_i.write(read_buf.seq);
-	seq_i.sync(XCL_BO_SYNC_BO_TO_DEVICE);
+	seq_i_0.write(read_buf_0.seq);
+	if (parse_0 == 0) {
+		seq_i_1.write(read_buf_1.seq);
+	}
+
+	seq_i_0.sync(XCL_BO_SYNC_BO_TO_DEVICE);
+	if (parse_0 == 0) {
+		seq_i_1.sync(XCL_BO_SYNC_BO_TO_DEVICE);
+	}
 	clock_gettime(CLOCK_MONOTONIC, &end);
 
 	host_dev_time += (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
-	std::cout << "[INFO] Sequence length: " << read_buf.len << std::endl;
+	std::cout << "[INFO] Sequence length 0: " << read_buf_0.len << std::endl;
+	std::cout << "[INFO] Sequence length 1: " << read_buf_1.len << std::endl;
 
 	clock_gettime(CLOCK_MONOTONIC, &start);
 	if (first_exec) {
-		run        = krnl(read_buf.len, seq_i, map_i, key_0_i, key_1_i, out_0_o, out_1_o);
-		first_exec = false;
+		run_0 = krnl0(read_buf_0.len, seq_i_0, map_i, key_0_i, key_1_i, out_o_0);
+		if (parse_0 == 0) {
+			run_1 = krnl1(read_buf_1.len, seq_i_1, map_i, key_0_i, key_1_i, out_o_1);
+		}
 	} else {
-		run.set_arg(0, read_buf.len);
-		run.start();
+		run_0.set_arg(0, read_buf_0.len);
+		run_0.start();
+
+		if (parse_0 == 0) {
+			run_1.set_arg(0, read_buf_1.len);
+			run_1.start();
+		}
 	}
-	run.wait();
+
+	run_0.wait();
+	if (parse_0 == 0) {
+		run_1.wait();
+	}
+
 	clock_gettime(CLOCK_MONOTONIC, &end);
 	krnl_time += (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
 
 	clock_gettime(CLOCK_MONOTONIC, &start);
-	out_0_o.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
-	out_0_o.read(res);
+	out_o_0.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
+	if (parse_0 == 0) {
+		out_o_1.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
+	}
+
+	out_o_0.read(res);
+	if (parse_0 == 0) {
+		out_o_1.read(res);
+	}
 	clock_gettime(CLOCK_MONOTONIC, &end);
 	dev_host_time += (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
+	clock_gettime(CLOCK_MONOTONIC, &start);
+
 	clock_gettime(CLOCK_MONOTONIC, &end_exec);
 	const double exec_time =
 	    (end_exec.tv_sec - start_exec.tv_sec) + (end_exec.tv_nsec - start_exec.tv_nsec) / 1000000000.0;
