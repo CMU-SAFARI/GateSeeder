@@ -85,32 +85,22 @@ seed_extraction_loop:
 				base_window_2[i] = base_window[i];
 			}
 
-			// TODO: review
-			ap_uint<2 * SE_K> comp[SE_W / 2 + 1];
-#pragma HLS array_partition type = block variable = comp factor = 4
-		comp1_loop:
-			for (unsigned i = 0; i < SE_W / 2 + SE_W % 2; i++) {
-#pragma HLS UNROLL
-				comp[i] = (base_window_2[i].hash < base_window_2[SE_W - 1 - i].hash)
-				              ? base_window_2[i].hash
-				              : base_window_2[SE_W - 1 - i].hash;
+			uint64_t min = base_window[0].hash;
+		comp_loop:
+			for (unsigned i = 1; i < SE_W; i++) {
+				if (base_window_2[i].hash < min) {
+					min = base_window_2[i].hash;
+				}
 			}
 
-		comp2_loop:
-			for (unsigned i = 0; i < SE_W / 2 - 1 + SE_W % 2; i++) {
-				comp[SE_W / 2 - 1 + SE_W % 2] =
-				    (comp[SE_W / 2 - 1 + SE_W % 2] < comp[i]) ? comp[SE_W / 2 - 1 + SE_W % 2] : comp[i];
-			}
-
-			// TODO: end review
-		find_minimizer_loop:
 			/*
 			std::cout << "prev_minimum: hash: " << std::hex << previous_minimizer.hash
 			          << " loc: " << previous_minimizer.loc << std::endl;
 			          */
+		find_minimizer_loop:
 			for (unsigned i = 0; i < SE_W; i++) {
 #pragma HLS UNROLL
-				out[i] = (base_window_2[i].hash == comp[SE_W / 2 - 1 + SE_W % 2]) ? 1 : 0;
+				out[i] = (base_window_2[i].hash == min) ? 1 : 0;
 				/*
 				// DEBUG
 				if (out[i] == 1) {

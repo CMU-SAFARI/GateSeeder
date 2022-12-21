@@ -36,7 +36,7 @@ $(OBJS): CPPFLAGS+=-I$(XILINX_VITIS_HLS)/include
 #$(TB_OBJS) $(OBJS): CPPFLAGS+=-DDEBUG_QUERY_INDEX_KEY
 
 clean:
-	$(RM) *.o *.d $(SIM) *.log *.xo $(HOST)
+	$(RM) *.o *.d $(SIM) *.log *.xo
 
 sim: $(SIM)
 	./$< /mnt/scratch/jeudine/chr2-3.dti ../test/dummy.fastq

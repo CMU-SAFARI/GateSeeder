@@ -132,6 +132,7 @@ void write_loc(hls::stream<uint64_t> &loc_i, uint64_t *const loc_o) {
 	uint32_t loc_j = 0;
 write_loc_loop:
 	while (loc != UINT64_MAX) {
+#pragma HLS pipeline II = 2
 		loc_o[loc_j] = loc;
 		loc_j++;
 		loc = loc_i.read();
