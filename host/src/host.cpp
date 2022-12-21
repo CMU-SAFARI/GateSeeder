@@ -153,10 +153,19 @@ int main(int argc, char *argv[]) {
 			run_3.start();
 		}
 
+		unsigned counter = 0;
+		while (run_0.state() != ERT_CMD_STATE_COMPLETED) {
+			if (run_0.state() == ERT_CMD_STATE_QUEUED) {
+				counter++;
+			}
+		}
+		std::cout << "Counter: " << counter << std::endl;
+
 		run_0.wait();
 		run_1.wait();
 		run_2.wait();
 		run_3.wait();
+
 		clock_gettime(CLOCK_MONOTONIC, &end);
 		krnl_time += (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
 
@@ -218,10 +227,16 @@ int main(int argc, char *argv[]) {
 		run_3.start();
 	}
 
+	unsigned counter = 0;
+	while (run_0.state() != ERT_CMD_STATE_COMPLETED) {
+		counter++;
+	}
+	std::cout << "Counter: " << counter << std::endl;
 	run_0.wait();
 	run_1.wait();
 	run_2.wait();
 	run_3.wait();
+
 	clock_gettime(CLOCK_MONOTONIC, &end);
 	krnl_time += (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
 	clock_gettime(CLOCK_MONOTONIC, &start);
