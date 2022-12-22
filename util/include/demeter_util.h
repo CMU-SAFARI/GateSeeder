@@ -32,6 +32,13 @@
 		}                                                                                                      \
 	}
 
+#define POSIX_MEMALIGN(var, alignment, size)                                                                           \
+	{                                                                                                              \
+		if (posix_memalign((void **)&var, alignment, size)) {                                                  \
+			errx(1, "%s:%d, posix_memalign", __FILE__, __LINE__);                                          \
+		}                                                                                                      \
+	}
+
 #define MUTEX_INIT(mutex)                                                                                              \
 	{ pthread_mutex_init(&mutex, NULL); }
 

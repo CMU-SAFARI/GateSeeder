@@ -76,7 +76,7 @@ void demeter_fpga_init(const unsigned nb_kernels, const unsigned nb_ms_key, cons
 
 	for (unsigned i = 0; i < NB_WORKERS; i++) {
 		uint8_t *seq;
-		if (posix_memalign((void **)&seq, 4096, MS_SIZE) == 0) {
+		if (posix_memalign((void **)&seq, 4096, MS_SIZE)) {
 			errx(1, "%s:%d, posix_memalign", __FILE__, __LINE__);
 		}
 		uint64_t *loc;

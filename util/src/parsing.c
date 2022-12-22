@@ -1,5 +1,5 @@
+#include "demeter_util.h"
 #include "parsing.h"
-#include "util.h"
 #include <err.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -54,7 +54,8 @@ void open_fastq(int param, const char *file_name) {
 void read_buf_init(read_buf_t *const buf, const uint32_t capacity) {
 	buf->capacity = capacity;
 	buf->len      = 0;
-	MALLOC(buf->seq, uint8_t, capacity);
+	// MAYBE not necessary if we use the host and not the DDR
+	POSIX_MEMALIGN(buf->seq, 4096, capacity);
 	buf->nb_seqs           = 0;
 	buf->seq_name_capacity = 0;
 	buf->seq_name          = NULL;
@@ -142,7 +143,6 @@ index_t parse_index(const char *const file_name) {
 	}
 
 	unsigned param;
-	// TODO: handle errors
 	FREAD(&param, unsigned, 1, fp);
 	if (SE_W != param) {
 		SE_W = param;
@@ -156,7 +156,7 @@ index_t parse_index(const char *const file_name) {
 	FREAD(&param, unsigned, 1, fp);
 	if (IDX_B != param) {
 		IDX_B = param;
-		fprintf(stderr, "[WARNING] parameter B overriden by the index parameter (%u)\n", IDX_B);
+		fprintf(stderr, "[WARNING] parameter MAP_SIZE overriden by the index parameter (%u)\n", IDX_B);
 	}
 	FREAD(&param, unsigned, 1, fp);
 	if (IDX_MAX_OCC != param) {
@@ -164,14 +164,10 @@ index_t parse_index(const char *const file_name) {
 		fprintf(stderr, "[WARNING] parameter IDX_MAX_OCC overriden by the index parameter (%u)\n", IDX_MAX_OCC);
 	}
 	index_t index;
-	FREAD(&index.nb_MS, unsigned, 1, fp);
-	MALLOC(index.map, uint32_t, MS_SIZE >> 2);
-	MALLOC(index.key, uint64_t *, index.nb_MS);
-	FREAD(index.map, uint32_t, MS_SIZE >> 2, fp);
-	for (unsigned i = 0; i < index.nb_MS; i++) {
-		MALLOC(index.key[i], uint64_t, MS_SIZE >> 3);
-		FREAD(index.key[i], uint64_t, MS_SIZE >> 3, fp);
-	}
-	fprintf(stderr, "[INFO] Number of used MS %u\n", index.nb_MS + 1);
+	FREAD(&index.key_len, uint32_t, 1, fp);
+	POSIX_MEMALIGN(index.map, 4096, (1ULL << IDX_B) * sizeof(uint32_t));
+	POSIX_MEMALIGN(index.key, 4096, index.key_len * sizeof(uint64_t));
+	FREAD(index.map, uint32_t, 1ULL << IDX_B, fp);
+	FREAD(index.key, uint64_t, index.key_len, fp);
 	return index;
 }
