@@ -1,6 +1,7 @@
-#ifndef UTIL_H
-#define UTIL_H
+#ifndef DEMETER_UTIL_H
+#define DEMETER_UTIL_H
 
+#include "../src/parsing.h"
 #include <err.h>
 #include <pthread.h>
 #include <semaphore.h>

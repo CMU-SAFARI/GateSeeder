@@ -17,9 +17,9 @@ typedef struct {
 } read_buf_t;
 
 typedef struct {
-	unsigned nb_MS;
+	uint32_t map_len, key_len;
 	uint32_t *map;
-	uint64_t **key;
+	uint64_t *key;
 } index_t;
 
 #define OPEN_MALLOC 0
