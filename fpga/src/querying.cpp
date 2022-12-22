@@ -9,44 +9,28 @@ query_index_map_loop:
 #pragma HLS pipeline II = 2
 		if (seed.EOR == 1) {
 			ms_pos_o << ms_pos_t{
-			    .start_pos = 0, .end_pos = 0, .ms_id = 0, .seed_id = 0, .query_loc = 0, .str = 0, .EOR = 1};
+			    .start_pos = 0, .end_pos = 0, .seed_id = 0, .query_loc = 0, .str = 0, .EOR = 1};
 		} else {
 			const uint32_t bucket_id = seed.hash.range(bucket_id_msb, 0).to_uint();
 			// access the map
-			const ap_uint<32> start = ap_uint<32>((bucket_id == 0) ? 0 : map_i[bucket_id - 1]);
-			const ap_uint<32> end   = ap_uint<32>(map_i[bucket_id]);
+			const uint32_t start = (bucket_id == 0) ? 0 : map_i[bucket_id - 1];
+			const uint32_t end   = map_i[bucket_id];
 
 			// std::cout << std::hex << "start: " << start << " end: " << end << std::endl;
 
-			// If there are some locations
+			// If there are some potential locations
 			if (start != end) {
-
-				ms_pos_t ms_pos;
-
-				// find out in which MS are the locations
-				const ap_uint<MS_ID_SIZE> ms_id_start = start.range(31, ms_id_lsb);
-				ms_pos.ms_id                          = end.range(31, ms_id_lsb);
-
-				ms_pos.end_pos   = end.range(ms_pos_msb, 0);
-				ms_pos.seed_id   = seed.hash.range(seed_id_msb, seed_id_lsb);
-				ms_pos.query_loc = seed.loc.to_uint();
-				ms_pos.str       = seed.str;
-				ms_pos.EOR       = 0;
-
-				// In case we are at the begining of a MS
-				if (ms_pos.ms_id != ms_id_start) {
-					ms_pos.start_pos = 0;
-				} else {
-					ms_pos.start_pos = start.range(ms_pos_msb, 0);
-				}
-
-				ms_pos_o << ms_pos;
+				ms_pos_o << ms_pos_t{.start_pos = start,
+				                     .end_pos   = end,
+				                     .seed_id   = seed.hash(seed_id_msb, seed_id_lsb),
+				                     .query_loc = seed.loc,
+				                     .str       = seed.str,
+				                     .EOR       = 0};
 			}
 		}
 		seed = seed_i.read();
 	}
-	ms_pos_o << ms_pos_t{
-	    .start_pos = 0, .end_pos = 0, .ms_id = 0, .seed_id = 0, .query_loc = 0, .str = 1, .EOR = 1};
+	ms_pos_o << ms_pos_t{.start_pos = 0, .end_pos = 0, .seed_id = 0, .query_loc = 0, .str = 1, .EOR = 1};
 }
 
 #define LOC_OFFSET (1 << 21)
@@ -82,27 +66,8 @@ inline loc_t uint64_to_loc(uint64_t loc_i) {
 	};
 }
 
-void query_index_key_MS(const uint32_t start_pos_i, const uint32_t end_pos_i, const ap_uint<seed_id_size> seed_id_i,
-                        const uint64_t *const key_i, hls::stream<uint64_t> &loc_o) {
-	// Check if we find locations with the same seed_id
-search_key_loop:
-	for (uint32_t key_j = start_pos_i; key_j < end_pos_i; key_j++) {
-		uint64_t key = key_i[key_j];
-
-		const ap_uint<64> uint_key          = ap_uint<64>(key);
-		const ap_uint<seed_id_size> seed_id = uint_key.range(LOC_SHIFT + 1 + seed_id_size, LOC_SHIFT + 1);
-
-		if (seed_id == seed_id_i) {
-			// Copy the locations
-			loc_o << key;
-		}
-	}
-}
-
-void query_index_key(hls::stream<ms_pos_t> &ms_pos_i, const uint64_t *const key_0_i, const uint64_t *const key_1_i,
-                     hls::stream<uint64_t> &loc_o) {
+void query_index_key(hls::stream<ms_pos_t> &ms_pos_i, const uint64_t *const key_i, hls::stream<uint64_t> &loc_o) {
 	ms_pos_t pos = ms_pos_i.read();
-
 query_index_key_loop:
 	while (pos.EOR == 0 || pos.str == 0) {
 #pragma HLS loop_flatten off
@@ -110,16 +75,18 @@ query_index_key_loop:
 		if (pos.EOR == 1) {
 			loc_o << (1ULL << 63);
 		} else {
-			const uint32_t start_pos = pos.start_pos.to_uint();
-			const uint32_t end_pos   = pos.end_pos.to_uint();
+			// Check if we find locations with the same seed_id
+		search_key_loop:
+			for (uint32_t key_j = pos.start_pos; key_j < pos.end_pos; key_j++) {
+				uint64_t key = key_i[key_j];
 
-			switch (pos.ms_id) {
-				case 0:
-					query_index_key_MS(start_pos, end_pos, pos.seed_id, key_0_i, loc_o);
-					break;
-				default:
-					query_index_key_MS(start_pos, end_pos, pos.seed_id, key_1_i, loc_o);
-					break;
+				const ap_uint<64> uint_key = ap_uint<64>(key);
+				const ap_uint<seed_id_size> seed_id =
+				    uint_key.range(LOC_SHIFT + 1 + seed_id_size, LOC_SHIFT + 1);
+				if (seed_id == pos.seed_id) {
+					// Copy the locations
+					loc_o << key;
+				}
 			}
 		}
 		pos = ms_pos_i.read();

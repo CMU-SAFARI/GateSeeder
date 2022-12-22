@@ -4,21 +4,19 @@
 #include "types.hpp"
 #include <stdint.h>
 
-void demeter_kernel(const uint32_t nb_bases_i, const uint8_t seq_i[SEQ_LEN], uint64_t out_o[OUT_LEN],
-                    const uint32_t map_i[MAP_LEN], const uint64_t key_0_i[KEY_LEN], const uint64_t key_1_i[KEY_LEN]) {
+void demeter_kernel(const uint32_t nb_bases_i, const uint8_t seq_i[SEQ_LEN], const uint32_t map_i[MAP_LEN],
+                    const uint64_t key_i[KEY_LEN], uint64_t out_o[OUT_LEN]) {
 
 #pragma HLS INTERFACE m_axi port = seq_i bundle = gmem0
-#pragma HLS INTERFACE m_axi port = map_i bundle = gmem1
-#pragma HLS INTERFACE m_axi port = key_0_i bundle = gmem2
-#pragma HLS INTERFACE m_axi port = key_1_i bundle = gmem3
+#pragma HLS INTERFACE m_axi port = map_i bundle = gmem2
+#pragma HLS INTERFACE m_axi port = key_i bundle = gmem3
 #pragma HLS INTERFACE m_axi port = out_o bundle = gmem4
 
 #pragma HLS INTERFACE s_axilite port = seq_i
-#pragma HLS INTERFACE s_axilite port = out_o
-
 #pragma HLS INTERFACE s_axilite port = map_i
 #pragma HLS INTERFACE s_axilite port = key_0_i
 #pragma HLS INTERFACE s_axilite port = key_1_i
+#pragma HLS INTERFACE s_axilite port = out_o
 
 #pragma HLS dataflow
 
@@ -52,7 +50,7 @@ void demeter_kernel(const uint32_t nb_bases_i, const uint8_t seq_i[SEQ_LEN], uin
 	}
 #else
 
-	query_index_key(ms_pos, key_0_i, key_1_i, loc);
+	query_index_key(ms_pos, key_i, loc);
 
 #ifdef DEBUG_QUERY_INDEX_KEY
 	unsigned counter = 0;
