@@ -8,8 +8,8 @@
 #include <xrt/xrt_kernel.h>
 
 #define DEVICE_INDEX 0
-#define KERNEL_NAME "kernel"
-#define INSTANCE_NAME "krnl"
+#define KERNEL_NAME "demeter_kernel"
+#define INSTANCE_NAME "cu"
 #define MS_SIZE (1ULL << 28)
 
 static xrt::bo map;
@@ -117,13 +117,14 @@ d_worker_t demeter_get_worker() {
 	for (unsigned i = 0;; i++) {
 		unsigned id = i % NB_WORKERS;
 		// Check if the run is completed
-		// TODO: check the state when it's the first turn maybe it's not completed
-		if (device_buf[id].used == 0 && device_buf[id].run.state() == ERT_CMD_STATE_COMPLETED) {
-			// Transfer output data
-			device_buf[id].loc.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
-			device_buf[id].used = 1;
-			worker              = worker_buf[id];
-			break;
+		if (device_buf[id].used == 0) {
+			if (worker_buf[id].complete == 0 || device_buf[id].run.state() == ERT_CMD_STATE_COMPLETED) {
+				// Transfer output data
+				device_buf[id].loc.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
+				device_buf[id].used = 1;
+				worker              = worker_buf[id];
+				break;
+			}
 		}
 	}
 	UNLOCK(mutex);

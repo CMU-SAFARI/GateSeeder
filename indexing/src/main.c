@@ -11,12 +11,13 @@ unsigned NB_THREADS = 12;
 
 int main(int argc, char *argv[]) {
 	int option;
-	unsigned w       = 12;
-	unsigned k       = 15;
-	unsigned b       = 26;
-	unsigned max_occ = 500;
-	int gold         = 0;
-	while ((option = getopt(argc, argv, ":w:k:b:f:g")) != -1) {
+	unsigned w        = 12;
+	unsigned k        = 15;
+	unsigned size_map = 27;
+	unsigned size_ms  = 29;
+	unsigned max_occ  = 500;
+	int gold          = 0;
+	while ((option = getopt(argc, argv, ":w:k:b:f:s:g")) != -1) {
 		switch (option) {
 			case 'w':
 				w = strtoul(optarg, NULL, 10);
@@ -25,13 +26,16 @@ int main(int argc, char *argv[]) {
 				k = strtoul(optarg, NULL, 10);
 				break;
 			case 'b':
-				b = strtoul(optarg, NULL, 10);
+				size_map = strtoul(optarg, NULL, 10);
 				break;
 			case 'f':
 				max_occ = strtoul(optarg, NULL, 10);
 				break;
 			case 'g':
 				gold = 1;
+				break;
+			case 's':
+				size_ms = 29;
 				break;
 			case ':':
 				errx(1, "option '%c' requires a value", optopt);
@@ -44,7 +48,8 @@ int main(int argc, char *argv[]) {
 		errx(1, "USAGE\t %s [option]* <target.fna> <index.ali>", argv[0]);
 	}
 
-	fprintf(stderr, "[INFO] w: %u, k: %u, b: %u, max_occ: %u\n", w, k, b, max_occ);
+	fprintf(stderr, "[INFO] w: %u, k: %u, size_map: %u, size_ms: %u max_occ: %u\n", w, k, size_map, size_ms,
+	        max_occ);
 
 	int fd_target = open(argv[optind], O_RDONLY);
 	if (fd_target == -1) {
@@ -58,16 +63,15 @@ int main(int argc, char *argv[]) {
 
 	target_t target = parse_target(fd_target);
 	fprintf(stderr, "[INFO] nb_sequences: %u\n", target.nb_sequences);
-	index_t index = gen_index(target, w, k, b, max_occ);
+	index_t index = gen_index(target, w, k, size_map, max_occ);
 	fprintf(stderr, "[INFO] map_len: %u (%lu MB), key_len: %u (%lu MB)\n", index.map_len,
 	        index.map_len * sizeof(index.map[0]) >> 20, index.key_len, (index.key_len * 8L) >> 20);
 
 	if (gold) {
-		write_gold_index(index_fp, index, target, w, k, b, max_occ);
+		write_gold_index(index_fp, index, target, w, k, size_map, max_occ);
 	} else {
-#define MS_SIZE 1 << 28
-		index_MS_t index_MS = partion_index(index, MS_SIZE, 16);
-		write_index(index_fp, index_MS, target, w, k, b, max_occ, MS_SIZE);
+		index_MS_t index_MS = partion_index(index, size_ms);
+		write_index(index_fp, index_MS, target, w, k, size_map, max_occ, size_ms);
 		index_MS_destroy(index_MS);
 	}
 	target_destroy(target);

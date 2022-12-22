@@ -121,13 +121,14 @@ static void sort(const key_v minimizers) {
 	free(params);
 }
 
-index_t gen_index(const target_t target, const unsigned w, const unsigned k, const unsigned b, const unsigned max_occ) {
+index_t gen_index(const target_t target, const unsigned w, const unsigned k, const unsigned map_size,
+                  const unsigned max_occ) {
 	uint64_t nb_bases = 0;
 	key_v minimizers  = {.capacity = 1 << 10, .len = 0};
 	MALLOC(minimizers.keys, keym_t, minimizers.capacity);
 
 	for (unsigned i = 0; i < target.nb_sequences; i++) {
-		extract_seeds(target.seq[i], target.len[i], i, &minimizers, w, k, b);
+		extract_seeds(target.seq[i], target.len[i], i, &minimizers, w, k, map_size);
 		nb_bases += target.len[i];
 	}
 	fprintf(stderr, "[INFO] %u extrcated minimizers (%u sequences, %lu bases)\n", minimizers.len,
@@ -136,7 +137,7 @@ index_t gen_index(const target_t target, const unsigned w, const unsigned k, con
 	sort(minimizers);
 	fputs("[INFO] minimizers sorted\n", stderr);
 
-	index_t index = {.map_len = 1 << b};
+	index_t index = {.map_len = 1 << map_size};
 	MALLOC(index.map, uint32_t, index.map_len);
 	MALLOC(index.key, keym_t, minimizers.len);
 
@@ -200,16 +201,16 @@ index_t gen_index(const target_t target, const unsigned w, const unsigned k, con
 }
 
 void write_index(FILE *fp, const index_MS_t index, const target_t target, const unsigned w, const unsigned k,
-                 const unsigned b, const unsigned max_occ, const size_t MS_size) {
+                 const unsigned map_size, const unsigned max_occ, const unsigned ms_size) {
 	fwrite(IDX_MAGIC, sizeof(char), 5, fp);
 	fwrite(&w, sizeof(unsigned), 1, fp);
 	fwrite(&k, sizeof(unsigned), 1, fp);
-	fwrite(&b, sizeof(unsigned), 1, fp);
+	fwrite(&map_size, sizeof(unsigned), 1, fp);
 	fwrite(&max_occ, sizeof(unsigned), 1, fp);
 	fwrite(&index.nb_MS, sizeof(unsigned), 1, fp);
-	fwrite(index.map, sizeof(uint32_t), 1 << b, fp);
+	fwrite(index.map, sizeof(uint32_t), 1 << map_size, fp);
 	for (unsigned i = 0; i < index.nb_MS; i++) {
-		fwrite(index.key[i], sizeof(uint64_t), MS_size >> 3, fp);
+		fwrite(index.key[i], sizeof(uint64_t), 1 << (ms_size - 3), fp);
 	}
 	fwrite(&target.nb_sequences, sizeof(unsigned), 1, fp);
 	for (unsigned i = 0; i < target.nb_sequences; i++) {
@@ -223,9 +224,7 @@ void write_index(FILE *fp, const index_MS_t index, const target_t target, const 
 
 // INDEX_MS MAP
 // |-- MS_ID --|-- POSITION IN THE MS --|
-//  31          24                     0
-#define MS_POS_SIZE 25
-#define MS_POS_MASK ((1 << MS_POS_SIZE) - 1))
+//  31          size_ms - 4                     0
 
 // KEY
 // loc -> 32 bits  |
@@ -233,30 +232,29 @@ void write_index(FILE *fp, const index_MS_t index, const target_t target, const 
 #define LOC_SHIFT 42
 // STR -> 1 bits
 // SEED_ID -> 21 bits
-index_MS_t partion_index(const index_t index, const size_t MS_size, const unsigned max_nb_MS) {
-	if ((MS_size >> 2) < index.map_len) {
-		errx(1, "[ERROR] size of the map greater than the size of one memory section");
-	}
+
+index_MS_t partion_index(const index_t index, const unsigned size_ms) {
 
 	index_MS_t index_MS = {.nb_MS = 0};
-	MALLOC(index_MS.key, uint64_t *, max_nb_MS);
+	MALLOC(index_MS.key, uint64_t *, 32);
 	MALLOC(index_MS.map, uint32_t, index.map_len);
 
-	const size_t MS_SIZE_64 = MS_size >> 3;
-	size_t size_counter     = 0;
-	uint32_t start_i        = 0;
+	const unsigned map_pos_size = size_ms - 3;
+	const size_t ms_len         = 1ULL << (size_ms - 3);
+	size_t size_counter         = 0;
+	uint32_t start_i            = 0;
 	for (uint32_t i = 0; i < index.map_len; i++) {
 		const uint32_t start = i ? index.map[i - 1] : 0;
 		const uint32_t end   = index.map[i];
 		size_counter += end - start;
-		if (size_counter > MS_SIZE_64) {
+		if (size_counter > ms_len) {
 
 			if (i == 0) {
 				errx(1, "[ERROR] MS size too small");
 			}
 
 			// Create the key array for the new MS
-			MALLOC(index_MS.key[index_MS.nb_MS], uint64_t, MS_SIZE_64);
+			MALLOC(index_MS.key[index_MS.nb_MS], uint64_t, ms_len);
 
 			// Write the key array
 			const uint32_t start = start_i ? index.map[start_i - 1] : 0;
@@ -283,7 +281,7 @@ index_MS_t partion_index(const index_t index, const size_t MS_size, const unsign
 			// map[start_i] -> (last pos for the first seed) + 1
 			// need to be shifted based on (map[start_i - 1])
 
-			uint32_t base_pos  = (1 << MS_POS_SIZE) * index_MS.nb_MS;
+			uint32_t base_pos  = (1 << map_pos_size) * index_MS.nb_MS;
 			uint32_t MS_offset = base_pos - start;
 			// printf("MS_offset: %u\n", MS_offset);
 			for (uint32_t j = start_i; j < i; j++) {
@@ -291,21 +289,21 @@ index_MS_t partion_index(const index_t index, const size_t MS_size, const unsign
 			}
 
 			index_MS.nb_MS++;
-			if (index_MS.nb_MS == max_nb_MS) {
-				errx(1, "[ERROR] maximum number of MS too small");
+			if (index_MS.nb_MS == 32) {
+				errx(1, "[ERROR] Number of used MS greater than 32");
 			}
 			start_i                  = i;
 			const uint32_t new_start = i ? index.map[i - 1] : 0;
 			const uint32_t new_end   = index.map[i];
 			size_counter             = new_end - new_start;
-			if (size_counter > MS_SIZE_64) {
+			if (size_counter > ms_len) {
 				errx(1, "[ERROR] MS size too small");
 			}
 		}
 	}
 
 	// Create the key array for the new MS
-	MALLOC(index_MS.key[index_MS.nb_MS], uint64_t, MS_SIZE_64);
+	MALLOC(index_MS.key[index_MS.nb_MS], uint64_t, ms_len);
 
 	// Write the key array
 	const uint32_t start = start_i ? index.map[start_i - 1] : 0;
@@ -319,7 +317,7 @@ index_MS_t partion_index(const index_t index, const size_t MS_size, const unsign
 	}
 
 	// Write the map array
-	uint32_t base_pos  = (1 << MS_POS_SIZE) * index_MS.nb_MS;
+	uint32_t base_pos  = (1 << map_pos_size) * index_MS.nb_MS;
 	uint32_t MS_offset = base_pos - start;
 	// printf("new_start: %10x\n", start_i);
 	for (uint32_t j = start_i; j < index.map_len; j++) {
@@ -345,7 +343,7 @@ index_MS_t partion_index(const index_t index, const size_t MS_size, const unsign
 	        }
 	}
 	*/
-	printf("[INFO] Number of used MS %u\n", index_MS.nb_MS + 1);
+	printf("[INFO] Number of used MS %u\n", index_MS.nb_MS);
 	return index_MS;
 }
 

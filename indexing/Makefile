@@ -10,7 +10,7 @@ OBJS		= $(SRCS:$(SRC_DIR)/%.c=%.o)
 
 VPATH		= src
 
-EXE			:= aloha_index
+EXE			:= demeter_index
 
 all: $(EXE)
 
