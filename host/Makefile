@@ -16,8 +16,8 @@ VPATH = $(SRC_DIR) $(UTIL_SRC_DIR)
 
 CPPFLAGS += -I$(XILINX_XRT)/include -I$(UTIL_SRC_DIR) -DPROFILE
 DEPFLAGS = -MD -MP
-CXXFLAGS = -O3 -g -march=native $(DEPFLAGS) -Wall -Wextra -Werror -std=c++17
-CFLAGS = -O3 -g -march=native $(DEPFLAGS) -Wall -Wextra -Werror -std=gnu11
+CXXFLAGS = -std=c++17 -O3 -g -march=native $(DEPFLAGS) -Wall -Wextra -Werror
+CFLAGS = -std=gnu11 -O3 -g -march=native $(DEPFLAGS) -Wall -Wextra -Werror
 LDFLAGS += -L$(XILINX_XRT)/lib
 LDLIBS += -lxrt_coreutil -pthread -lstdc++
 

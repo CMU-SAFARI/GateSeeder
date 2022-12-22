@@ -1,9 +1,9 @@
+#include "demeter_util.h"
 #include "querying.h"
-#include "util.h"
 
-extern unsigned IDX_B;
+extern unsigned IDX_MAP_SIZE;
 extern unsigned SE_K;
-#define BUCKET_MASK ((1 << IDX_B) - 1)
+#define BUCKET_MASK ((1 << IDX_MAP_SIZE) - 1)
 
 inline void push_pos(const pos_t pos_i, pos_v *const pos_o) {
 	if (pos_o->capacity == pos_o->len) {
@@ -24,7 +24,7 @@ void query_index_map(const seed_v seed_i, const uint32_t *const map_i, pos_v *co
 
 		if (start != end) {
 			// printf("start: %x, end: %x, bucket_id: %x\n", start, end, bucket_id);
-			const uint32_t seed_id = seed.hash >> IDX_B;
+			const uint32_t seed_id = seed.hash >> IDX_MAP_SIZE;
 			pos_t pos              = {.start_pos = start,
 			                          .end_pos   = end,
 			                          .seed_id   = seed_id,

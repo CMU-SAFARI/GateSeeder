@@ -1,5 +1,5 @@
+#include "demeter_parsing.h"
 #include "demeter_util.h"
-#include "parsing.h"
 #include <err.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -15,9 +15,8 @@
 
 extern unsigned SE_W;
 extern unsigned SE_K;
-extern unsigned IDX_B;
+extern unsigned IDX_MAP_SIZE;
 extern unsigned IDX_MAX_OCC;
-extern unsigned MS_SIZE;
 
 static int fastq_fd;
 static uint8_t *fastq_file_ptr;
@@ -154,9 +153,9 @@ index_t parse_index(const char *const file_name) {
 		fprintf(stderr, "[WARNING] parameter K overriden by the index parameter (%u)\n", SE_K);
 	}
 	FREAD(&param, unsigned, 1, fp);
-	if (IDX_B != param) {
-		IDX_B = param;
-		fprintf(stderr, "[WARNING] parameter MAP_SIZE overriden by the index parameter (%u)\n", IDX_B);
+	if (IDX_MAP_SIZE != param) {
+		IDX_MAP_SIZE = param;
+		fprintf(stderr, "[WARNING] parameter MAP_SIZE overriden by the index parameter (%u)\n", IDX_MAP_SIZE);
 	}
 	FREAD(&param, unsigned, 1, fp);
 	if (IDX_MAX_OCC != param) {
@@ -165,9 +164,9 @@ index_t parse_index(const char *const file_name) {
 	}
 	index_t index;
 	FREAD(&index.key_len, uint32_t, 1, fp);
-	POSIX_MEMALIGN(index.map, 4096, (1ULL << IDX_B) * sizeof(uint32_t));
+	POSIX_MEMALIGN(index.map, 4096, (1ULL << IDX_MAP_SIZE) * sizeof(uint32_t));
 	POSIX_MEMALIGN(index.key, 4096, index.key_len * sizeof(uint64_t));
-	FREAD(index.map, uint32_t, 1ULL << IDX_B, fp);
+	FREAD(index.map, uint32_t, 1ULL << IDX_MAP_SIZE, fp);
 	FREAD(index.key, uint64_t, index.key_len, fp);
 	return index;
 }

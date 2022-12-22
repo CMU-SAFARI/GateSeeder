@@ -1,5 +1,5 @@
-#ifndef PARSING_H
-#define PARSING_H
+#ifndef DEMETER_PARSING_H
+#define DEMETER_PARSING_H
 
 #ifdef __cplusplus
 extern "C" {

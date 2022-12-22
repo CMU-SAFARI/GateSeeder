@@ -1,5 +1,5 @@
+#include "demeter_util.h"
 #include "extraction.h"
-#include "util.h"
 
 extern unsigned SE_K;
 extern unsigned SE_W;

@@ -1,15 +1,15 @@
+#include "demeter_util.h"
 #include "err.h"
 #include "extraction.h"
 #include "parsing.h"
 #include "querying.h"
-#include "util.h"
 #include <fcntl.h>
 
-unsigned SE_W        = 12;
-unsigned SE_K        = 15;
-unsigned IDX_B       = 26;
-unsigned IDX_MAX_OCC = 500;
-unsigned BATCH_SIZE  = 1000;
+unsigned SE_W         = 10;
+unsigned SE_K         = 15;
+unsigned IDX_MAP_SIZE = 27;
+unsigned IDX_MAX_OCC  = 200;
+unsigned BATCH_SIZE   = 1000;
 
 int main(int argc, char *argv[]) {
 	if (argc != 4) {
@@ -64,18 +64,14 @@ int main(int argc, char *argv[]) {
 			puts("");
 #endif
 			query_index_key(key_pos, index.key, &loc);
-			/*
 			printf("loc_len: %u\n", loc.len);
 			for (uint32_t j = 0; j < loc.len; j++) {
-			        printf("target_loc: %x, query_loc: %x, chrom_id: %x, str: %x\n", loc.locs[j].target_loc,
-			               loc.locs[j].query_loc, loc.locs[j].chrom_id, loc.locs[j].str);
+				printf("target_loc: %x, query_loc: %x, chrom_id: %x, str: %x\n", loc.locs[j].target_loc,
+				       loc.locs[j].query_loc, loc.locs[j].chrom_id, loc.locs[j].str);
 			}
-			*/
 			free(loc.locs);
 		}
-
 		parse_reads(&input);
 	}
-
 	return 0;
 }

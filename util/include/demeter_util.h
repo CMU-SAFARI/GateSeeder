@@ -1,7 +1,7 @@
 #ifndef DEMETER_UTIL_H
 #define DEMETER_UTIL_H
 
-#include "../src/parsing.h"
+#include "../src/demeter_parsing.h"
 #include <err.h>
 #include <pthread.h>
 #include <semaphore.h>
