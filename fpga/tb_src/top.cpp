@@ -54,12 +54,12 @@ int main(int argc, char *argv[]) {
 
 	while (parse_fastq(&read_buf) == 0) {
 		std::cout << "read buf len: " << read_buf.len << std::endl;
-		kernel(read_buf.len, read_buf.seq, index.map, index.key[0], index.key[1], out_o);
+		demeter_kernel(read_buf.len, read_buf.seq, out_o, index.map, index.key[0], index.key[1]);
 #if !defined(DEBUG_QUERY_INDEX_MAP) && !defined(DEBUG_QUERY_INDEX_KEY) && !defined(DEBUG_SEED_EXTRACTION)
 		print_results(out_o);
 #endif
 	}
-	kernel(read_buf.len, read_buf.seq, index.map, index.key[0], index.key[1], out_o);
+	demeter_kernel(read_buf.len, read_buf.seq, out_o, index.map, index.key[0], index.key[1]);
 #if !defined(DEBUG_QUERY_INDEX_MAP) && !defined(DEBUG_QUERY_INDEX_KEY) && !defined(DEBUG_SEED_EXTRACTION)
 	print_results(out_o);
 #endif

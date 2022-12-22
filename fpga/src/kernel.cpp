@@ -4,8 +4,8 @@
 #include "types.hpp"
 #include <stdint.h>
 
-void kernel(const uint32_t nb_bases_i, const uint8_t seq_i[SEQ_LEN], const uint32_t map_i[MAP_LEN],
-            const uint64_t key_0_i[KEY_LEN], const uint64_t key_1_i[KEY_LEN], uint64_t out_o[OUT_LEN]) {
+void demeter_kernel(const uint32_t nb_bases_i, const uint8_t seq_i[SEQ_LEN], uint64_t out_o[OUT_LEN],
+                    const uint32_t map_i[MAP_LEN], const uint64_t key_0_i[KEY_LEN], const uint64_t key_1_i[KEY_LEN]) {
 
 #pragma HLS INTERFACE m_axi port = seq_i bundle = gmem0
 #pragma HLS INTERFACE m_axi port = map_i bundle = gmem1
