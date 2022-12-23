@@ -5,18 +5,17 @@
 #include <stdint.h>
 
 void demeter_kernel(const uint32_t nb_bases_i, const uint8_t seq_i[SEQ_LEN], const uint32_t map_i[MAP_LEN],
-                    const uint64_t key_i[KEY_LEN], uint64_t out_o[OUT_LEN]) {
+                    const uint64_t key_i[KEY_LEN], uint64_t loc_o[OUT_LEN]) {
 
 #pragma HLS INTERFACE m_axi port = seq_i bundle = gmem0
 #pragma HLS INTERFACE m_axi port = map_i bundle = gmem2
 #pragma HLS INTERFACE m_axi port = key_i bundle = gmem3
-#pragma HLS INTERFACE m_axi port = out_o bundle = gmem4
+#pragma HLS INTERFACE m_axi port = loc_o bundle = gmem4
 
 #pragma HLS INTERFACE s_axilite port = seq_i
 #pragma HLS INTERFACE s_axilite port = map_i
-#pragma HLS INTERFACE s_axilite port = key_0_i
-#pragma HLS INTERFACE s_axilite port = key_1_i
-#pragma HLS INTERFACE s_axilite port = out_o
+#pragma HLS INTERFACE s_axilite port = key_i
+#pragma HLS INTERFACE s_axilite port = loc_o
 
 #pragma HLS dataflow
 
@@ -31,7 +30,7 @@ void demeter_kernel(const uint32_t nb_bases_i, const uint8_t seq_i[SEQ_LEN], con
 #ifdef DEBUG_SEED_EXTRACTION
 	unsigned counter = 0;
 	while (!seed.empty()) {
-		seed_t s = seed.read();
+		seed_t s = seed.read;
 		std::cout << "hash: " << std::hex << s.hash << " loc: " << s.loc << std::endl;
 		if (s.EOR == 0) {
 			counter++;
@@ -63,7 +62,7 @@ void demeter_kernel(const uint32_t nb_bases_i, const uint8_t seq_i[SEQ_LEN], con
 	}
 	std::cout << "Nb_locs: " << std::dec << counter << std::endl;
 #else
-	write_loc(loc, out_o);
+	write_loc(loc, loc_o);
 #endif
 #endif
 #endif

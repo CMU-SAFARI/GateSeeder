@@ -12,8 +12,8 @@ unsigned IDX_MAX_OCC  = 200;
 unsigned BATCH_SIZE   = 1000;
 
 int main(int argc, char *argv[]) {
-	if (argc != 4) {
-		errx(1, "[ERROR] Wrong number of arguments");
+	if (argc != 3) {
+		errx(1, "Usage\t%s <index.dti> <query.fastq>", argv[0]);
 	}
 
 	index_t index = parse_index(argv[1]);

@@ -1,16 +1,16 @@
+#include "demeter_util.h"
 #include "kernel.hpp"
-#include "parsing.h"
-#include "util.h"
+#include <err.h>
 #include <fstream>
 #include <iostream>
 
 using namespace std;
 
-unsigned SE_W        = 12;
-unsigned SE_K        = 15;
-unsigned IDX_B       = 26;
-unsigned IDX_MAX_OCC = 500;
-unsigned MS_SIZE     = 1 << 28;
+unsigned SE_W         = 10;
+unsigned SE_K         = 15;
+unsigned IDX_MAP_SIZE = 27;
+unsigned IDX_MAX_OCC  = 200;
+unsigned MS_SIZE      = 1 << 29;
 
 void print_results(uint64_t *results) {
 	uint32_t i   = 0;
@@ -24,8 +24,7 @@ void print_results(uint64_t *results) {
 
 int main(int argc, char *argv[]) {
 	if (argc != 3) {
-		cerr << "[ERROR] Wrong number of arguments" << endl;
-		exit(2);
+		errx(1, "Usage\t%s <index.dti> <query.fastq>", argv[0]);
 	}
 	index_t index = parse_index(argv[1]);
 
@@ -46,22 +45,19 @@ int main(int argc, char *argv[]) {
 
 	std::cout << "Read file open\n";
 
-	uint64_t *results;
-	MALLOC(results, uint64_t, 1 << 28);
-
-	uint64_t *out_o;
-	MALLOC(out_o, uint64_t, 1 << 20);
+	uint64_t *loc_o;
+	MALLOC(loc_o, uint64_t, 1 << 20);
 
 	while (parse_fastq(&read_buf) == 0) {
 		std::cout << "read buf len: " << read_buf.len << std::endl;
-		demeter_kernel(read_buf.len, read_buf.seq, index.map, index.key, out_o);
+		demeter_kernel(read_buf.len, read_buf.seq, index.map, index.key, loc_o);
 #if !defined(DEBUG_QUERY_INDEX_MAP) && !defined(DEBUG_QUERY_INDEX_KEY) && !defined(DEBUG_SEED_EXTRACTION)
-		print_results(out_o);
+		print_results(loc_o);
 #endif
 	}
-	demeter_kernel(read_buf.len, read_buf.seq, index.map, index.key, out_o);
+	demeter_kernel(read_buf.len, read_buf.seq, index.map, index.key, loc_o);
 #if !defined(DEBUG_QUERY_INDEX_MAP) && !defined(DEBUG_QUERY_INDEX_KEY) && !defined(DEBUG_SEED_EXTRACTION)
-	print_results(out_o);
+	print_results(loc_o);
 #endif
 
 	return 0;

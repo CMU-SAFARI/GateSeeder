@@ -11,7 +11,7 @@ unsigned NB_THREADS = 12;
 
 int main(int argc, char *argv[]) {
 	int option;
-	unsigned w        = 12;
+	unsigned w        = 10;
 	unsigned k        = 15;
 	unsigned size_map = 27;
 	unsigned size_ms  = 29;
@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (optind + 2 != argc) {
-		errx(1, "USAGE\t %s [option]* <target.fna> <index.ali>", argv[0]);
+		errx(1, "Usage\t%s [option]* <target.fasta> <index.dti>", argv[0]);
 	}
 
 	fprintf(stderr, "[INFO] w: %u, k: %u, size_map: %u, size_ms: %u max_occ: %u\n", w, k, size_map, size_ms,

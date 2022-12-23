@@ -66,6 +66,8 @@ inline loc_t uint64_to_loc(uint64_t loc_i) {
 	};
 }
 
+inline uint64_t key_to_loc(uint64_t key, ap_uint<1> str, ap_uint<MAX_READ_SIZE> query_loc) {}
+
 void query_index_key(hls::stream<ms_pos_t> &ms_pos_i, const uint64_t *const key_i, hls::stream<uint64_t> &loc_o) {
 	ms_pos_t pos = ms_pos_i.read();
 query_index_key_loop:
@@ -78,14 +80,14 @@ query_index_key_loop:
 			// Check if we find locations with the same seed_id
 		search_key_loop:
 			for (uint32_t key_j = pos.start_pos; key_j < pos.end_pos; key_j++) {
-				uint64_t key = key_i[key_j];
-
+				uint64_t key               = key_i[key_j];
 				const ap_uint<64> uint_key = ap_uint<64>(key);
 				const ap_uint<seed_id_size> seed_id =
 				    uint_key.range(LOC_SHIFT + 1 + seed_id_size, LOC_SHIFT + 1);
 				if (seed_id == pos.seed_id) {
 					// Copy the locations
-					loc_o << key;
+					uint64_t loc = key_2_loc(key, pos.str, pos.query_loc);
+					loc_o << loc;
 				}
 			}
 		}
