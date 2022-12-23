@@ -26,11 +26,10 @@ int main(int argc, char *argv[]) {
 	read_v input;
 	MALLOC(input.reads, read_t, BATCH_SIZE);
 	extraction_init();
-	seed_v minimizers = {.capacity = 1 << 10};
-	MALLOC(minimizers.seeds, seed_t, 1 << 10);
-	pos_v key_pos = {.capacity = 1 << 10};
-	MALLOC(key_pos.poss, pos_t, 1 << 10);
-	loc_v loc;
+
+	seed_v minimizers = {.capacity = 0, .len = 0, .seeds = NULL};
+	pos_v key_pos     = {.capacity = 0, .len = 0, .poss = NULL};
+	loc_v loc         = {.capacity = 0, .len = 0, .locs = NULL};
 
 	parse_reads(&input);
 
