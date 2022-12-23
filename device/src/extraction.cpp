@@ -22,8 +22,8 @@ ap_uint<64> hash64(ap_uint<64> key) {
 
 void extract_seeds(const uint8_t *seq_i, const uint32_t nb_bases_i, hls::stream<seed_t> &minimizers_o) {
 	seed_t previous_minimizer             = {.hash = MAX, .loc = 0, .str = 0, .EOR = 1};
-	ap_uint<MAX_READ_SIZE> location       = 0;
-	ap_uint<MAX_READ_SIZE> length         = 0;
+	ap_uint<READ_SIZE> location           = 0;
+	ap_uint<READ_SIZE> length             = 0;
 	ap_uint<2 *SE_K + 2 *SE_W - 2> window = 0, window_rv = 0;
 
 seed_extraction_loop:

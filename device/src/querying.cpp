@@ -33,40 +33,17 @@ query_index_map_loop:
 	ms_pos_o << ms_pos_t{.start_pos = 0, .end_pos = 0, .seed_id = 0, .query_loc = 0, .str = 1, .EOR = 1};
 }
 
-#define LOC_OFFSET (1 << 21)
-inline loc_t extract_key_loc(const uint64_t key_i, const ap_uint<1> query_str_i, const uint32_t query_loc_i) {
-	ap_uint<64> key(key_i);
-	// std::cout << "extract_key_loc: " << std::hex << key_i << std::endl;
-	const ap_uint<1> str = key.range(42, 42) ^ query_str_i;
-	ap_uint<30> target_loc =
-	    key.range(29, 0) + (str ? ap_uint<30>(query_loc_i - SE_K + 1) : ap_uint<30>(LOC_OFFSET - query_loc_i));
-	// std::cout << "target_loc: " << std::hex << target_loc << std::endl;
-	return loc_t{
-	    .target_loc = target_loc,
-	    .query_loc  = ap_uint<21>(query_loc_i),
-	    .chrom_id   = key.range(41, 32),
-	    .str        = str,
-	    .EOR        = ap_uint<1>(0),
-	};
-}
+inline uint64_t key_2_loc(const uint64_t key_i, const ap_uint<1> str_i, const ap_uint<READ_SIZE> query_loc_i) {
+	const ap_uint<64> key                        = ap_uint<64>(key_i);
+	const ap_uint<CHROM_SIZE> target_loc         = key.range(CHROM_SIZE - 1, 0);
+	const ap_uint<1> str                         = str_i ^ key.range(KEY_STR_START, KEY_STR_START);
+	const ap_uint<CHROM_SIZE> target_loc_shifted = str ? target_loc + query_loc_i - ap_uint<CHROM_SIZE>(SE_K + 1)
+	                                                   : target_loc + ap_uint<30>(LOC_OFFSET) - query_loc_i;
+	const ap_uint<CHROM_ID_SIZE> chrom_id = key.range(CHROM_ID_SIZE - 1 + KEY_CHROM_ID_START, KEY_CHROM_ID_START);
 
-inline uint64_t loc_to_uint64(loc_t loc_i) {
-	ap_uint<64> loc = (loc_i.EOR, loc_i.str, loc_i.chrom_id, loc_i.query_loc, loc_i.target_loc);
+	const ap_uint<64> loc = (ap_uint<1>(0), chrom_id, target_loc, query_loc_i, str);
 	return loc.to_uint64();
 }
-
-inline loc_t uint64_to_loc(uint64_t loc_i) {
-	ap_uint<64> loc = ap_uint<64>(loc_i);
-	return loc_t{
-	    .target_loc = loc.range(29, 0),
-	    .query_loc  = loc.range(50, 30),
-	    .chrom_id   = loc.range(60, 51),
-	    .str        = loc.range(62, 61),
-	    .EOR        = loc.range(63, 63),
-	};
-}
-
-inline uint64_t key_to_loc(uint64_t key, ap_uint<1> str, ap_uint<MAX_READ_SIZE> query_loc) {}
 
 void query_index_key(hls::stream<ms_pos_t> &ms_pos_i, const uint64_t *const key_i, hls::stream<uint64_t> &loc_o) {
 	ms_pos_t pos = ms_pos_i.read();
@@ -83,10 +60,10 @@ query_index_key_loop:
 				uint64_t key               = key_i[key_j];
 				const ap_uint<64> uint_key = ap_uint<64>(key);
 				const ap_uint<seed_id_size> seed_id =
-				    uint_key.range(LOC_SHIFT + 1 + seed_id_size, LOC_SHIFT + 1);
+				    uint_key.range(seed_id_size - 1 + KEY_SEED_ID_START, KEY_SEED_ID_START);
 				if (seed_id == pos.seed_id) {
 					// Copy the locations
-					uint64_t loc = key_2_loc(key, pos.str, pos.query_loc);
+					const uint64_t loc = key_2_loc(key, pos.str, pos.query_loc);
 					loc_o << loc;
 				}
 			}

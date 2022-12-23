@@ -7,13 +7,21 @@
 #define SE_K 15
 #define SEQ_LEN 1073741824
 
-#define MAX_READ_SIZE 22
+#define CHROM_SIZE 30
+#define CHROM_ID_SIZE 10
+#define READ_SIZE 22
+// CHROM_SIZE + CHROM_ID_SIZE + READ_SIZE + 2 should be equal to 64
+// +2 for str and EOR
+// LOC : {EOR, CHROM_ID, TARGET_LOC, QUERY_LOC, STR}
+
+#define LOC_OFFSET (1 << 21)
+
 // Query loc limited to 4194304
 // str = 0 and EOR = 1: end of read
 // str = 1 and EOR = 1: end of file
 struct seed_t {
 	ap_uint<2 * SE_K> hash; // size: 2*K
-	ap_uint<MAX_READ_SIZE> loc;
+	ap_uint<READ_SIZE> loc;
 	ap_uint<1> str;
 	ap_uint<1> EOR;
 };
@@ -34,7 +42,7 @@ struct ms_pos_t {
 	uint32_t start_pos;
 	uint32_t end_pos;
 	ap_uint<seed_id_size> seed_id;
-	ap_uint<MAX_READ_SIZE> query_loc;
+	ap_uint<READ_SIZE> query_loc;
 	ap_uint<1> str;
 	ap_uint<1> EOR;
 };
@@ -46,9 +54,9 @@ struct ms_pos_t {
 
 #define OUT_LEN (1 << 26)
 struct loc_t {
-	ap_uint<30> target_loc;
-	ap_uint<MAX_READ_SIZE> query_loc;
-	ap_uint<10> chrom_id;
+	ap_uint<CHROM_SIZE> target_loc;
+	ap_uint<READ_SIZE> query_loc;
+	ap_uint<CHROM_ID_SIZE> chrom_id;
 	ap_uint<1> str;
 	ap_uint<1> EOR;
 };
@@ -59,10 +67,12 @@ struct buf_metadata_t {
 	ap_uint<1> EOS;
 };
 
+#define KEY_CHROM_ID_START 32
+#define KEY_STR_START 42
+#define KEY_SEED_ID_START 43
 // KEY
-// loc -> 32 bits  |
-// CH_ID -> 10 bits | 42 bits
-#define LOC_SHIFT 42
-// STR -> 1 bits
-// SEED_ID -> 21 bits
+// loc -> 32 bits  | (2 last bits useless) [31, 0]
+// CH_ID -> 10 bits | 42 bits [41, 32]
+// STR -> 1 bits  [42, 42]
+// SEED_ID -> 21 bits [63,43]
 #endif
