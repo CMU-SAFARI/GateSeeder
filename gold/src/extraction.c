@@ -19,7 +19,7 @@ int push_seed_mapping(seed_v *const minimizers, const seed_t minimizer, const in
 		return (minimizers->len == minimizers->capacity);
 	}
 	if (minimizers->capacity == minimizers->len) {
-		minimizers->capacity <<= 1;
+		minimizers->capacity = (minimizers->capacity == 0) ? 1 : minimizers->capacity << 1;
 		REALLOC(minimizers->seeds, seed_t, minimizers->capacity);
 	}
 	minimizers->seeds[minimizers->len] = minimizer;
