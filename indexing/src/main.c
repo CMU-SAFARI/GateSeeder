@@ -16,8 +16,7 @@ int main(int argc, char *argv[]) {
 	unsigned size_map = 27;
 	unsigned size_ms  = 29;
 	unsigned max_occ  = 500;
-	int gold          = 0;
-	while ((option = getopt(argc, argv, ":w:k:b:f:s:g")) != -1) {
+	while ((option = getopt(argc, argv, ":w:k:b:f:s:")) != -1) {
 		switch (option) {
 			case 'w':
 				w = strtoul(optarg, NULL, 10);
@@ -30,9 +29,6 @@ int main(int argc, char *argv[]) {
 				break;
 			case 'f':
 				max_occ = strtoul(optarg, NULL, 10);
-				break;
-			case 'g':
-				gold = 1;
 				break;
 			case 's':
 				size_ms = 29;
@@ -67,13 +63,13 @@ int main(int argc, char *argv[]) {
 	fprintf(stderr, "[INFO] map_len: %u (%lu MB), key_len: %u (%lu MB)\n", index.map_len,
 	        index.map_len * sizeof(index.map[0]) >> 20, index.key_len, (index.key_len * 8L) >> 20);
 
-	if (gold) {
-		write_gold_index(index_fp, index, target, w, k, size_map, max_occ);
-	} else {
-		index_MS_t index_MS = partion_index(index, size_ms);
-		write_index(index_fp, index_MS, target, w, k, size_map, max_occ, size_ms);
-		index_MS_destroy(index_MS);
-	}
+	write_gold_index(index_fp, index, target, w, k, size_map, max_occ);
+	const uint32_t map_ms_len = 1 << (size_ms - 2);
+	const uint32_t key_ms_len = 1 << (size_ms - 3);
+	fprintf(stderr, "[INFO] %u MS(s) required for the map array\n",
+	        index.map_len / map_ms_len + ((index.map_len % map_ms_len) != 0));
+	fprintf(stderr, "[INFO] %u MS(s) required for the key array\n",
+	        index.key_len / key_ms_len + ((index.key_len % key_ms_len != 0)));
 	target_destroy(target);
 	return 0;
 }
