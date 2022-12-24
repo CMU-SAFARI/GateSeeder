@@ -41,7 +41,7 @@ inline uint64_t key_2_loc(const uint64_t key_i, const ap_uint<1> str_i, const ap
 	                                                   : target_loc + ap_uint<30>(LOC_OFFSET) - query_loc_i;
 	const ap_uint<CHROM_ID_SIZE> chrom_id = key.range(CHROM_ID_SIZE - 1 + KEY_CHROM_ID_START, KEY_CHROM_ID_START);
 
-	const ap_uint<64> loc = (ap_uint<1>(0), chrom_id, target_loc, query_loc_i, str);
+	const ap_uint<64> loc = (ap_uint<1>(0), chrom_id, target_loc_shifted, query_loc_i, str);
 	return loc.to_uint64();
 }
 

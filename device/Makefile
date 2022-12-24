@@ -35,7 +35,7 @@ clean:
 sim: $(SIM)
 	./$< /mnt/scratch/jeudine/chr2-3.dti ../test/dummy.fastq
 
-cosim:
+cosim: demeter_util
 	vitis_hls scripts/cosim.tcl
 
 $(XOBJ): $(SRC_DIR)/*

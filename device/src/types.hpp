@@ -3,7 +3,7 @@
 #include "ap_int.h"
 #include <cstdint>
 
-#define SE_W 12
+#define SE_W 10
 #define SE_K 15
 #define SEQ_LEN 1073741824
 
