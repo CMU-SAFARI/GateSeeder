@@ -113,6 +113,14 @@ extern "C" {
 		}                                                                                                      \
 	}
 
+#define FOPEN(file, pathname, mode)                                                                                    \
+	{                                                                                                              \
+		file = fopen(pathname, mode);                                                                          \
+		if (pathname == NULL) {                                                                                \
+			err(1, "%s:%d, fopen", __FILE__, __LINE__);                                                    \
+		}                                                                                                      \
+	}
+
 #define FREAD(ptr, type, nmemb, stream)                                                                                \
 	{                                                                                                              \
 		if (fread(ptr, sizeof(type), nmemb, stream) != nmemb) {                                                \

@@ -13,10 +13,10 @@
 #define END_OF_READ_BASE 'E'
 #define IDX_MAGIC "ALOHA"
 
-extern unsigned SE_W;
-extern unsigned SE_K;
 extern unsigned IDX_MAP_SIZE;
 extern unsigned IDX_MAX_OCC;
+extern unsigned SE_W;
+extern unsigned SE_K;
 
 static int fastq_fd;
 static uint8_t *fastq_file_ptr;
@@ -42,7 +42,8 @@ void open_fastq(int param, const char *file_name) {
 		}
 	} else {
 		// With Malloc and copy
-		FILE *fp = fopen(file_name, "rb");
+		FILE *fp;
+		FOPEN(fp, file_name, "rb");
 		MALLOC(fastq_file_ptr, uint8_t, fastq_file_len);
 		FREAD(fastq_file_ptr, uint8_t, fastq_file_len, fp);
 	}
@@ -58,6 +59,11 @@ void read_buf_init(read_buf_t *const buf, const uint32_t capacity) {
 	buf->nb_seqs           = 0;
 	buf->seq_name_capacity = 0;
 	buf->seq_name          = NULL;
+}
+
+void read_buf_destroy(const read_buf_t buf) {
+	free(buf.seq);
+	free(buf.seq_name);
 }
 
 int parse_fastq(read_buf_t *const buf) {
@@ -129,10 +135,8 @@ void close_fastq() {
 }
 
 index_t parse_index(const char *const file_name) {
-	FILE *fp = fopen(file_name, "rb");
-	if (fp == NULL) {
-		err(1, "fopen %s", file_name);
-	}
+	FILE *fp;
+	FOPEN(fp, file_name, "rb");
 	char magic[5];
 	if (fread(magic, sizeof(char), 5, fp) != 5) {
 		errx(1, "parse_index %s", file_name);

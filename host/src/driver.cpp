@@ -79,7 +79,6 @@ void demeter_host(const d_worker_t worker) {
 	const unsigned id = worker.id;
 	device_buf[id].seq.sync(XCL_BO_SYNC_BO_TO_DEVICE);
 
-	// TODO: request worker and then fill the buffer
 	// Start the kernel
 	device_buf[id].run      = device_buf[id].krnl(worker.len, device_buf[id].seq, map, key, device_buf[id].loc);
 	worker_buf[id].complete = 1;
@@ -125,7 +124,7 @@ void demeter_fpga_destroy() {
 	delete &map;
 	delete &key;
 	for (unsigned i = 0; i < NB_WORKERS; i++) {
-		// TODO: delete read_buf
+		read_buf_destroy(worker_buf[i].read_buf);
 		delete[] worker_buf[i].loc;
 	}
 	delete[] worker_buf;
