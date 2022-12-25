@@ -30,8 +30,8 @@ extern unsigned IDX_MAP_SIZE;
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static unsigned NB_WORKERS;
 
-void demeter_fpga_init(const unsigned nb_kernels, const char *const binary_file, const index_t index) {
-	NB_WORKERS  = nb_kernels;
+void demeter_fpga_init(const unsigned nb_cus, const char *const binary_file, const index_t index) {
+	NB_WORKERS  = nb_cus;
 	auto device = xrt::device(DEVICE_INDEX);
 	std::cerr << "[INFO] Device " << DEVICE_INDEX << std::endl;
 	auto uuid = device.load_xclbin(binary_file);
@@ -43,7 +43,7 @@ void demeter_fpga_init(const unsigned nb_kernels, const char *const binary_file,
 	// Initialize the kernels
 	const std::string pre_name = std::string(KERNEL_NAME) + std::string(":{") + INSTANCE_NAME;
 
-	for (unsigned i = 0; i < nb_kernels; i++) {
+	for (unsigned i = 0; i < nb_cus; i++) {
 		const std::string name = pre_name + std::to_string(i) + "}";
 		device_buf[i].krnl     = xrt::kernel(device, uuid, name);
 	}
@@ -71,7 +71,6 @@ void demeter_fpga_init(const unsigned nb_kernels, const char *const binary_file,
 		worker_buf[i].len      = 0;
 		worker_buf[i].complete = 0;
 	}
-	// TODO: destroy the index but not in the driver
 }
 
 void demeter_host(const d_worker_t worker) {

@@ -28,5 +28,6 @@ void read_buf_destroy(const read_buf_t buf);
 int parse_fastq(read_buf_t *const buf);
 void close_fastq();
 index_t parse_index(const char *const file_name);
+void index_destroy(const index_t index);
 
 #endif

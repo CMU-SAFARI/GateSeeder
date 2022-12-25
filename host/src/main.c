@@ -1,4 +1,5 @@
 #include "demeter_util.h"
+#include "driver.h"
 #include <argp.h>
 #include <err.h>
 #include <stdio.h>
@@ -16,13 +17,15 @@ unsigned SE_K         = 15;
 FILE *OUTPUT;
 
 typedef struct {
+	unsigned nb_cus;
 	index_t index;
+	const char *binary_file;
 } arguments;
 
 const char *argp_program_version     = "demeter 0.1.0";
 const char *argp_program_bug_address = "<julien@eudine.fr>";
 static char doc[]                    = "FPGA + HBM based read mapper";
-static char args_doc[]               = "<index.dti> <query.fastq>";
+static char args_doc[]               = "<pdi.xclbin> <index.dti> <query.fastq>";
 static struct argp_option options[]  = {
      /*
 {0, 0, 0, 0, "Sorting:", 0},
@@ -39,11 +42,13 @@ static struct argp_option options[]  = {
     {0, 0, 0, 0, "Ressources:", 0},
     {"nb_threads", 't', "UINT", 0, "number of CPU threads [4]", 0},
     {"batch_size", 'b', "UINT", 0, "batch size (in reads) processed by each cpu threads [3]", 0},
+    {"compute_units", 'u', "UINT", 0, "number of FPGA compute units [7]", 0},
     {0, 0, 0, 0, "Input/Output:", 0},
     {"output", 'o', "OUTPUT_FILE", 0, "output file [stdout]", 0},
     {0}};
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
+	arguments *args = state->input;
 	switch (key) {
 		case 't':
 			NB_THREADS = strtoul(arg, NULL, 10);
@@ -54,13 +59,18 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 		case 'o':
 			FOPEN(OUTPUT, arg, "w");
 			break;
+		case 'u':
+			args->nb_cus = strtoul(arg, NULL, 10);
+			break;
 		case ARGP_KEY_ARG:
 			switch (state->arg_num) {
-				case 0: {
-					arguments *args = state->input;
-					args->index     = parse_index(arg);
-				} break;
+				case 0:
+					args->binary_file = arg;
+					break;
 				case 1:
+					args->index = parse_index(arg);
+					break;
+				case 2:
 					open_fastq(OPEN_MMAP, arg);
 					break;
 				default:
@@ -69,7 +79,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 			}
 			break;
 		case ARGP_KEY_END:
-			if (state->arg_num != 2) argp_usage(state);
+			if (state->arg_num != 3) argp_usage(state);
 			break;
 		default:
 			return ARGP_ERR_UNKNOWN;
@@ -80,11 +90,21 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 static struct argp argp = {options, parse_opt, args_doc, doc, NULL, NULL, NULL};
 
 int main(int argc, char *argv[]) {
-	// struct timespec start, load, init, finish;
-	arguments args;
+	struct timespec start, init, end;
+	clock_gettime(CLOCK_MONOTONIC, &start);
+
+	arguments args = {.nb_cus = 7};
 
 	OUTPUT = stdout;
 	argp_parse(&argp, argc, argv, 0, 0, &args);
+
+	demeter_fpga_init(args.nb_cus, args.binary_file, args.index);
+	// TODO: check if we can destroy index
+	index_destroy(args.index);
+
+	clock_gettime(CLOCK_MONOTONIC, &init);
+
+	clock_gettime(CLOCK_MONOTONIC, &end);
 
 	return 0;
 }

@@ -174,3 +174,8 @@ index_t parse_index(const char *const file_name) {
 	FREAD(index.key, uint64_t, index.key_len, fp);
 	return index;
 }
+
+void index_destroy(const index_t index) {
+	free(index.map);
+	free(index.key);
+}

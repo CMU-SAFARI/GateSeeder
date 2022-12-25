@@ -15,8 +15,7 @@ typedef struct {
 	volatile unsigned complete : 1;
 } d_worker_t;
 
-void demeter_fpga_init(const unsigned nb_kernels, const unsigned nb_ms_key, const char *const binary_file,
-                       const index_t index);
+void demeter_fpga_init(const unsigned nb_cus, const char *const binary_file, const index_t index);
 void demeter_host(const d_worker_t worker);
 d_worker_t demeter_get_worker();
 int demeter_get_results(d_worker_t *worker);
