@@ -1,5 +1,4 @@
 #include "driver.h"
-#include "util.h"
 #include <err.h>
 #include <iostream>
 #include <stdlib.h>
@@ -52,18 +51,12 @@ void demeter_fpga_init(const unsigned nb_kernels, const unsigned nb_ms_key, cons
 	// user pointer
 
 	//  Initialize the buffer objects for the index
-	map = xrt::bo(device, MS_SIZE, device_buf->krnl.group_id(3));
-	key = new xrt::bo[nb_ms_key];
-
-	for (unsigned i = 0; i < nb_ms_key; i++) {
-		key[i] = xrt::bo(device, MS_SIZE, device_buf->krnl.group_id(4 + i));
-	}
+	map = xrt::bo(device, //TODO: len, device_buf->krnl.group_id(2));
+	key = xrt::bo(device, //TODO: len, device_buf->krnl.group_id(3));
 
 	// Transfer the index
 	map.write(index.map);
-	for (unsigned i = 0; i < nb_ms_key; i++) {
-		key[i].write(index.key[i]);
-	}
+	key.write(index.key);
 
 	map.sync(XCL_BO_SYNC_BO_TO_DEVICE);
 	for (unsigned i = 0; i < nb_ms_key; i++) {
@@ -102,11 +95,9 @@ void demeter_host(const d_worker_t worker) {
 	const unsigned id = worker.id;
 	device_buf[id].seq.sync(XCL_BO_SYNC_BO_TO_DEVICE);
 
+	// TODO: request worker and then fill the buffer
 	// Start the kernel
-	// TODO: switch case with the number ms for the key, or do python script, because it depends on the bitstream
-	// anyway
-	device_buf[id].run =
-	    device_buf[id].krnl(worker.len, device_buf[id].seq, device_buf[id].loc, map, key[0], key[1]);
+	device_buf[id].run      = device_buf[id].krnl(worker.len, device_buf[id].seq, map, key, device_buf[id].loc);
 	worker_buf[id].complete = 1;
 	device_buf[id].used     = 0;
 }

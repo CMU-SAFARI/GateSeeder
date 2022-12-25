@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "parsing.h"
+#include "demeter_util.h"
 
 typedef struct {
 	unsigned id;

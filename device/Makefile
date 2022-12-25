@@ -42,7 +42,7 @@ $(XOBJ): $(SRC_DIR)/*
 	vitis_hls scripts/impl.tcl
 
 $(XCLBIN): $(XOBJ) $(CONFIG)
-	v++ -t hw --link $(XOBJ) -o $@ --config $(CONFIG)
+	v++  --kernel_frequency 350 -t hw --link $(XOBJ) -o $@ --config $(CONFIG)
 
 .PHONY: clean sim cosim demeter_util
 -include $(wildcard *.d)
