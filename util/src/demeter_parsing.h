@@ -1,9 +1,6 @@
 #ifndef DEMETER_PARSING_H
 #define DEMETER_PARSING_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 #include <stdint.h>
 #include <stdio.h>
 
@@ -31,7 +28,4 @@ int parse_fastq(read_buf_t *const buf);
 void close_fastq();
 index_t parse_index(const char *const file_name);
 
-#ifdef __cplusplus
-}
-#endif
 #endif

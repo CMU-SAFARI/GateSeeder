@@ -1,6 +1,10 @@
 #ifndef DEMETER_UTIL_H
 #define DEMETER_UTIL_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "../src/demeter_parsing.h"
 #include <err.h>
 #include <pthread.h>
@@ -116,4 +120,7 @@
 		}                                                                                                      \
 	}
 
+#ifdef __cplusplus
+}
+#endif
 #endif

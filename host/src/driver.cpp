@@ -12,7 +12,7 @@
 #define MS_SIZE (1ULL << 28)
 
 static xrt::bo map;
-static xrt::bo *key;
+static xrt::bo key;
 
 struct d_device_t {
 	xrt::bo seq;
@@ -25,11 +25,12 @@ struct d_device_t {
 static d_worker_t *worker_buf;
 static d_device_t *device_buf;
 
+extern unsigned IDX_MAP_SIZE;
+
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static unsigned NB_WORKERS;
 
-void demeter_fpga_init(const unsigned nb_kernels, const unsigned nb_ms_key, const char *const binary_file,
-                       const index_t index) {
+void demeter_fpga_init(const unsigned nb_kernels, const char *const binary_file, const index_t index) {
 	NB_WORKERS  = nb_kernels;
 	auto device = xrt::device(DEVICE_INDEX);
 	std::cerr << "[INFO] Device " << DEVICE_INDEX << std::endl;
@@ -47,45 +48,28 @@ void demeter_fpga_init(const unsigned nb_kernels, const unsigned nb_ms_key, cons
 		device_buf[i].krnl     = xrt::kernel(device, uuid, name);
 	}
 
-	// TODO: can optimize de memory usage by using buffer created by a user-pointer for the index and then free the
-	// user pointer
-
 	//  Initialize the buffer objects for the index
-	map = xrt::bo(device, //TODO: len, device_buf->krnl.group_id(2));
-	key = xrt::bo(device, //TODO: len, device_buf->krnl.group_id(3));
+	map = xrt::bo(device, index.map, 1 << (IDX_MAP_SIZE + 2), device_buf->krnl.group_id(2));
+	key = xrt::bo(device, index.key, index.key_len << 3, device_buf->krnl.group_id(3));
 
 	// Transfer the index
-	map.write(index.map);
-	key.write(index.key);
-
 	map.sync(XCL_BO_SYNC_BO_TO_DEVICE);
-	for (unsigned i = 0; i < nb_ms_key; i++) {
-		key[i].sync(XCL_BO_SYNC_BO_TO_DEVICE);
-	}
+	key.sync(XCL_BO_SYNC_BO_TO_DEVICE);
 
 	// Initialize the buffers for the I/O
-
-	// TODO: modify the parsing function, because we want to take these buffers
-
 	for (unsigned i = 0; i < NB_WORKERS; i++) {
-		uint8_t *seq;
-		if (posix_memalign((void **)&seq, 4096, MS_SIZE)) {
-			errx(1, "%s:%d, posix_memalign", __FILE__, __LINE__);
-		}
-		uint64_t *loc;
-		if (posix_memalign((void **)&loc, 4096, MS_SIZE) == 0) {
-			errx(1, "%s:%d, posix_memalign", __FILE__, __LINE__);
-		}
-		device_buf[i].seq  = xrt::bo(device, seq, MS_SIZE, device_buf[i].krnl.group_id(1));
-		device_buf[i].loc  = xrt::bo(device, loc, MS_SIZE, device_buf[i].krnl.group_id(2));
-		device_buf[i].used = 0;
-		worker_buf[i]      = {
-		         .id       = i,
-		         .seq      = seq,
-		         .loc      = loc,
-		         .len      = 0,
-		         .complete = 0,
-                };
+		// Initialize read buf
+		read_buf_init(&worker_buf[i].read_buf, MS_SIZE);
+		// Initialize loc buf
+		POSIX_MEMALIGN(worker_buf[i].loc, 4096, MS_SIZE);
+
+		device_buf[i].seq =
+		    xrt::bo(device, worker_buf[i].read_buf.seq, MS_SIZE, device_buf[i].krnl.group_id(1));
+		device_buf[i].loc      = xrt::bo(device, worker_buf[i].loc, MS_SIZE, device_buf[i].krnl.group_id(4));
+		device_buf[i].used     = 0;
+		worker_buf[i].id       = i;
+		worker_buf[i].len      = 0;
+		worker_buf[i].complete = 0;
 	}
 	// TODO: destroy the index but not in the driver
 }
@@ -139,9 +123,9 @@ int demeter_get_results(d_worker_t *worker) {
 
 void demeter_fpga_destroy() {
 	delete &map;
-	delete[] key;
+	delete &key;
 	for (unsigned i = 0; i < NB_WORKERS; i++) {
-		delete[] worker_buf[i].seq;
+		// TODO: delete read_buf
 		delete[] worker_buf[i].loc;
 	}
 	delete[] worker_buf;

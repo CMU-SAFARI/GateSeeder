@@ -9,7 +9,7 @@ extern "C" {
 
 typedef struct {
 	unsigned id;
-	uint8_t *seq;
+	read_buf_t read_buf;
 	uint64_t *loc;
 	uint32_t len;
 	volatile unsigned complete : 1;
