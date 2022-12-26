@@ -24,7 +24,7 @@ static size_t fastq_file_len;
 static size_t fastq_file_pos;
 static uint8_t *fastq_buf;
 
-void open_fastq(int param, const char *file_name) {
+void fastq_open(int param, const char *file_name) {
 	struct stat statbuf;
 	fastq_fd = open(file_name, O_RDONLY);
 	if (fastq_fd == -1) {
@@ -66,7 +66,7 @@ void read_buf_destroy(const read_buf_t buf) {
 	free(buf.seq_name);
 }
 
-int parse_fastq(read_buf_t *const buf) {
+int fastq_parse(read_buf_t *const buf) {
 	buf->len     = 0;
 	buf->nb_seqs = 0;
 
@@ -128,13 +128,13 @@ int parse_fastq(read_buf_t *const buf) {
 	return 1;
 }
 
-void close_fastq() {
+void fastq_close() {
 	munmap(fastq_file_ptr, fastq_file_len);
 	free(fastq_buf);
 	close(fastq_fd);
 }
 
-index_t parse_index(const char *const file_name) {
+index_t index_parse(const char *const file_name) {
 	FILE *fp;
 	FOPEN(fp, file_name, "rb");
 	char magic[5];

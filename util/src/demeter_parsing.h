@@ -22,12 +22,12 @@ typedef struct {
 #define OPEN_MALLOC 0
 #define OPEN_MMAP 1
 
-void open_fastq(int param, const char *const file_name);
+void fastq_open(int param, const char *const file_name);
 void read_buf_init(read_buf_t *const buf, const uint32_t capacity);
 void read_buf_destroy(const read_buf_t buf);
-int parse_fastq(read_buf_t *const buf);
-void close_fastq();
-index_t parse_index(const char *const file_name);
+int fastq_parse(read_buf_t *const buf);
+void fastq_close();
+index_t index_parse(const char *const file_name);
 void index_destroy(const index_t index);
 
 #endif

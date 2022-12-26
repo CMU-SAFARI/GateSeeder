@@ -1,11 +1,13 @@
 #include "demeter_util.h"
 #include "driver.h"
+#include "mapping.h"
 #include <argp.h>
 #include <err.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/resource.h>
+#include <time.h>
 
-unsigned NB_THREADS = 4;
 unsigned BATCH_SIZE = 3;
 
 unsigned IDX_MAP_SIZE = 27;
@@ -20,6 +22,7 @@ typedef struct {
 	unsigned nb_cus;
 	index_t index;
 	const char *binary_file;
+	unsigned nb_threads;
 } arguments;
 
 const char *argp_program_version     = "demeter 0.1.0";
@@ -51,7 +54,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 	arguments *args = state->input;
 	switch (key) {
 		case 't':
-			NB_THREADS = strtoul(arg, NULL, 10);
+			args->nb_threads = strtoul(arg, NULL, 10);
 			break;
 		case 'b':
 			BATCH_SIZE = strtoul(arg, NULL, 10);
@@ -68,10 +71,10 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 					args->binary_file = arg;
 					break;
 				case 1:
-					args->index = parse_index(arg);
+					args->index = index_parse(arg);
 					break;
 				case 2:
-					open_fastq(OPEN_MMAP, arg);
+					fastq_open(OPEN_MMAP, arg);
 					break;
 				default:
 					argp_usage(state);
@@ -93,7 +96,7 @@ int main(int argc, char *argv[]) {
 	struct timespec start, init, end;
 	clock_gettime(CLOCK_MONOTONIC, &start);
 
-	arguments args = {.nb_cus = 7};
+	arguments args = {.nb_cus = 7, .nb_threads = 4};
 
 	OUTPUT = stdout;
 	argp_parse(&argp, argc, argv, 0, 0, &args);
@@ -103,8 +106,17 @@ int main(int argc, char *argv[]) {
 	index_destroy(args.index);
 
 	clock_gettime(CLOCK_MONOTONIC, &init);
+	fprintf(stderr, "[INFO] Initialization time %f sec\n",
+	        init.tv_sec - start.tv_sec + (init.tv_nsec - start.tv_nsec) / 1000000000.0);
 
 	clock_gettime(CLOCK_MONOTONIC, &end);
+	mapping_run(args.nb_threads);
+	fprintf(stderr, "[INFO] Total execution time %f sec\n",
+	        end.tv_sec - start.tv_sec + (end.tv_nsec - start.tv_nsec) / 1000000000.0);
+
+	struct rusage r;
+	getrusage(RUSAGE_SELF, &r);
+	fprintf(stderr, "[INFO] Peak RSS: %f GB\n", r.ru_maxrss / 1048576.0);
 
 	return 0;
 }
