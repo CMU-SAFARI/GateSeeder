@@ -108,9 +108,8 @@ int main(int argc, char *argv[]) {
 	clock_gettime(CLOCK_MONOTONIC, &init);
 	fprintf(stderr, "[INFO] Initialization time %f sec\n",
 	        init.tv_sec - start.tv_sec + (init.tv_nsec - start.tv_nsec) / 1000000000.0);
-
-	clock_gettime(CLOCK_MONOTONIC, &end);
 	mapping_run(args.nb_threads);
+	clock_gettime(CLOCK_MONOTONIC, &end);
 	fprintf(stderr, "[INFO] Total execution time %f sec\n",
 	        end.tv_sec - start.tv_sec + (end.tv_nsec - start.tv_nsec) / 1000000000.0);
 

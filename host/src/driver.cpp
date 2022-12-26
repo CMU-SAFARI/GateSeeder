@@ -9,7 +9,8 @@
 #define DEVICE_INDEX 0
 #define KERNEL_NAME "demeter_kernel"
 #define INSTANCE_NAME "cu"
-#define MS_SIZE (1ULL << 28)
+#define MS_SIZE (1ULL << 29)
+#define RB_SIZE (1ULL << 24)
 
 static xrt::bo map;
 static xrt::bo key;
@@ -35,7 +36,7 @@ void demeter_fpga_init(const unsigned nb_cus, const char *const binary_file, con
 	auto device = xrt::device(DEVICE_INDEX);
 	std::cerr << "[INFO] Device " << DEVICE_INDEX << std::endl;
 	auto uuid = device.load_xclbin(binary_file);
-	std::cerr << "[INFO] " << DEVICE_INDEX << " loaded\n";
+	std::cerr << "[INFO] " << binary_file << " loaded\n";
 
 	worker_buf = new d_worker_t[NB_WORKERS];
 	device_buf = new d_device_t[NB_WORKERS];
@@ -55,20 +56,20 @@ void demeter_fpga_init(const unsigned nb_cus, const char *const binary_file, con
 	// Transfer the index
 	map.sync(XCL_BO_SYNC_BO_TO_DEVICE);
 	key.sync(XCL_BO_SYNC_BO_TO_DEVICE);
+	std::cerr << "[INFO] Index transferred\n";
 
 	// Initialize the buffers for the I/O
 	for (unsigned i = 0; i < NB_WORKERS; i++) {
 		// Initialize read buf
-		read_buf_init(&worker_buf[i].read_buf, MS_SIZE);
+		read_buf_init(&worker_buf[i].read_buf, RB_SIZE);
 		// Initialize loc buf
 		POSIX_MEMALIGN(worker_buf[i].loc, 4096, MS_SIZE);
 
 		device_buf[i].seq =
-		    xrt::bo(device, worker_buf[i].read_buf.seq, MS_SIZE, device_buf[i].krnl.group_id(1));
+		    xrt::bo(device, worker_buf[i].read_buf.seq, RB_SIZE, device_buf[i].krnl.group_id(1));
 		device_buf[i].loc      = xrt::bo(device, worker_buf[i].loc, MS_SIZE, device_buf[i].krnl.group_id(4));
 		device_buf[i].used     = 0;
 		worker_buf[i].id       = i;
-		worker_buf[i].len      = 0;
 		worker_buf[i].complete = 0;
 	}
 }
@@ -79,7 +80,7 @@ void demeter_host(const d_worker_t worker) {
 	device_buf[id].seq.sync(XCL_BO_SYNC_BO_TO_DEVICE);
 
 	// Start the kernel
-	device_buf[id].run      = device_buf[id].krnl(worker.len, device_buf[id].seq, map, key, device_buf[id].loc);
+	device_buf[id].run = device_buf[id].krnl(worker.read_buf.len, device_buf[id].seq, map, key, device_buf[id].loc);
 	worker_buf[id].complete = 1;
 	device_buf[id].used     = 0;
 }
@@ -104,20 +105,33 @@ d_worker_t demeter_get_worker() {
 	return worker;
 }
 
-int demeter_get_results(d_worker_t *worker) {
-	LOCK(mutex);
-	for (unsigned i = 0; i < NB_WORKERS; i++) {
-		if (worker_buf[i].complete) {
-			worker_buf[i].complete = 0;
-			device_buf[i].run.wait();
-			*worker = worker_buf[i];
-			UNLOCK(mutex);
-			return 1;
-		}
-	}
-	UNLOCK(mutex);
-	return 0;
+void demeter_get_results(const d_worker_t worker) {
+	const unsigned id = worker.id;
+	device_buf[id].loc.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
 }
+
+void demeter_release_worker(const d_worker_t worker) {
+	const unsigned id       = worker.id;
+	worker_buf[id].complete = 0;
+	device_buf[id].used     = 0;
+}
+
+/*
+int demeter_get_results(d_worker_t *worker) {
+        LOCK(mutex);
+        for (unsigned i = 0; i < NB_WORKERS; i++) {
+                if (worker_buf[i].complete) {
+                        worker_buf[i].complete = 0;
+                        device_buf[i].run.wait();
+                        *worker = worker_buf[i];
+                        UNLOCK(mutex);
+                        return 1;
+                }
+        }
+        UNLOCK(mutex);
+        return 0;
+}
+*/
 
 void demeter_fpga_destroy() {
 	delete &map;
