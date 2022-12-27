@@ -19,6 +19,7 @@ extern unsigned SE_W;
 extern unsigned SE_K;
 
 static int fastq_fd;
+static uint32_t read_id;
 static uint8_t *fastq_file_ptr;
 static size_t fastq_file_len;
 static size_t fastq_file_pos;
@@ -49,6 +50,7 @@ void fastq_open(int param, const char *file_name) {
 	}
 	fastq_file_pos = 0;
 	MALLOC(fastq_buf, uint8_t, MAX_SEQ_LEN);
+	read_id = 0;
 }
 
 void read_buf_init(read_buf_t *const buf, const uint32_t capacity) {
@@ -57,19 +59,19 @@ void read_buf_init(read_buf_t *const buf, const uint32_t capacity) {
 	// MAYBE not necessary if we use the host and not the DDR
 	// POSIX_MEMALIGN(buf->seq, 4096, capacity);
 	MALLOC(buf->seq, uint8_t, capacity);
-	buf->nb_seqs           = 0;
-	buf->seq_name_capacity = 0;
-	buf->seq_name          = NULL;
+	buf->metadata_len      = 0;
+	buf->metadata_capacity = 0;
+	buf->metadata          = NULL;
 }
 
 void read_buf_destroy(const read_buf_t buf) {
 	free(buf.seq);
-	free(buf.seq_name);
+	free(buf.metadata);
 }
 
 int fastq_parse(read_buf_t *const buf) {
-	buf->len     = 0;
-	buf->nb_seqs = 0;
+	buf->len          = 0;
+	buf->metadata_len = 0;
 
 	while (fastq_file_pos < fastq_file_len) {
 		// Get the name
@@ -112,16 +114,20 @@ int fastq_parse(read_buf_t *const buf) {
 		buf->len += read_len;
 
 		// Increase the size of name buffer if necessary
-		if (buf->nb_seqs >= buf->seq_name_capacity) {
-			buf->seq_name_capacity = buf->seq_name_capacity ? 2 * buf->seq_name_capacity : 1;
-			REALLOC(buf->seq_name, char *, buf->seq_name_capacity);
+		if (buf->metadata_len >= buf->metadata_capacity) {
+			buf->metadata_capacity = buf->metadata_capacity ? 2 * buf->metadata_capacity : 1;
+			REALLOC(buf->metadata, read_metadata_t, buf->metadata_capacity);
 		}
 
 		// Alloc & copy the name into the buf
-		MALLOC(buf->seq_name[buf->nb_seqs], char, name_len);
-		memcpy(buf->seq_name[buf->nb_seqs], &fastq_file_ptr[name_pos], name_len);
-		buf->seq_name[buf->nb_seqs][name_len - 1] = '\0';
-		buf->nb_seqs++;
+		MALLOC(buf->metadata[buf->metadata_len].seq_name, char, name_len);
+		memcpy(buf->metadata[buf->metadata_len].seq_name, &fastq_file_ptr[name_pos], name_len);
+		buf->metadata[buf->metadata_len].seq_name[name_len - 1] = '\0';
+		// Set read id
+		buf->metadata[buf->metadata_len].id = read_id;
+		read_id++;
+
+		buf->metadata_len++;
 
 		// Increment the pos
 		fastq_file_pos = cur_pos + 2 * read_len + 2;

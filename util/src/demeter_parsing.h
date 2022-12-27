@@ -5,12 +5,17 @@
 #include <stdio.h>
 
 typedef struct {
+	char *seq_name;
+	uint32_t id;
+} read_metadata_t;
+
+typedef struct {
 	uint32_t capacity; // in terms of bps
 	uint32_t len;      // in terms of bps
 	uint8_t *seq;
-	unsigned nb_seqs;
-	unsigned seq_name_capacity;
-	char **seq_name;
+	uint32_t metadata_len;
+	uint32_t metadata_capacity;
+	read_metadata_t *metadata;
 } read_buf_t;
 
 typedef struct {

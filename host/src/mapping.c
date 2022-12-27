@@ -14,13 +14,34 @@ static inline void swap_buffers(d_worker_t *const worker, read_buf_t *const read
 	*loc_buf  = loc_buf_tmp;
 }
 
+// Sort, vote and write
+static void map_seq(uint64_t *const loc, const uint32_t len, const read_metadata_t metadata) {
+	if (len != 0) {
+		// Sort
+
+		// Vote
+
+		// Write
+	}
+}
+
 static void cpu_map(const read_buf_t read_buf, uint64_t *const loc_buf) {
-	printf("len: %u\n", read_buf.len);
-	for (unsigned i = 0; i < (MS_SIZE >> 3); i++) {
-		const uint64_t res = loc_buf[i];
-		// printf("%x: %lx\n", i, res);
-		if (res == UINT64_MAX) {
+	// printf("len: %u\n", read_buf.len);
+	uint32_t start  = 0;
+	uint32_t len    = 0;
+	uint32_t read_i = 0;
+	for (uint32_t i = 0; i < (MS_SIZE >> 3); i++) {
+		const uint64_t loc = loc_buf[i];
+		if (loc == 1ULL << 63) {
+			map_seq(&loc_buf[start], len, read_buf.metadata[read_i]);
+			start = i + 1;
+			len   = 0;
+			read_i++;
+		} else if (loc == UINT64_MAX) {
+			map_seq(&loc_buf[start], len, read_buf.metadata[read_i]);
 			return;
+		} else {
+			len++;
 		}
 	}
 	puts("ERROR");
