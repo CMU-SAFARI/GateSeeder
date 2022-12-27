@@ -31,7 +31,7 @@ static void *mapping_routine(__attribute__((unused)) void *arg) {
 	read_buf_t read_buf;
 	read_buf_init(&read_buf, RB_SIZE);
 	uint64_t *loc_buf;
-	POSIX_MEMALIGN(loc_buf, 4096, MS_SIZE);
+	MALLOC(loc_buf, uint64_t, MS_SIZE >> 3);
 
 	//  Itterate until we reach the end of the file
 	while (fastq_parse(&read_buf) == 0 || read_buf.len != 0) {

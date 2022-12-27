@@ -55,7 +55,8 @@ void read_buf_init(read_buf_t *const buf, const uint32_t capacity) {
 	buf->capacity = capacity;
 	buf->len      = 0;
 	// MAYBE not necessary if we use the host and not the DDR
-	POSIX_MEMALIGN(buf->seq, 4096, capacity);
+	// POSIX_MEMALIGN(buf->seq, 4096, capacity);
+	MALLOC(buf->seq, uint8_t, capacity);
 	buf->nb_seqs           = 0;
 	buf->seq_name_capacity = 0;
 	buf->seq_name          = NULL;

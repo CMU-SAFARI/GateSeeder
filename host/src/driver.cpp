@@ -62,13 +62,12 @@ void demeter_fpga_init(const unsigned nb_cus, const char *const binary_file, con
 		// Initialize read buf
 		read_buf_init(&worker_buf[i].read_buf, RB_SIZE);
 		// Initialize loc buf
-		POSIX_MEMALIGN(worker_buf[i].loc, 4096, MS_SIZE);
+		MALLOC(worker_buf[i].loc, uint64_t, MS_SIZE >> 3);
 
-		/*
-		 device_buf[i].seq =
-		    xrt::bo(device, worker_buf[i].read_buf.seq, RB_SIZE, device_buf[i].krnl.group_id(1));
-		device_buf[i].loc      = xrt::bo(device, worker_buf[i].loc, MS_SIZE, device_buf[i].krnl.group_id(4));
-		    */
+		// Initialize device buffers
+		device_buf[i].seq = xrt::bo(device, RB_SIZE, device_buf[i].krnl.group_id(1));
+		device_buf[i].loc = xrt::bo(device, MS_SIZE, device_buf[i].krnl.group_id(4));
+
 		device_buf[i].used     = 0;
 		worker_buf[i].id       = i;
 		worker_buf[i].complete = 0;
@@ -80,17 +79,13 @@ void demeter_host(const d_worker_t worker) {
 	worker_buf[id]    = worker;
 
 	// TODO: measure time
-	//  Set input buffer
-	device_buf[id].seq = xrt::bo(device, worker.read_buf.seq, RB_SIZE, device_buf[id].krnl.group_id(1));
-
-	//  Set output buffer
-	device_buf[id].loc = xrt::bo(device, worker.loc, MS_SIZE, device_buf[id].krnl.group_id(4));
 
 	// Transfer input data
+	device_buf[id].seq.write(worker.read_buf.seq);
 	device_buf[id].seq.sync(XCL_BO_SYNC_BO_TO_DEVICE);
 
 	// Start the kernel
-	std::cout << "HOST id: " << id << std::endl;
+	// std::cout << "HOST id: " << id << std::endl;
 	device_buf[id].run = device_buf[id].krnl(worker.read_buf.len, device_buf[id].seq, map, key, device_buf[id].loc);
 	worker_buf[id].complete = 1;
 	device_buf[id].used     = 0;
@@ -108,8 +103,10 @@ d_worker_t demeter_get_worker() {
 				worker              = worker_buf[id];
 				break;
 			} else if (device_buf[id].run.state() == ERT_CMD_STATE_COMPLETED) {
-				// Transfer output data
+				// std::cout << "GET id: " << id << std::endl;
+				//  Transfer output data
 				device_buf[id].loc.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
+				device_buf[id].loc.read(worker_buf[id].loc);
 				device_buf[id].used = 1;
 				worker              = worker_buf[id];
 				break;
