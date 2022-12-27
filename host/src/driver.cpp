@@ -9,9 +9,8 @@
 #define DEVICE_INDEX 0
 #define KERNEL_NAME "demeter_kernel"
 #define INSTANCE_NAME "cu"
-#define MS_SIZE (1ULL << 29)
-#define RB_SIZE (1ULL << 24)
 
+static xrt::device device;
 static xrt::bo map;
 static xrt::bo key;
 
@@ -32,8 +31,8 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static unsigned NB_WORKERS;
 
 void demeter_fpga_init(const unsigned nb_cus, const char *const binary_file, const index_t index) {
-	NB_WORKERS  = nb_cus;
-	auto device = xrt::device(DEVICE_INDEX);
+	NB_WORKERS = nb_cus;
+	device     = xrt::device(DEVICE_INDEX);
 	std::cerr << "[INFO] Device " << DEVICE_INDEX << std::endl;
 	auto uuid = device.load_xclbin(binary_file);
 	std::cerr << "[INFO] " << binary_file << " loaded\n";
@@ -65,9 +64,11 @@ void demeter_fpga_init(const unsigned nb_cus, const char *const binary_file, con
 		// Initialize loc buf
 		POSIX_MEMALIGN(worker_buf[i].loc, 4096, MS_SIZE);
 
-		device_buf[i].seq =
+		/*
+		 device_buf[i].seq =
 		    xrt::bo(device, worker_buf[i].read_buf.seq, RB_SIZE, device_buf[i].krnl.group_id(1));
 		device_buf[i].loc      = xrt::bo(device, worker_buf[i].loc, MS_SIZE, device_buf[i].krnl.group_id(4));
+		    */
 		device_buf[i].used     = 0;
 		worker_buf[i].id       = i;
 		worker_buf[i].complete = 0;
@@ -75,11 +76,21 @@ void demeter_fpga_init(const unsigned nb_cus, const char *const binary_file, con
 }
 
 void demeter_host(const d_worker_t worker) {
-	// Transfer input data
 	const unsigned id = worker.id;
+	worker_buf[id]    = worker;
+
+	// TODO: measure time
+	//  Set input buffer
+	device_buf[id].seq = xrt::bo(device, worker.read_buf.seq, RB_SIZE, device_buf[id].krnl.group_id(1));
+
+	//  Set output buffer
+	device_buf[id].loc = xrt::bo(device, worker.loc, MS_SIZE, device_buf[id].krnl.group_id(4));
+
+	// Transfer input data
 	device_buf[id].seq.sync(XCL_BO_SYNC_BO_TO_DEVICE);
 
 	// Start the kernel
+	std::cout << "HOST id: " << id << std::endl;
 	device_buf[id].run = device_buf[id].krnl(worker.read_buf.len, device_buf[id].seq, map, key, device_buf[id].loc);
 	worker_buf[id].complete = 1;
 	device_buf[id].used     = 0;
@@ -92,7 +103,11 @@ d_worker_t demeter_get_worker() {
 		unsigned id = i % NB_WORKERS;
 		// Check if the run is completed
 		if (device_buf[id].used == 0) {
-			if (worker_buf[id].complete == 0 || device_buf[id].run.state() == ERT_CMD_STATE_COMPLETED) {
+			if (worker_buf[id].complete == 0) {
+				device_buf[id].used = 1;
+				worker              = worker_buf[id];
+				break;
+			} else if (device_buf[id].run.state() == ERT_CMD_STATE_COMPLETED) {
 				// Transfer output data
 				device_buf[id].loc.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
 				device_buf[id].used = 1;
@@ -105,18 +120,18 @@ d_worker_t demeter_get_worker() {
 	return worker;
 }
 
+/*
 void demeter_get_results(const d_worker_t worker) {
-	const unsigned id = worker.id;
-	device_buf[id].loc.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
+        const unsigned id = worker.id;
+        device_buf[id].loc.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
 }
 
 void demeter_release_worker(const d_worker_t worker) {
-	const unsigned id       = worker.id;
-	worker_buf[id].complete = 0;
-	device_buf[id].used     = 0;
+        const unsigned id       = worker.id;
+        worker_buf[id].complete = 0;
+        device_buf[id].used     = 0;
 }
 
-/*
 int demeter_get_results(d_worker_t *worker) {
         LOCK(mutex);
         for (unsigned i = 0; i < NB_WORKERS; i++) {

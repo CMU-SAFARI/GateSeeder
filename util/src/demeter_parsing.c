@@ -70,7 +70,7 @@ int fastq_parse(read_buf_t *const buf) {
 	buf->len     = 0;
 	buf->nb_seqs = 0;
 
-	for (; fastq_file_pos < fastq_file_len;) {
+	while (fastq_file_pos < fastq_file_len) {
 		// Get the name
 		const size_t name_pos = fastq_file_pos + 1;
 		uint8_t c             = fastq_file_ptr[name_pos];

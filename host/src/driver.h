@@ -7,6 +7,10 @@ extern "C" {
 
 #include "demeter_util.h"
 
+// TODO: rename LB_SIZE
+#define MS_SIZE (1ULL << 29)
+#define RB_SIZE (1ULL << 24)
+
 typedef struct {
 	unsigned id;
 	read_buf_t read_buf;

@@ -3,39 +3,45 @@
 #include "mapping.h"
 #include <pthread.h>
 
-// DEBUG
-#define MS_SIZE_64 (1ULL << 26)
+static inline void swap_buffers(d_worker_t *const worker, read_buf_t *const read_buf, uint64_t **const loc_buf) {
+	const read_buf_t read_buf_tmp = worker->read_buf;
+	uint64_t *const loc_buf_tmp   = worker->loc;
 
-static void print_results(d_worker_t worker) {
-	if (worker.complete) {
-		demeter_get_results(worker);
-		for (unsigned i = 0; i < MS_SIZE_64; i++) {
-			const uint64_t res = worker.loc[i];
-			// printf("%x: %lx\n", i, res);
-			if (res == UINT64_MAX) {
-				return;
-			}
+	worker->read_buf = *read_buf;
+	worker->loc      = *loc_buf;
+
+	*read_buf = read_buf_tmp;
+	*loc_buf  = loc_buf_tmp;
+}
+
+static void cpu_map(const read_buf_t read_buf, uint64_t *const loc_buf) {
+	printf("len: %u\n", read_buf.len);
+	for (unsigned i = 0; i < (MS_SIZE >> 3); i++) {
+		const uint64_t res = loc_buf[i];
+		// printf("%x: %lx\n", i, res);
+		if (res == UINT64_MAX) {
+			return;
 		}
-		puts("ERROR");
 	}
+	puts("ERROR");
 }
 
 // Main routine executed by each thread
 static void *mapping_routine(__attribute__((unused)) void *arg) {
-	d_worker_t worker = demeter_get_worker();
-	print_results(worker);
-	while (fastq_parse(&worker.read_buf) == 0) {
-		printf("len: %u\n", worker.read_buf.len);
-		demeter_host(worker);
-		worker = demeter_get_worker();
-		print_results(worker);
-	}
+	read_buf_t read_buf;
+	read_buf_init(&read_buf, RB_SIZE);
+	uint64_t *loc_buf;
+	POSIX_MEMALIGN(loc_buf, 4096, MS_SIZE);
 
-	if (worker.read_buf.len != 0) {
-		printf("len: %u\n", worker.read_buf.len);
+	//  Itterate until we reach the end of the file
+	while (fastq_parse(&read_buf) == 0 || read_buf.len != 0) {
+		// Minimize the time during which the worker is inactive
+		d_worker_t worker = demeter_get_worker();
+		swap_buffers(&worker, &read_buf, &loc_buf);
 		demeter_host(worker);
-	} else {
-		demeter_release_worker(worker);
+		if (worker.complete) {
+			cpu_map(read_buf, loc_buf);
+		}
 	}
 	return (void *)NULL;
 }
