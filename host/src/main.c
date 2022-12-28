@@ -15,6 +15,8 @@ unsigned IDX_MAX_OCC  = 200;
 unsigned SE_W         = 10;
 unsigned SE_K         = 15;
 // TODO: don't need to set the previous parameters
+// TODO: do host pointer buffer mode
+// TODO: try with cache flag
 
 FILE *OUTPUT;
 
@@ -45,7 +47,7 @@ static struct argp_option options[]  = {
     {0, 0, 0, 0, "Ressources:", 0},
     {"nb_threads", 't', "UINT", 0, "number of CPU threads [4]", 0},
     {"batch_size", 'b', "UINT", 0, "batch size (in reads) processed by each cpu threads [3]", 0},
-    {"compute_units", 'u', "UINT", 0, "number of FPGA compute units [7]", 0},
+    {"compute_units", 'u', "UINT", 0, "number of FPGA compute units [8]", 0},
     {0, 0, 0, 0, "Input/Output:", 0},
     {"output", 'o', "OUTPUT_FILE", 0, "output file [stdout]", 0},
     {0}};
@@ -96,7 +98,7 @@ int main(int argc, char *argv[]) {
 	struct timespec start, init, end;
 	clock_gettime(CLOCK_MONOTONIC, &start);
 
-	arguments args = {.nb_cus = 7, .nb_threads = 4};
+	arguments args = {.nb_cus = 8, .nb_threads = 4};
 
 	OUTPUT = stdout;
 	argp_parse(&argp, argc, argv, 0, 0, &args);

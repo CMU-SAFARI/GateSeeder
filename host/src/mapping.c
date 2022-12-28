@@ -16,6 +16,9 @@ static inline void swap_buffers(d_worker_t *const worker, read_buf_t *const read
 
 // Sort, vote and write
 static void map_seq(uint64_t *const loc, const uint32_t len, const read_metadata_t metadata) {
+	(void)loc;
+	(void)len;
+	(void)metadata;
 	if (len != 0) {
 		// Sort
 
