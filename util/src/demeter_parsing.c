@@ -56,9 +56,8 @@ void fastq_open(int param, const char *file_name) {
 void read_buf_init(read_buf_t *const buf, const uint32_t capacity) {
 	buf->capacity = capacity;
 	buf->len      = 0;
-	// MAYBE not necessary if we use the host and not the DDR
-	// POSIX_MEMALIGN(buf->seq, 4096, capacity);
-	MALLOC(buf->seq, uint8_t, capacity);
+	POSIX_MEMALIGN(buf->seq, 4096, capacity);
+	// MALLOC(buf->seq, uint8_t, capacity);
 	buf->metadata_len      = 0;
 	buf->metadata_capacity = 0;
 	buf->metadata          = NULL;

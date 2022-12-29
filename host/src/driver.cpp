@@ -57,20 +57,28 @@ void demeter_fpga_init(const unsigned nb_cus, const char *const binary_file, con
 	key.sync(XCL_BO_SYNC_BO_TO_DEVICE);
 	std::cerr << "[INFO] Index transferred\n";
 
-	// Initialize the buffers for the I/O
+	// Initialize the buffers and the states for the I/O
 	for (unsigned i = 0; i < NB_WORKERS; i++) {
 		// Initialize read buf
 		read_buf_init(&worker_buf[i].read_buf, RB_SIZE);
 		// Initialize loc buf
-		MALLOC(worker_buf[i].loc, uint64_t, MS_SIZE >> 3);
+		POSIX_MEMALIGN(worker_buf[i].loc, 4096, MS_SIZE);
 
 		// Initialize device buffers
-		device_buf[i].seq = xrt::bo(device, RB_SIZE, device_buf[i].krnl.group_id(1));
-		device_buf[i].loc = xrt::bo(device, MS_SIZE, device_buf[i].krnl.group_id(4));
+		device_buf[i].seq =
+		    xrt::bo(device, worker_buf[i].read_buf.seq, RB_SIZE, device_buf[i].krnl.group_id(1));
+		device_buf[i].loc = xrt::bo(device, worker_buf[i].loc, MS_SIZE, device_buf[i].krnl.group_id(4));
 
 		device_buf[i].used     = 0;
 		worker_buf[i].id       = i;
-		worker_buf[i].complete = 0;
+		worker_buf[i].running  = 0;
+		worker_buf[i].input_h  = buf_empty;
+		worker_buf[i].input_d  = buf_empty;
+		worker_buf[i].output_d = buf_empty;
+		worker_buf[i].output_h = buf_empty;
+
+		// Initialize the mutex
+		pthread_mutex_init(&worker_buf[i].mutex, NULL);
 	}
 }
 
@@ -87,8 +95,8 @@ void demeter_host(const d_worker_t worker) {
 	// Start the kernel
 	// std::cout << "HOST id: " << id << std::endl;
 	device_buf[id].run = device_buf[id].krnl(worker.read_buf.len, device_buf[id].seq, map, key, device_buf[id].loc);
-	worker_buf[id].complete = 1;
-	device_buf[id].used     = 0;
+	worker_buf[id].running = 1;
+	device_buf[id].used    = 0;
 }
 
 d_worker_t demeter_get_worker() {
@@ -98,7 +106,7 @@ d_worker_t demeter_get_worker() {
 		unsigned id = i % NB_WORKERS;
 		// Check if the run is completed
 		if (device_buf[id].used == 0) {
-			if (worker_buf[id].complete == 0) {
+			if (worker_buf[id].running == 0) {
 				device_buf[id].used = 1;
 				worker              = worker_buf[id];
 				break;
