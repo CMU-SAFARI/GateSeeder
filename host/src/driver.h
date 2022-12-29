@@ -11,18 +11,31 @@ extern "C" {
 #define MS_SIZE (1ULL << 29)
 #define RB_SIZE (1ULL << 24)
 
+// input_d can only be full or transfer
+// after starting the kernel can be empty
+
+// output_d can only be empty or transfer
+// after starting the kernel can be full
+
 typedef enum
 {
 	buf_empty,
-	buf_loading,
-	buf_loaded
+	buf_transfer, // used for the d buffers when transfering from/to the host
+	buf_full
 } buf_state_t;
+
+typedef enum
+{
+	krnl_busy,
+	krnl_running,
+	krnl_idle
+} krnl_state_t;
 
 typedef struct {
 	unsigned id;
 	read_buf_t read_buf;
 	uint64_t *loc;
-	volatile unsigned running : 1;
+	volatile krnl_state_t krnl_state;
 	volatile buf_state_t input_h;
 	volatile buf_state_t input_d;
 	volatile buf_state_t output_d;
