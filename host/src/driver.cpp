@@ -15,6 +15,7 @@ static xrt::bo map;
 static xrt::bo key;
 
 struct d_device_t {
+	uint32_t seq_len;
 	xrt::bo seq;
 	xrt::bo loc;
 	xrt::kernel krnl;
@@ -65,6 +66,7 @@ void demeter_fpga_init(const unsigned nb_cus, const char *const binary_file, con
 		// Initialize loc buf
 		POSIX_MEMALIGN(worker_buf[i].loc, 4096, MS_SIZE);
 
+		device_buf[i].seq_len = 0;
 		// Initialize device buffers
 		device_buf[i].seq =
 		    xrt::bo(device, worker_buf[i].read_buf.seq, RB_SIZE, device_buf[i].krnl.group_id(1));
@@ -101,15 +103,17 @@ d_worker_t *demeter_get_worker(d_worker_t *const worker) {
 void demeter_load_seq(d_worker_t *const worker) {
 	const unsigned id = worker->id;
 	device_buf[id].seq.sync(XCL_BO_SYNC_BO_TO_DEVICE);
+	device_buf[id].seq_len = worker->read_buf.len;
 	LOCK(worker->mutex);
+	worker->input_h = buf_empty;
 	worker->input_d = buf_full;
 	UNLOCK(worker->mutex);
 }
 
 void demeter_start_kernel(d_worker_t *const worker) {
 	const unsigned id = worker->id;
-	std::cout << "kernel[" << id << "] started" << std::endl;
-	device_buf[id].run.set_arg(0, worker->read_buf.len);
+	std::cout << "kernel[" << id << "] started, len: " << worker->read_buf.len << std::endl;
+	device_buf[id].run.set_arg(0, device_buf[id].seq_len);
 	device_buf[id].run.start();
 	device_buf[id].is_running = 1;
 }
@@ -118,6 +122,7 @@ void demeter_load_loc(d_worker_t *const worker) {
 	device_buf[id].loc.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
 	LOCK(worker->mutex);
 	worker->output_d = buf_empty;
+	worker->output_h = buf_full;
 	UNLOCK(worker->mutex);
 }
 

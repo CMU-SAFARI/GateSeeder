@@ -18,6 +18,7 @@ static void map_seq(uint64_t *const loc, const uint32_t len, const read_metadata
         }
 }
 */
+static pthread_mutex_t parse_fastq_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 typedef enum
 {
@@ -35,7 +36,7 @@ static inline task_t next_task(d_worker_t *const worker) {
 		worker->input_h = buf_transfer;
 		return FILL_INPUT;
 	}
-	if (worker->input_d == buf_empty && demeter_is_complete(worker)) {
+	if (worker->input_d == buf_empty && worker->input_h == buf_full && demeter_is_complete(worker)) {
 		worker->input_d = buf_transfer;
 		return TRANSFER_INPUT;
 	}
@@ -45,7 +46,7 @@ static inline task_t next_task(d_worker_t *const worker) {
 		worker->output_d = buf_full;
 		return START_KERNEL;
 	}
-	if (worker->output_d == buf_full && demeter_is_complete(worker)) {
+	if (worker->output_d == buf_full && worker->output_h == buf_empty && demeter_is_complete(worker)) {
 		worker->output_d = buf_transfer;
 		return TRANSFER_OUTPUT;
 	}
@@ -57,7 +58,11 @@ static inline task_t next_task(d_worker_t *const worker) {
 }
 
 static int fill_input(d_worker_t *const worker) {
-	if (fastq_parse(&worker->read_buf) == 0 || worker->read_buf.len != 0) {
+	LOCK(parse_fastq_mutex);
+	const int res = fastq_parse(&worker->read_buf);
+	UNLOCK(parse_fastq_mutex);
+	if (!res || worker->read_buf.len != 0) {
+		printf("read_len[%u] : %u\n", worker->id, worker->read_buf.len);
 		LOCK(worker->mutex);
 		worker->input_h = buf_full;
 		UNLOCK(worker->mutex);
