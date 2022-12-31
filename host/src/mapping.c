@@ -62,7 +62,7 @@ static int fill_input(d_worker_t *const worker) {
 	const int res = fastq_parse(&worker->read_buf);
 	UNLOCK(parse_fastq_mutex);
 	if (!res || worker->read_buf.len != 0) {
-		printf("read_len[%u] : %u\n", worker->id, worker->read_buf.len);
+		// printf("read_len[%u] : %u\n", worker->id, worker->read_buf.len);
 		LOCK(worker->mutex);
 		worker->input_h = buf_full;
 		UNLOCK(worker->mutex);
@@ -110,6 +110,8 @@ static void *mapping_routine(__attribute__((unused)) void *arg) {
 				break;
 		}
 	}
+
+	// TODO: continue until evrything is empty
 	return (void *)NULL;
 }
 

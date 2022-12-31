@@ -112,7 +112,7 @@ void demeter_load_seq(d_worker_t *const worker) {
 
 void demeter_start_kernel(d_worker_t *const worker) {
 	const unsigned id = worker->id;
-	std::cout << "kernel[" << id << "] started, len: " << worker->read_buf.len << std::endl;
+	// std::cout << "kernel[" << id << "] started, len: " << device_buf[id].seq_len << std::endl;
 	device_buf[id].run.set_arg(0, device_buf[id].seq_len);
 	device_buf[id].run.start();
 	device_buf[id].is_running = 1;
