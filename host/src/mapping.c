@@ -89,9 +89,7 @@ static void *mapping_routine(__attribute__((unused)) void *arg) {
 		UNLOCK(worker->mutex);
 		switch (task) {
 			case FILL_INPUT:
-				if (fill_input(worker)) {
-					input_available = 0;
-				}
+				input_available = !fill_input(worker);
 				break;
 			case TRANSFER_INPUT:
 				demeter_load_seq(worker);
@@ -110,8 +108,6 @@ static void *mapping_routine(__attribute__((unused)) void *arg) {
 				break;
 		}
 	}
-
-	// TODO: continue until evrything is empty
 	return (void *)NULL;
 }
 
