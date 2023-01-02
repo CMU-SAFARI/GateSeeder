@@ -36,7 +36,7 @@ typedef struct {
 } d_worker_t;
 
 void demeter_fpga_init(const unsigned nb_cus, const char *const binary_file, const index_t index);
-d_worker_t *demeter_get_worker(d_worker_t *const worker);
+d_worker_t *demeter_get_worker(d_worker_t *const worker, const int no_input);
 void demeter_load_seq(d_worker_t *const worker);
 void demeter_start_kernel(d_worker_t *const worker);
 void demeter_load_loc(d_worker_t *const worker);

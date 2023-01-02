@@ -92,7 +92,24 @@ void demeter_fpga_init(const unsigned nb_cus, const char *const binary_file, con
 	}
 }
 
-d_worker_t *demeter_get_worker(d_worker_t *const worker) {
+d_worker_t *demeter_get_worker(d_worker_t *const worker, const int no_input) {
+	if (no_input) {
+		d_worker_t *next_worker   = nullptr;
+		const unsigned current_id = (worker == nullptr) ? 0 : (worker->id + 1) % NB_WORKERS;
+		for (unsigned i = 0; i < NB_WORKERS; i++) {
+			const unsigned id = (i + current_id) % NB_WORKERS;
+			LOCK(worker_buf[id].mutex);
+			if (worker_buf[id].input_h != buf_empty || worker_buf[id].input_d != buf_empty ||
+			    worker_buf[id].output_d != buf_empty || worker_buf[id].output_h != buf_empty) {
+				next_worker = &worker_buf[id];
+				UNLOCK(worker_buf[id].mutex);
+				break;
+			}
+			UNLOCK(worker_buf[id].mutex);
+		}
+		return next_worker;
+	}
+
 	if (worker == nullptr) {
 		return &worker_buf[0];
 	}
