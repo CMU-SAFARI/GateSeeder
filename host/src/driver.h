@@ -8,7 +8,7 @@ extern "C" {
 #include "demeter_util.h"
 
 // TODO: rename LB_SIZE
-#define MS_SIZE (1ULL << 29)
+#define LB_SIZE (1ULL << 29)
 #define RB_SIZE (1ULL << 24)
 
 // input_d can only be full or transfer
@@ -25,9 +25,14 @@ typedef enum
 } buf_state_t;
 
 typedef struct {
+	uint64_t *loc;
+	read_metadata_t *metadata;
+} loc_buf_t;
+
+typedef struct {
 	unsigned id;
 	read_buf_t read_buf;
-	uint64_t *loc;
+	loc_buf_t loc_buf;
 	volatile buf_state_t input_h;
 	volatile buf_state_t input_d;
 	volatile buf_state_t output_d;

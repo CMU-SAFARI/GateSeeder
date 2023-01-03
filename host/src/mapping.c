@@ -1,7 +1,13 @@
 #include "demeter_util.h"
 #include "driver.h"
+#include "ksort.h"
 #include "mapping.h"
+#include <assert.h>
+#include <err.h>
 #include <pthread.h>
+
+#define sort_key_64(x) (x)
+KRADIX_SORT_INIT(64, uint64_t, sort_key_64, 8)
 
 /*
 // Sort, vote and write
@@ -74,12 +80,43 @@ static int fill_input(d_worker_t *const worker) {
 	return 1;
 }
 
+static void map_seq(uint64_t *const loc, const uint32_t len, const read_metadata_t metadata) {
+	(void)metadata;
+	radix_sort_64(loc, loc + len);
+	for (unsigned i = 0; i < len; i++) {
+		printf("%lx\n", loc[i]);
+	}
+}
+
 static void cpu_map(d_worker_t *const worker) {
-	// TODO
-	// printf("worker[%u] done\n", worker->id);
-	LOCK(worker->mutex);
-	worker->output_h = buf_empty;
-	UNLOCK(worker->mutex);
+	uint64_t *const loc   = worker->loc_buf.loc;
+	uint64_t *start_ptr   = loc;
+	uint32_t len          = 0;
+	uint32_t read_counter = 0;
+	for (uint32_t i = 0; i < (LB_SIZE >> 3); i++) {
+		switch (loc[i]) {
+			case (1ULL << 63):
+				if (len != 0) {
+					map_seq(start_ptr, len, worker->loc_buf.metadata[read_counter]);
+				}
+				read_counter++;
+				start_ptr = &loc[i + 1];
+				len       = 0;
+				break;
+			case (UINT64_MAX):
+				if (len != 0) {
+					map_seq(start_ptr, len, worker->loc_buf.metadata[read_counter]);
+				}
+				LOCK(worker->mutex);
+				worker->output_h = buf_empty;
+				UNLOCK(worker->mutex);
+				return;
+			default:
+				len++;
+				break;
+		}
+	}
+	errx(1, "Memory section overflow");
 }
 
 // Main routine executed by each thread

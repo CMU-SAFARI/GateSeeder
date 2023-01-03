@@ -16,6 +16,8 @@ static xrt::bo key;
 
 struct d_device_t {
 	uint32_t seq_len;
+	read_metadata_t *i_metadata;
+	read_metadata_t *o_metadata;
 	xrt::bo seq;
 	xrt::bo loc;
 	xrt::kernel krnl;
@@ -64,13 +66,13 @@ void demeter_fpga_init(const unsigned nb_cus, const char *const binary_file, con
 		// Initialize read buf
 		read_buf_init(&worker_buf[i].read_buf, RB_SIZE);
 		// Initialize loc buf
-		POSIX_MEMALIGN(worker_buf[i].loc, 4096, MS_SIZE);
+		POSIX_MEMALIGN(worker_buf[i].loc_buf.loc, 4096, LB_SIZE);
 
 		device_buf[i].seq_len = 0;
 		// Initialize device buffers
 		device_buf[i].seq =
 		    xrt::bo(device, worker_buf[i].read_buf.seq, RB_SIZE, device_buf[i].krnl.group_id(1));
-		device_buf[i].loc = xrt::bo(device, worker_buf[i].loc, MS_SIZE, device_buf[i].krnl.group_id(4));
+		device_buf[i].loc = xrt::bo(device, worker_buf[i].loc_buf.loc, LB_SIZE, device_buf[i].krnl.group_id(4));
 
 		device_buf[i].is_running = 0;
 		worker_buf[i].id         = i;
@@ -120,7 +122,10 @@ d_worker_t *demeter_get_worker(d_worker_t *const worker, const int no_input) {
 void demeter_load_seq(d_worker_t *const worker) {
 	const unsigned id = worker->id;
 	device_buf[id].seq.sync(XCL_BO_SYNC_BO_TO_DEVICE);
-	device_buf[id].seq_len = worker->read_buf.len;
+	device_buf[id].seq_len    = worker->read_buf.len;
+	device_buf[id].i_metadata = worker->read_buf.metadata;
+	// TODO: use mtalloc
+	MALLOC(worker->read_buf.metadata, read_metadata_t, worker->read_buf.metadata_capacity);
 	LOCK(worker->mutex);
 	worker->input_h = buf_empty;
 	worker->input_d = buf_full;
@@ -132,11 +137,13 @@ void demeter_start_kernel(d_worker_t *const worker) {
 	// std::cout << "kernel[" << id << "] started, len: " << device_buf[id].seq_len << std::endl;
 	device_buf[id].run.set_arg(0, device_buf[id].seq_len);
 	device_buf[id].run.start();
+	device_buf[id].o_metadata = device_buf[id].i_metadata;
 	device_buf[id].is_running = 1;
 }
 void demeter_load_loc(d_worker_t *const worker) {
 	const unsigned id = worker->id;
 	device_buf[id].loc.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
+	worker->loc_buf.metadata = device_buf[id].o_metadata;
 	LOCK(worker->mutex);
 	worker->output_d = buf_empty;
 	worker->output_h = buf_full;
@@ -153,7 +160,7 @@ void demeter_fpga_destroy() {
 	delete &key;
 	for (unsigned i = 0; i < NB_WORKERS; i++) {
 		read_buf_destroy(worker_buf[i].read_buf);
-		delete[] worker_buf[i].loc;
+		delete[] worker_buf[i].loc_buf.loc;
 	}
 	delete[] worker_buf;
 	delete[] device_buf;
