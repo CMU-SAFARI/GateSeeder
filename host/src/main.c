@@ -14,6 +14,7 @@ unsigned IDX_MAP_SIZE = 27;
 unsigned IDX_MAX_OCC  = 200;
 unsigned SE_W         = 10;
 unsigned SE_K         = 15;
+
 // TODO: don't need to set the previous parameters
 // TODO: do host pointer buffer mode
 // TODO: try with cache flag

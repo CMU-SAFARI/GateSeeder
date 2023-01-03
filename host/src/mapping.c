@@ -9,21 +9,9 @@
 #define sort_key_64(x) (x)
 KRADIX_SORT_INIT(64, uint64_t, sort_key_64, 8)
 
-/*
-// Sort, vote and write
-static void map_seq(uint64_t *const loc, const uint32_t len, const read_metadata_t metadata) {
-        (void)loc;
-        (void)len;
-        (void)metadata;
-        if (len != 0) {
-                // Sort
+extern unsigned VT_MAX_NB;
+extern unsigned VT_DISTANCE;
 
-                // Vote
-
-                // Write
-        }
-}
-*/
 static pthread_mutex_t parse_fastq_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 typedef enum
@@ -80,11 +68,109 @@ static int fill_input(d_worker_t *const worker) {
 	return 1;
 }
 
+typedef struct {
+	uint32_t q_start;
+	uint32_t q_end;
+	int str : 1;
+	uint64_t t_start;
+	uint64_t t_end;
+	uint32_t vt_score;
+} vote_t;
+
+typedef struct {
+	read_metadata_t metadata;
+	vote_t *vote;
+	unsigned nb_votes;
+} vote_v;
+
+#define TARGET(x) (x >> 23)
+#define QUERY(x) ((x >> 1) & ((1 << 22) - 1))
+#define STR(x) (x & 1)
+#define LOC_OFFSET (1 << 21)
+
+static vote_v vote(uint64_t *const loc, const unsigned len) {
+	vote_v v = {.nb_votes = 0};
+	// TODO: replace byt mtalloc
+	MALLOC(v.vote, vote_t, VT_MAX_NB);
+	unsigned counter[2] = {0, 0};
+
+	uint32_t q_start[2] = {0, 0};
+	uint32_t q_end[2]   = {0, 0};
+
+	uint64_t t_start[2] = {0, 0};
+	uint64_t t_end[2]   = {0, 0};
+
+	uint64_t t_ref[2] = {0, 0};
+
+	for (unsigned i = 0; i < len; i++) {
+		const uint64_t cur    = loc[i];
+		const int str         = STR(cur);
+		const uint64_t target = TARGET(cur);
+		const uint32_t query  = QUERY(cur);
+		// If curent location in the range, increase the counter and update the values
+		if (target <= t_ref[str] + VT_DISTANCE) {
+			counter[str]++;
+			if (query < q_start[str]) {
+				q_start[str] = query;
+				t_ref[str]   = target;
+			}
+			if (query > q_end[str]) {
+				q_end[str] = query;
+			}
+			const uint64_t loc = str ? target - query : target + query - LOC_OFFSET;
+			if (loc > t_end[str]) {
+				t_end[str] = loc;
+			}
+			if (loc < t_start[str]) {
+				t_start[str] = loc;
+			}
+		}
+		// Else check the number of votes we have and if we are above the coverage threshold
+		else {
+			if (v.nb_votes == VT_MAX_NB) {
+				// If not enough votes, we just continue
+				if (v.vote[VT_MAX_NB - 1].vt_score >= counter[str]) {
+					const uint64_t loc = str ? target - query : target + query - LOC_OFFSET;
+					q_start[str]       = query;
+					q_end[str]         = query;
+					t_start[str]       = loc;
+					t_end[str]         = loc;
+					t_ref[str]         = loc;
+					counter[str]       = 1;
+					continue;
+				}
+			} else {
+				VT_MAX_NB++;
+			}
+			v.vote[v.nb_votes - 1] = (vote_t){
+			    .q_start  = q_start[str],
+			    .q_end    = q_end[str],
+			    .str      = str,
+			    .t_start  = t_start[str],
+			    .t_end    = t_end[str],
+			    .vt_score = counter[str],
+			};
+			for (unsigned k = v.nb_votes - 1; k > 0; k--) {
+				// TODO
+			}
+		}
+	}
+	// TODO
+
+	return v;
+}
+
 static void map_seq(uint64_t *const loc, const uint32_t len, const read_metadata_t metadata) {
 	(void)metadata;
 	radix_sort_64(loc, loc + len);
+	/*
 	for (unsigned i = 0; i < len; i++) {
-		printf("%lx\n", loc[i]);
+	        printf("%lx\n", loc[i]);
+	}
+	*/
+	vote_v v = vote(loc, len);
+	if (v.nb_vote != 0) {
+		v.metadata = metadata;
 	}
 }
 

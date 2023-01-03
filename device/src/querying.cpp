@@ -34,11 +34,12 @@ query_index_map_loop:
 }
 
 inline uint64_t key_2_loc(const uint64_t key_i, const ap_uint<1> str_i, const ap_uint<READ_SIZE> query_loc_i) {
-	const ap_uint<64> key                        = ap_uint<64>(key_i);
-	const ap_uint<CHROM_SIZE> target_loc         = key.range(CHROM_SIZE - 1, 0);
-	const ap_uint<1> str                         = str_i ^ key.range(KEY_STR_START, KEY_STR_START);
-	const ap_uint<CHROM_SIZE> target_loc_shifted = str ? target_loc + query_loc_i - ap_uint<CHROM_SIZE>(SE_K + 1)
-	                                                   : target_loc + ap_uint<30>(LOC_OFFSET) - query_loc_i;
+	const ap_uint<64> key                = ap_uint<64>(key_i);
+	const ap_uint<CHROM_SIZE> target_loc = key.range(CHROM_SIZE - 1, 0);
+	const ap_uint<1> str                 = str_i ^ key.range(KEY_STR_START, KEY_STR_START);
+	const ap_uint<CHROM_SIZE> target_loc_shifted =
+	    str ? ap_uint<CHROM_SIZE>(target_loc + query_loc_i)
+	        : ap_uint<CHROM_SIZE>(target_loc + ap_uint<CHROM_SIZE>(LOC_OFFSET) - query_loc_i);
 	const ap_uint<CHROM_ID_SIZE> chrom_id = key.range(CHROM_ID_SIZE - 1 + KEY_CHROM_ID_START, KEY_CHROM_ID_START);
 
 	const ap_uint<64> loc = (ap_uint<1>(0), chrom_id, target_loc_shifted, query_loc_i, str);
