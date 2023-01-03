@@ -101,12 +101,14 @@ static vote_v vote(uint64_t *const loc, const unsigned len) {
 	uint64_t t_end[2]   = {0, 0};
 
 	uint64_t t_ref[2] = {0, 0};
+	int str           = 0;
 
 	for (unsigned i = 0; i < len; i++) {
 		const uint64_t cur    = loc[i];
-		const int str         = STR(cur);
+		str                   = STR(cur);
 		const uint64_t target = TARGET(cur);
 		const uint32_t query  = QUERY(cur);
+		const uint64_t loc    = str ? target - query : target + query - LOC_OFFSET;
 		// If curent location in the range, increase the counter and update the values
 		if (target <= t_ref[str] + VT_DISTANCE) {
 			counter[str]++;
@@ -117,7 +119,6 @@ static vote_v vote(uint64_t *const loc, const unsigned len) {
 			if (query > q_end[str]) {
 				q_end[str] = query;
 			}
-			const uint64_t loc = str ? target - query : target + query - LOC_OFFSET;
 			if (loc > t_end[str]) {
 				t_end[str] = loc;
 			}
@@ -130,17 +131,16 @@ static vote_v vote(uint64_t *const loc, const unsigned len) {
 			if (v.nb_votes == VT_MAX_NB) {
 				// If not enough votes, we just continue
 				if (v.vote[VT_MAX_NB - 1].vt_score >= counter[str]) {
-					const uint64_t loc = str ? target - query : target + query - LOC_OFFSET;
-					q_start[str]       = query;
-					q_end[str]         = query;
-					t_start[str]       = loc;
-					t_end[str]         = loc;
-					t_ref[str]         = loc;
-					counter[str]       = 1;
+					q_start[str] = query;
+					q_end[str]   = query;
+					t_start[str] = loc;
+					t_end[str]   = loc;
+					t_ref[str]   = loc;
+					counter[str] = 1;
 					continue;
 				}
 			} else {
-				VT_MAX_NB++;
+				v.nb_votes++;
 			}
 			v.vote[v.nb_votes - 1] = (vote_t){
 			    .q_start  = q_start[str],
@@ -151,12 +151,47 @@ static vote_v vote(uint64_t *const loc, const unsigned len) {
 			    .vt_score = counter[str],
 			};
 			for (unsigned k = v.nb_votes - 1; k > 0; k--) {
-				// TODO
+				if (v.vote[k].vt_score > v.vote[k - 1].vt_score) {
+					vote_t tmp    = v.vote[k];
+					v.vote[k]     = v.vote[k - 1];
+					v.vote[k - 1] = tmp;
+				} else {
+					break;
+				}
 			}
+			q_start[str] = query;
+			q_end[str]   = query;
+			t_start[str] = loc;
+			t_end[str]   = loc;
+			t_ref[str]   = loc;
+			counter[str] = 1;
 		}
 	}
-	// TODO
 
+	if (v.nb_votes == VT_MAX_NB) {
+		if (v.vote[VT_MAX_NB - 1].vt_score >= counter[str]) {
+			return v;
+		}
+	} else {
+		v.nb_votes++;
+	}
+	v.vote[v.nb_votes - 1] = (vote_t){
+	    .q_start  = q_start[str],
+	    .q_end    = q_end[str],
+	    .str      = str,
+	    .t_start  = t_start[str],
+	    .t_end    = t_end[str],
+	    .vt_score = counter[str],
+	};
+	for (unsigned k = v.nb_votes - 1; k > 0; k--) {
+		if (v.vote[k].vt_score > v.vote[k - 1].vt_score) {
+			vote_t tmp    = v.vote[k];
+			v.vote[k]     = v.vote[k - 1];
+			v.vote[k - 1] = tmp;
+		} else {
+			break;
+		}
+	}
 	return v;
 }
 
@@ -169,8 +204,10 @@ static void map_seq(uint64_t *const loc, const uint32_t len, const read_metadata
 	}
 	*/
 	vote_v v = vote(loc, len);
-	if (v.nb_vote != 0) {
+	if (v.nb_votes != 0) {
 		v.metadata = metadata;
+		for (unsigned i = 0; i < v.nb_votes; i++) {
+		}
 	}
 }
 
