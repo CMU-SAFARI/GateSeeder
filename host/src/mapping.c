@@ -220,7 +220,7 @@ static void cpu_map(d_worker_t *const worker) {
 				break;
 			case (UINT64_MAX):
 				flockfile(stdout);
-				printf("counter: %u\n", read_counter);
+				// printf("counter: %u\n", read_counter);
 				funlockfile(stdout);
 				free(worker->loc_buf.metadata);
 				LOCK(worker->mutex);

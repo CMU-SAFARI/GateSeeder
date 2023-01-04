@@ -77,6 +77,8 @@ void paf_write(const record_v r, const uint32_t batch_id) {
 
 static void write_buf() {
 	uint32_t i = 0;
+	for (uint32_t j = 0; j < paf_buf_len; j++) {
+	}
 	for (; i < paf_buf_len; i++) {
 		if (paf_buf[i].batch_id == cur_batch_id) {
 			for (uint32_t j = 0; j < paf_buf[i].len; j++) {
@@ -85,6 +87,7 @@ static void write_buf() {
 			if (paf_buf[i].is_full) {
 				cur_batch_id++;
 			} else {
+				i++;
 				break;
 			}
 		} else {
