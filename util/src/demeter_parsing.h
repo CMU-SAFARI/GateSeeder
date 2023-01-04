@@ -24,6 +24,9 @@ typedef struct {
 	uint32_t key_len;
 	uint32_t *map;
 	uint64_t *key;
+	uint32_t nb_seq;
+	char **seq_name;
+	uint32_t *seq_len;
 } index_t;
 
 #define OPEN_MALLOC 0

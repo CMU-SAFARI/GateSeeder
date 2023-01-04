@@ -1,5 +1,6 @@
 #include "demeter_util.h"
 #include "driver.h"
+#include "formating.h"
 #include "mapping.h"
 #include <argp.h>
 #include <err.h>
@@ -120,6 +121,8 @@ int main(int argc, char *argv[]) {
 	fprintf(stderr, "[INFO] Total execution time %f sec\n",
 	        end.tv_sec - start.tv_sec + (end.tv_nsec - start.tv_nsec) / 1000000000.0);
 
+	paf_write_destroy();
+	// TODO: destroy the entire index
 	struct rusage r;
 	getrusage(RUSAGE_SELF, &r);
 	fprintf(stderr, "[INFO] Peak RSS: %f GB\n", r.ru_maxrss / 1048576.0);

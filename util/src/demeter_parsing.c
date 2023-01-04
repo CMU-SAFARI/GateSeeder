@@ -124,6 +124,7 @@ int fastq_parse(read_buf_t *const buf) {
 		MALLOC(buf->metadata[buf->metadata_len].name, char, name_len);
 		memcpy(buf->metadata[buf->metadata_len].name, &fastq_file_ptr[name_pos], name_len);
 		buf->metadata[buf->metadata_len].name[name_len - 1] = '\0';
+		buf->metadata[buf->metadata_len].len                = read_len - 1;
 
 		buf->metadata_len++;
 
@@ -177,6 +178,17 @@ index_t index_parse(const char *const file_name) {
 	POSIX_MEMALIGN(index.key, 4096, index.key_len * sizeof(uint64_t));
 	FREAD(index.map, uint32_t, 1ULL << IDX_MAP_SIZE, fp);
 	FREAD(index.key, uint64_t, index.key_len, fp);
+	FREAD(&index.nb_seq, uint32_t, 1, fp);
+	MALLOC(index.seq_name, char *, index.nb_seq);
+	MALLOC(index.seq_len, uint32_t, index.nb_seq);
+	for (unsigned i = 0; i < index.nb_seq; i++) {
+		uint8_t len;
+		FREAD(&len, uint8_t, 1, fp);
+		MALLOC(index.seq_name[i], char, len + 1);
+		FREAD(index.seq_name[i], char, len, fp);
+		index.seq_name[i][len] = '\0';
+		FREAD(&index.seq_len[i], uint32_t, 1, fp);
+	}
 	return index;
 }
 

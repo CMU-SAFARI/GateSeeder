@@ -380,6 +380,6 @@ void write_gold_index(FILE *fp, const index_t index, const target_t target, cons
 		fwrite(&len, sizeof(uint8_t), 1, fp);
 		fwrite(target.name[i], sizeof(char), len, fp);
 		fwrite(&target.len[i], sizeof(uint32_t), 1, fp);
-		fwrite(target.seq[i], sizeof(uint8_t), target.len[i], fp);
+		// fwrite(target.seq[i], sizeof(uint8_t), target.len[i], fp);
 	}
 }

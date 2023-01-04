@@ -17,7 +17,9 @@ static uint32_t paf_buf_len      = 0;
 static uint32_t cur_batch_id     = 0;
 
 static void paf_print(const record_v r) {
-	fprintf(OUTPUT, "%s\n", r.metadata.name);
+	for (uint32_t i = 0; i < r.nb_records; i++) {
+		fprintf(OUTPUT, "%s\t%u\n", r.metadata.name, r.metadata.len);
+	}
 	free(r.record);
 	free(r.metadata.name);
 }
@@ -95,7 +97,9 @@ static void write_buf() {
 		}
 	}
 	for (uint32_t j = i; j < paf_buf_len; j++) {
-		paf_buf[j - i] = paf_buf[j];
+		record_buf_t tmp = paf_buf[j - i];
+		paf_buf[j - i]   = paf_buf[j];
+		paf_buf[j]       = tmp;
 	}
 	paf_buf_len -= i;
 }
@@ -118,6 +122,8 @@ void paf_batch_done(const uint32_t batch_id) {
 
 void paf_write_destroy() {
 	for (uint32_t i = 0; i < paf_buf_capacity; i++) {
+		printf("capacity: %u\n", paf_buf[i].capacity);
+		// TODO: understand why the last capacity = 0
 		free(paf_buf[i].read);
 	}
 	free(paf_buf);
