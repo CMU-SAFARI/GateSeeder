@@ -25,6 +25,7 @@ typedef enum
 } buf_state_t;
 
 typedef struct {
+	uint32_t batch_id;
 	uint64_t *loc;
 	read_metadata_t *metadata;
 } loc_buf_t;

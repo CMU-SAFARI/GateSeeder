@@ -16,8 +16,8 @@ unsigned IDX_MAX_OCC  = 200;
 unsigned SE_W = 10;
 unsigned SE_K = 15;
 
-unsigned VT_MAX_NB   = 5;
-unsigned VT_DISTANCE = 10;
+unsigned MAX_NB_MAPPING = 5;
+unsigned VT_DISTANCE    = 10;
 
 // TODO: don't need to set the previous parameters
 // TODO: do host pointer buffer mode

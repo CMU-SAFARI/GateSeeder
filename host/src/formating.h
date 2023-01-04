@@ -19,8 +19,8 @@ typedef struct {
 	unsigned nb_records;
 } record_v;
 
-void paf_write_init();
-void paf_write(const record_v r);
+void paf_write(const record_v r, const uint32_t batch_id);
+void paf_batch_done(const uint32_t batch_id);
 void paf_write_destroy();
 
 #endif

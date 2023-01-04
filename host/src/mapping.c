@@ -138,9 +138,9 @@ static record_v vote(uint64_t *const loc, const unsigned len) {
 			};
 			for (unsigned k = r.nb_records - 1; k > 0; k--) {
 				if (r.record[k].vt_score > r.record[k - 1].vt_score) {
-					record_t tmp    = r.record[k];
-					r.record[k]     = r.record[k - 1];
-					r.record[k - 1] = tmp;
+					const record_t tmp = r.record[k];
+					r.record[k]        = r.record[k - 1];
+					r.record[k - 1]    = tmp;
 				} else {
 					break;
 				}
@@ -171,9 +171,9 @@ static record_v vote(uint64_t *const loc, const unsigned len) {
 	};
 	for (unsigned k = r.nb_records - 1; k > 0; k--) {
 		if (r.record[k].vt_score > r.record[k - 1].vt_score) {
-			record_t tmp    = r.record[k];
-			r.record[k]     = r.record[k - 1];
-			r.record[k - 1] = tmp;
+			const record_t tmp = r.record[k];
+			r.record[k]        = r.record[k - 1];
+			r.record[k - 1]    = tmp;
 		} else {
 			break;
 		}
@@ -181,10 +181,10 @@ static record_v vote(uint64_t *const loc, const unsigned len) {
 	return r;
 }
 
-static void map_seq(uint64_t *const loc, const uint32_t len, const read_metadata_t metadata) {
+static void map_seq(uint64_t *const loc, const uint32_t len, const uint32_t batch_id, const read_metadata_t metadata) {
 	if (len == 0) {
-		record_v r = {.metadata = metadata, .nb_records = 0};
-		paf_write(r);
+		record_v r = {.metadata = metadata, .nb_records = 0, .record = NULL};
+		paf_write(r, batch_id);
 	} else {
 		radix_sort_64(loc, loc + len);
 		/*
@@ -199,28 +199,34 @@ static void map_seq(uint64_t *const loc, const uint32_t len, const read_metadata
 		        printf("%lx: nb_votes: %x\n", v.vote[i].t_start, v.vote[i].vt_score);
 		}
 		*/
-		paf_write(r);
+		paf_write(r, batch_id);
 	}
 }
 
 static void cpu_map(d_worker_t *const worker) {
-	uint64_t *const loc   = worker->loc_buf.loc;
-	uint64_t *start_ptr   = loc;
-	uint32_t len          = 0;
-	uint32_t read_counter = 0;
+	uint64_t *const loc             = worker->loc_buf.loc;
+	uint64_t *start_ptr             = loc;
+	uint32_t len                    = 0;
+	uint32_t read_counter           = 0;
+	const uint32_t batch_id         = worker->loc_buf.batch_id;
+	read_metadata_t *const metadata = worker->loc_buf.metadata;
 	for (uint32_t i = 0; i < (LB_SIZE >> 3); i++) {
 		switch (loc[i]) {
 			case (1ULL << 63):
-				map_seq(start_ptr, len, worker->loc_buf.metadata[read_counter]);
+				map_seq(start_ptr, len, batch_id, metadata[read_counter]);
 				read_counter++;
 				start_ptr = &loc[i + 1];
 				len       = 0;
 				break;
 			case (UINT64_MAX):
-				map_seq(start_ptr, len, worker->loc_buf.metadata[read_counter]);
+				flockfile(stdout);
+				printf("counter: %u\n", read_counter);
+				funlockfile(stdout);
+				free(worker->loc_buf.metadata);
 				LOCK(worker->mutex);
 				worker->output_h = buf_empty;
 				UNLOCK(worker->mutex);
+				paf_batch_done(batch_id);
 				return;
 			default:
 				len++;

@@ -5,11 +5,13 @@
 #include <stdio.h>
 
 typedef struct {
-	char *seq_name;
-	uint32_t id;
+	char *name;
+	uint32_t len;
+
 } read_metadata_t;
 
 typedef struct {
+	uint32_t batch_id;
 	uint32_t capacity; // in terms of bps
 	uint32_t len;      // in terms of bps
 	uint8_t *seq;

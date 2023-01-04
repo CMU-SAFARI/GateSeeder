@@ -16,6 +16,8 @@ static xrt::bo key;
 
 struct d_device_t {
 	uint32_t seq_len;
+	uint32_t i_batch_id;
+	uint32_t o_batch_id;
 	read_metadata_t *i_metadata;
 	read_metadata_t *o_metadata;
 	xrt::bo seq;
@@ -123,6 +125,7 @@ void demeter_load_seq(d_worker_t *const worker) {
 	const unsigned id = worker->id;
 	device_buf[id].seq.sync(XCL_BO_SYNC_BO_TO_DEVICE);
 	device_buf[id].seq_len    = worker->read_buf.len;
+	device_buf[id].i_batch_id = worker->read_buf.batch_id;
 	device_buf[id].i_metadata = worker->read_buf.metadata;
 	// TODO: use mtalloc
 	MALLOC(worker->read_buf.metadata, read_metadata_t, worker->read_buf.metadata_capacity);
@@ -137,12 +140,14 @@ void demeter_start_kernel(d_worker_t *const worker) {
 	// std::cout << "kernel[" << id << "] started, len: " << device_buf[id].seq_len << std::endl;
 	device_buf[id].run.set_arg(0, device_buf[id].seq_len);
 	device_buf[id].run.start();
+	device_buf[id].o_batch_id = device_buf[id].i_batch_id;
 	device_buf[id].o_metadata = device_buf[id].i_metadata;
 	device_buf[id].is_running = 1;
 }
 void demeter_load_loc(d_worker_t *const worker) {
 	const unsigned id = worker->id;
 	device_buf[id].loc.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
+	worker->loc_buf.batch_id = device_buf[id].o_batch_id;
 	worker->loc_buf.metadata = device_buf[id].o_metadata;
 	LOCK(worker->mutex);
 	worker->output_d = buf_empty;
