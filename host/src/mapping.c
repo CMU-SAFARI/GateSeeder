@@ -1,5 +1,6 @@
 #include "demeter_util.h"
 #include "driver.h"
+#include "formating.h"
 #include "ksort.h"
 #include "mapping.h"
 #include <assert.h>
@@ -9,10 +10,10 @@
 #define sort_key_64(x) (x)
 KRADIX_SORT_INIT(64, uint64_t, sort_key_64, 8)
 
-extern unsigned VT_MAX_NB;
+extern unsigned MAX_NB_MAPPING;
 extern unsigned VT_DISTANCE;
 
-static pthread_mutex_t parse_fastq_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t fastq_parse_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 typedef enum
 {
@@ -52,9 +53,9 @@ static inline task_t next_task(d_worker_t *const worker, const int no_input) {
 }
 
 static int fill_input(d_worker_t *const worker) {
-	LOCK(parse_fastq_mutex);
+	LOCK(fastq_parse_mutex);
 	const int res = fastq_parse(&worker->read_buf);
-	UNLOCK(parse_fastq_mutex);
+	UNLOCK(fastq_parse_mutex);
 	if (!res || worker->read_buf.len != 0) {
 		// printf("read_len[%u] : %u\n", worker->id, worker->read_buf.len);
 		LOCK(worker->mutex);
@@ -68,30 +69,15 @@ static int fill_input(d_worker_t *const worker) {
 	return 1;
 }
 
-typedef struct {
-	uint32_t q_start;
-	uint32_t q_end;
-	int str : 1;
-	uint64_t t_start;
-	uint64_t t_end;
-	uint32_t vt_score;
-} vote_t;
-
-typedef struct {
-	read_metadata_t metadata;
-	vote_t *vote;
-	unsigned nb_votes;
-} vote_v;
-
 #define TARGET(x) (x >> 23)
 #define QUERY(x) ((x >> 1) & ((1 << 22) - 1))
 #define STR(x) (x & 1)
 #define LOC_OFFSET (1 << 21)
 
-static vote_v vote(uint64_t *const loc, const unsigned len) {
-	vote_v v = {.nb_votes = 0};
+static record_v vote(uint64_t *const loc, const unsigned len) {
+	record_v r = {.nb_records = 0};
 	// TODO: replace byt mtalloc
-	MALLOC(v.vote, vote_t, VT_MAX_NB);
+	MALLOC(r.record, record_t, MAX_NB_MAPPING);
 	unsigned counter[2] = {0, 0};
 
 	uint32_t q_start[2] = {0, 0};
@@ -128,21 +114,21 @@ static vote_v vote(uint64_t *const loc, const unsigned len) {
 		}
 		// Else check the number of votes we have and if we are above the coverage threshold
 		else {
-			if (v.nb_votes == VT_MAX_NB) {
+			if (r.nb_records == MAX_NB_MAPPING) {
 				// If not enough votes, we just continue
-				if (v.vote[VT_MAX_NB - 1].vt_score >= counter[str]) {
+				if (r.record[MAX_NB_MAPPING - 1].vt_score >= counter[str]) {
 					q_start[str] = query;
 					q_end[str]   = query;
 					t_start[str] = loc;
 					t_end[str]   = loc;
-					t_ref[str]   = loc;
+					t_ref[str]   = target;
 					counter[str] = 1;
 					continue;
 				}
 			} else {
-				v.nb_votes++;
+				r.nb_records++;
 			}
-			v.vote[v.nb_votes - 1] = (vote_t){
+			r.record[r.nb_records - 1] = (record_t){
 			    .q_start  = q_start[str],
 			    .q_end    = q_end[str],
 			    .str      = str,
@@ -150,11 +136,11 @@ static vote_v vote(uint64_t *const loc, const unsigned len) {
 			    .t_end    = t_end[str],
 			    .vt_score = counter[str],
 			};
-			for (unsigned k = v.nb_votes - 1; k > 0; k--) {
-				if (v.vote[k].vt_score > v.vote[k - 1].vt_score) {
-					vote_t tmp    = v.vote[k];
-					v.vote[k]     = v.vote[k - 1];
-					v.vote[k - 1] = tmp;
+			for (unsigned k = r.nb_records - 1; k > 0; k--) {
+				if (r.record[k].vt_score > r.record[k - 1].vt_score) {
+					record_t tmp    = r.record[k];
+					r.record[k]     = r.record[k - 1];
+					r.record[k - 1] = tmp;
 				} else {
 					break;
 				}
@@ -163,19 +149,19 @@ static vote_v vote(uint64_t *const loc, const unsigned len) {
 			q_end[str]   = query;
 			t_start[str] = loc;
 			t_end[str]   = loc;
-			t_ref[str]   = loc;
+			t_ref[str]   = target;
 			counter[str] = 1;
 		}
 	}
 
-	if (v.nb_votes == VT_MAX_NB) {
-		if (v.vote[VT_MAX_NB - 1].vt_score >= counter[str]) {
-			return v;
+	if (r.nb_records == MAX_NB_MAPPING) {
+		if (r.record[MAX_NB_MAPPING - 1].vt_score >= counter[str]) {
+			return r;
 		}
 	} else {
-		v.nb_votes++;
+		r.nb_records++;
 	}
-	v.vote[v.nb_votes - 1] = (vote_t){
+	r.record[r.nb_records - 1] = (record_t){
 	    .q_start  = q_start[str],
 	    .q_end    = q_end[str],
 	    .str      = str,
@@ -183,31 +169,37 @@ static vote_v vote(uint64_t *const loc, const unsigned len) {
 	    .t_end    = t_end[str],
 	    .vt_score = counter[str],
 	};
-	for (unsigned k = v.nb_votes - 1; k > 0; k--) {
-		if (v.vote[k].vt_score > v.vote[k - 1].vt_score) {
-			vote_t tmp    = v.vote[k];
-			v.vote[k]     = v.vote[k - 1];
-			v.vote[k - 1] = tmp;
+	for (unsigned k = r.nb_records - 1; k > 0; k--) {
+		if (r.record[k].vt_score > r.record[k - 1].vt_score) {
+			record_t tmp    = r.record[k];
+			r.record[k]     = r.record[k - 1];
+			r.record[k - 1] = tmp;
 		} else {
 			break;
 		}
 	}
-	return v;
+	return r;
 }
 
 static void map_seq(uint64_t *const loc, const uint32_t len, const read_metadata_t metadata) {
-	(void)metadata;
-	radix_sort_64(loc, loc + len);
-	/*
-	for (unsigned i = 0; i < len; i++) {
-	        printf("%lx\n", loc[i]);
-	}
-	*/
-	vote_v v = vote(loc, len);
-	if (v.nb_votes != 0) {
-		v.metadata = metadata;
-		for (unsigned i = 0; i < v.nb_votes; i++) {
+	if (len == 0) {
+		record_v r = {.metadata = metadata, .nb_records = 0};
+		paf_write(r);
+	} else {
+		radix_sort_64(loc, loc + len);
+		/*
+		for (unsigned i = 0; i < len; i++) {
+		        printf("%lx\n", loc[i]);
 		}
+		*/
+		record_v r = vote(loc, len);
+		r.metadata = metadata;
+		/*
+		for (unsigned i = 0; i < v.nb_votes; i++) {
+		        printf("%lx: nb_votes: %x\n", v.vote[i].t_start, v.vote[i].vt_score);
+		}
+		*/
+		paf_write(r);
 	}
 }
 
@@ -219,17 +211,13 @@ static void cpu_map(d_worker_t *const worker) {
 	for (uint32_t i = 0; i < (LB_SIZE >> 3); i++) {
 		switch (loc[i]) {
 			case (1ULL << 63):
-				if (len != 0) {
-					map_seq(start_ptr, len, worker->loc_buf.metadata[read_counter]);
-				}
+				map_seq(start_ptr, len, worker->loc_buf.metadata[read_counter]);
 				read_counter++;
 				start_ptr = &loc[i + 1];
 				len       = 0;
 				break;
 			case (UINT64_MAX):
-				if (len != 0) {
-					map_seq(start_ptr, len, worker->loc_buf.metadata[read_counter]);
-				}
+				map_seq(start_ptr, len, worker->loc_buf.metadata[read_counter]);
 				LOCK(worker->mutex);
 				worker->output_h = buf_empty;
 				UNLOCK(worker->mutex);
