@@ -25,6 +25,7 @@ unsigned VT_DISTANCE    = 10;
 // TODO: try with cache flag
 
 FILE *OUTPUT;
+target_t TARGET;
 
 typedef struct {
 	unsigned nb_cus;
@@ -110,8 +111,10 @@ int main(int argc, char *argv[]) {
 	argp_parse(&argp, argc, argv, 0, 0, &args);
 
 	demeter_fpga_init(args.nb_cus, args.binary_file, args.index);
-	// TODO: check if we can destroy index
 	index_destroy(args.index);
+
+	TARGET =
+	    (target_t){.nb_seq = args.index.nb_seq, .seq_name = args.index.seq_name, .seq_len = args.index.seq_len};
 
 	clock_gettime(CLOCK_MONOTONIC, &init);
 	fprintf(stderr, "[INFO] Initialization time %f sec\n",

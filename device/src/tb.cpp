@@ -8,7 +8,7 @@ using namespace std;
 
 unsigned SE_W         = 10;
 unsigned SE_K         = 15;
-unsigned IDX_MAP_SIZE = 27;
+unsigned IDX_MAP_SIZE = 30;
 unsigned IDX_MAX_OCC  = 200;
 unsigned MS_SIZE      = 1 << 29;
 
@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
 	if (argc != 3) {
 		errx(1, "Usage\t%s <index.dti> <query.fastq>", argv[0]);
 	}
-	index_t index = parse_index(argv[1]);
+	index_t index = index_parse(argv[1]);
 
 	/*
 	// DEBUG
@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
 	}
 	*/
 	read_buf_t read_buf;
-	open_fastq(OPEN_MMAP, argv[2]);
+	fastq_open(OPEN_MMAP, argv[2]);
 	read_buf_init(&read_buf, 1 << 20);
 
 	std::cout << "Read file open\n";
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
 	uint64_t *loc_o;
 	MALLOC(loc_o, uint64_t, 1 << 20);
 
-	while (parse_fastq(&read_buf) == 0) {
+	while (fastq_parse(&read_buf) == 0) {
 		std::cout << "read buf len: " << read_buf.len << std::endl;
 		demeter_kernel(read_buf.len, read_buf.seq, index.map, index.key, loc_o);
 #if !defined(DEBUG_QUERY_INDEX_MAP) && !defined(DEBUG_QUERY_INDEX_KEY) && !defined(DEBUG_SEED_EXTRACTION)

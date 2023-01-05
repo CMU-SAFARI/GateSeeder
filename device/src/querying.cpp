@@ -9,7 +9,7 @@ query_index_map_loop:
 #pragma HLS pipeline II = 2
 		if (seed.EOR == 1) {
 			ms_pos_o << ms_pos_t{
-			    .start_pos = 0, .end_pos = 0, .seed_id = 0, .query_loc = 0, .str = 0, .EOR = 1};
+			    .start_pos = 0, .end_pos = 0, /* TODO.seed_id = 0,*/ .query_loc = 0, .str = 0, .EOR = 1};
 		} else {
 			const uint32_t bucket_id = seed.hash.range(bucket_id_msb, 0).to_uint();
 			// access the map
@@ -22,7 +22,8 @@ query_index_map_loop:
 			if (start != end) {
 				ms_pos_o << ms_pos_t{.start_pos = start,
 				                     .end_pos   = end,
-				                     .seed_id   = seed.hash(seed_id_msb, seed_id_lsb),
+				                     // TODO
+				                     //.seed_id   = seed.hash(seed_id_msb, seed_id_lsb),
 				                     .query_loc = seed.loc,
 				                     .str       = seed.str,
 				                     .EOR       = 0};
@@ -30,7 +31,7 @@ query_index_map_loop:
 		}
 		seed = seed_i.read();
 	}
-	ms_pos_o << ms_pos_t{.start_pos = 0, .end_pos = 0, .seed_id = 0, .query_loc = 0, .str = 1, .EOR = 1};
+	ms_pos_o << ms_pos_t{.start_pos = 0, .end_pos = 0, /* TODO.seed_id = 0,*/ .query_loc = 0, .str = 1, .EOR = 1};
 }
 
 inline uint64_t key_2_loc(const uint64_t key_i, const ap_uint<1> str_i, const ap_uint<READ_SIZE> query_loc_i) {
@@ -60,13 +61,16 @@ query_index_key_loop:
 			for (uint32_t key_j = pos.start_pos; key_j < pos.end_pos; key_j++) {
 				uint64_t key               = key_i[key_j];
 				const ap_uint<64> uint_key = ap_uint<64>(key);
-				const ap_uint<seed_id_size> seed_id =
+				// TODO
+				/*const ap_uint<seed_id_size> seed_id =
 				    uint_key.range(seed_id_size - 1 + KEY_SEED_ID_START, KEY_SEED_ID_START);
-				if (seed_id == pos.seed_id) {
-					// Copy the locations
-					const uint64_t loc = key_2_loc(key, pos.str, pos.query_loc);
-					loc_o << loc;
-				}
+				    */
+				// TODO
+				/*if (seed_id == pos.seed_id) {*/
+				// Copy the locations
+				const uint64_t loc = key_2_loc(key, pos.str, pos.query_loc);
+				loc_o << loc;
+				//}
 			}
 		}
 		pos = ms_pos_i.read();

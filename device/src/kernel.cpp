@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 void demeter_kernel(const uint32_t nb_bases_i, const uint8_t seq_i[SEQ_LEN], const uint32_t map_i[MAP_LEN],
-                    const uint64_t key_i[KEY_LEN], uint64_t loc_o[OUT_LEN]) {
+                    const uint64_t key_i[KEY_LEN], uint64_t loc_o[LOC_LEN]) {
 
 #pragma HLS INTERFACE m_axi port = seq_i bundle = gmem0
 #pragma HLS INTERFACE m_axi port = map_i bundle = gmem2

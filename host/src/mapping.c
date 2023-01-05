@@ -87,7 +87,7 @@ static record_v vote(uint64_t *const loc, const unsigned len) {
 	uint64_t t_end[2]   = {0, 0};
 
 	uint64_t t_ref[2] = {0, 0};
-	int str           = 0;
+	unsigned str      = 0;
 
 	for (unsigned i = 0; i < len; i++) {
 		const uint64_t cur    = loc[i];

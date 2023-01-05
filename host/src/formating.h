@@ -7,7 +7,7 @@
 typedef struct {
 	uint32_t q_start;
 	uint32_t q_end;
-	int str : 1;
+	unsigned str : 1;
 	uint64_t t_start;
 	uint64_t t_end;
 	uint32_t vt_score;
@@ -18,6 +18,12 @@ typedef struct {
 	record_t *record;
 	unsigned nb_records;
 } record_v;
+
+typedef struct {
+	uint32_t nb_seq;
+	char **seq_name;
+	uint32_t *seq_len;
+} target_t;
 
 void paf_write(const record_v r, const uint32_t batch_id);
 void paf_batch_set_full(const uint32_t batch_id);

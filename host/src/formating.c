@@ -1,13 +1,16 @@
 #include "formating.h"
 
+extern unsigned SE_K;
+
 extern FILE *OUTPUT;
+extern target_t TARGET;
 
 typedef struct {
 	uint32_t batch_id;
 	record_v *read;
 	uint32_t len;
 	uint32_t capacity;
-	int is_full : 1;
+	unsigned is_full : 1;
 } record_buf_t;
 
 // buf is sorted depending on the batch_id
@@ -16,9 +19,14 @@ static uint32_t paf_buf_capacity = 0;
 static uint32_t paf_buf_len      = 0;
 static uint32_t cur_batch_id     = 0;
 
+#define TARGET_ID(x) (x >> 30)
+#define TARGET_POS(x) (x & ((1 << 30) - 1))
 static void paf_print(const record_v r) {
 	for (uint32_t i = 0; i < r.nb_records; i++) {
-		fprintf(OUTPUT, "%s\t%u\n", r.metadata.name, r.metadata.len);
+		const record_t record   = r.record[i];
+		char *const target_name = TARGET.seq_name[TARGET_ID(record.t_start)];
+		fprintf(OUTPUT, "%s\t%u\t%u\t%u\t%c\t%s\t\n", r.metadata.name, r.metadata.len,
+		        record.q_start - (SE_K - 1), record.q_end, "+-"[record.str], target_name);
 	}
 	free(r.record);
 	free(r.metadata.name);

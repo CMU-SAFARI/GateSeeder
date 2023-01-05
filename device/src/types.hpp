@@ -5,7 +5,7 @@
 
 #define SE_W 10
 #define SE_K 15
-#define SEQ_LEN 1073741824
+#define SEQ_LEN (1 << 29)
 
 #define CHROM_SIZE 30
 #define CHROM_ID_SIZE 10
@@ -26,7 +26,7 @@ struct seed_t {
 	ap_uint<1> EOR;
 };
 
-#define BUCKET_ID_SIZE 27
+#define BUCKET_ID_SIZE 30
 #define MAP_LEN (1 << BUCKET_ID_SIZE)
 
 const static unsigned bucket_id_msb = BUCKET_ID_SIZE - 1;
@@ -34,14 +34,15 @@ const static unsigned seed_id_lsb   = BUCKET_ID_SIZE;
 const static unsigned seed_id_msb   = 2 * SE_K - 1;
 const static unsigned seed_id_size  = seed_id_msb - bucket_id_msb;
 
-#define KEY_LEN (1 << 26)
+#define KEY_LEN (1 << 29)
 
 // str = 0 and EOR = 1: end of read
 // str = 1 and EOR = 1: end of file
 struct ms_pos_t {
 	uint32_t start_pos;
 	uint32_t end_pos;
-	ap_uint<seed_id_size> seed_id;
+	// TODO
+	// ap_uint<seed_id_size> seed_id;
 	ap_uint<READ_SIZE> query_loc;
 	ap_uint<1> str;
 	ap_uint<1> EOR;
@@ -52,7 +53,7 @@ struct ms_pos_t {
 // Number of chromosomes limited to 1024
 // Total: 64 bits
 
-#define OUT_LEN (1 << 26)
+#define LOC_LEN (1 << 26)
 struct loc_t {
 	ap_uint<CHROM_SIZE> target_loc;
 	ap_uint<READ_SIZE> query_loc;
