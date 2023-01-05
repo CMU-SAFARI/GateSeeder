@@ -9,14 +9,8 @@
 #include <unistd.h>
 
 #define MAX_SEQ_LEN 1 << 30
-//#define ENCODE(c) (c & 0x0f) >> 1
 #define END_OF_READ_BASE 'E'
 #define IDX_MAGIC "ALOHA"
-
-extern unsigned IDX_MAP_SIZE;
-extern unsigned IDX_MAX_OCC;
-extern unsigned SE_W;
-extern unsigned SE_K;
 
 static int fastq_fd;
 static uint8_t *fastq_file_ptr;
@@ -151,32 +145,15 @@ index_t index_parse(const char *const file_name) {
 		errx(1, "parse_index %s", file_name);
 	}
 
-	unsigned param;
-	FREAD(&param, unsigned, 1, fp);
-	if (SE_W != param) {
-		SE_W = param;
-		fprintf(stderr, "[WARNING] parameter W overriden by the index parameter (%u)\n", SE_W);
-	}
-	FREAD(&param, unsigned, 1, fp);
-	if (SE_K != param) {
-		SE_K = param;
-		fprintf(stderr, "[WARNING] parameter K overriden by the index parameter (%u)\n", SE_K);
-	}
-	FREAD(&param, unsigned, 1, fp);
-	if (IDX_MAP_SIZE != param) {
-		IDX_MAP_SIZE = param;
-		fprintf(stderr, "[WARNING] parameter MAP_SIZE overriden by the index parameter (%u)\n", IDX_MAP_SIZE);
-	}
-	FREAD(&param, unsigned, 1, fp);
-	if (IDX_MAX_OCC != param) {
-		IDX_MAX_OCC = param;
-		fprintf(stderr, "[WARNING] parameter IDX_MAX_OCC overriden by the index parameter (%u)\n", IDX_MAX_OCC);
-	}
 	index_t index;
+	FREAD(&index.w, uint32_t, 1, fp);
+	FREAD(&index.k, uint32_t, 1, fp);
+	FREAD(&index.map_size, uint32_t, 1, fp);
+	FREAD(&index.max_occ, uint32_t, 1, fp);
 	FREAD(&index.key_len, uint32_t, 1, fp);
-	POSIX_MEMALIGN(index.map, 4096, (1ULL << IDX_MAP_SIZE) * sizeof(uint32_t));
+	POSIX_MEMALIGN(index.map, 4096, (1ULL << index.map_size) * sizeof(uint32_t));
 	POSIX_MEMALIGN(index.key, 4096, index.key_len * sizeof(uint64_t));
-	FREAD(index.map, uint32_t, 1ULL << IDX_MAP_SIZE, fp);
+	FREAD(index.map, uint32_t, 1ULL << index.map_size, fp);
 	FREAD(index.key, uint64_t, index.key_len, fp);
 	FREAD(&index.nb_seq, uint32_t, 1, fp);
 	MALLOC(index.seq_name, char *, index.nb_seq);

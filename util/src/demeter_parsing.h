@@ -21,6 +21,10 @@ typedef struct {
 } read_buf_t;
 
 typedef struct {
+	uint32_t w;
+	uint32_t k;
+	uint32_t map_size;
+	uint32_t max_occ;
 	uint32_t key_len;
 	uint32_t *map;
 	uint64_t *key;

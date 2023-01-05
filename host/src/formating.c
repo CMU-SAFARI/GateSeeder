@@ -1,6 +1,6 @@
 #include "formating.h"
 
-extern unsigned SE_K;
+extern uint32_t SE_K;
 
 extern FILE *OUTPUT;
 extern target_t TARGET;

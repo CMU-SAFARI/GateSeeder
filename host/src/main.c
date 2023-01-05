@@ -9,19 +9,13 @@
 #include <sys/resource.h>
 #include <time.h>
 
-// TODO: don't need to set the previous parameters
-unsigned IDX_MAP_SIZE = 30;
-unsigned IDX_MAX_OCC  = 200;
-unsigned SE_W         = 10;
-unsigned SE_K         = 15;
-
+uint32_t SE_K;
 uint32_t BATCH_CAPACITY   = 16777216;
 uint32_t MAX_NB_MAPPING   = 3;
 uint32_t VT_DISTANCE      = 300;
 float VT_THRESHOLD_FRAC   = 0.02;
 uint32_t VT_THRESHOLD_MAX = 20;
 
-// TODO: do host pointer buffer mode
 // TODO: try with cache flag
 // TODO: Evaluate the impact of the size of the FIFOs in the device
 
@@ -128,6 +122,10 @@ int main(int argc, char *argv[]) {
 
 	TARGET =
 	    (target_t){.nb_seq = args.index.nb_seq, .seq_name = args.index.seq_name, .seq_len = args.index.seq_len};
+	fprintf(stderr, "[INFO] w: %u, k: %u, map_size: %u, max_occ: %u\n", args.index.w, args.index.k,
+	        args.index.map_size, args.index.max_occ);
+
+	SE_K = args.index.k;
 
 	clock_gettime(CLOCK_MONOTONIC, &init);
 	fprintf(stderr, "[INFO] Initialization time %f sec\n",

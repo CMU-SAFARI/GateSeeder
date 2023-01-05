@@ -358,10 +358,10 @@ void index_MS_destroy(const index_MS_t index) {
 void write_gold_index(FILE *fp, const index_t index, const target_t target, const unsigned w, const unsigned k,
                       const unsigned b, const unsigned max_occ) {
 	fwrite(IDX_MAGIC, sizeof(char), 5, fp);
-	fwrite(&w, sizeof(unsigned), 1, fp);
-	fwrite(&k, sizeof(unsigned), 1, fp);
-	fwrite(&b, sizeof(unsigned), 1, fp);
-	fwrite(&max_occ, sizeof(unsigned), 1, fp);
+	fwrite(&w, sizeof(uint32_t), 1, fp);
+	fwrite(&k, sizeof(uint32_t), 1, fp);
+	fwrite(&b, sizeof(uint32_t), 1, fp);
+	fwrite(&max_occ, sizeof(uint32_t), 1, fp);
 	fwrite(&index.key_len, sizeof(uint32_t), 1, fp);
 	fwrite(index.map, sizeof(uint32_t), 1 << b, fp);
 	// Write the key array

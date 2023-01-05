@@ -147,14 +147,13 @@ static record_v vote(uint64_t *const loc, const uint32_t len, const uint32_t vt_
 						}
 					}
 				}
-
-				q_start[str] = query;
-				q_end[str]   = query;
-				t_start[str] = loc;
-				t_end[str]   = loc;
-				t_ref[str]   = target;
-				counter[str] = 1;
 			}
+			q_start[str] = query;
+			q_end[str]   = query;
+			t_start[str] = loc;
+			t_end[str]   = loc;
+			t_ref[str]   = target;
+			counter[str] = 1;
 		}
 	}
 
