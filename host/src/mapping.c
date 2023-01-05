@@ -226,7 +226,7 @@ static void cpu_map(d_worker_t *const worker) {
 				LOCK(worker->mutex);
 				worker->output_h = buf_empty;
 				UNLOCK(worker->mutex);
-				paf_batch_done(batch_id);
+				paf_batch_set_full(batch_id);
 				return;
 			default:
 				len++;

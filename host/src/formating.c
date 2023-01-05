@@ -24,8 +24,6 @@ static void paf_print(const record_v r) {
 	free(r.metadata.name);
 }
 
-// TODO: function to increment the cur_batch_id and empty the full buffers
-
 static void paf_store(const record_v r, const uint32_t batch_id) {
 	// Check if there is already a buffer for this batch
 	for (uint32_t i = 0; i < paf_buf_len; i++) {
@@ -41,10 +39,11 @@ static void paf_store(const record_v r, const uint32_t batch_id) {
 		}
 	}
 	// Create a new buffer for the batch
+
 	const uint32_t buf_capacity = paf_buf_capacity ? paf_buf[0].capacity : 1;
 
 	if (paf_buf_len == paf_buf_capacity) {
-		paf_buf_capacity = paf_buf_capacity ? (paf_buf_capacity << 1) : 1;
+		paf_buf_capacity++;
 		REALLOC(paf_buf, record_buf_t, paf_buf_capacity);
 	}
 
@@ -104,7 +103,7 @@ static void write_buf() {
 	paf_buf_len -= i;
 }
 
-void paf_batch_done(const uint32_t batch_id) {
+void paf_batch_set_full(const uint32_t batch_id) {
 	flockfile(OUTPUT);
 	if (cur_batch_id == batch_id) {
 		cur_batch_id++;
@@ -122,8 +121,6 @@ void paf_batch_done(const uint32_t batch_id) {
 
 void paf_write_destroy() {
 	for (uint32_t i = 0; i < paf_buf_capacity; i++) {
-		printf("capacity: %u\n", paf_buf[i].capacity);
-		// TODO: understand why the last capacity = 0
 		free(paf_buf[i].read);
 	}
 	free(paf_buf);
