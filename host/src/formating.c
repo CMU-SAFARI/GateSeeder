@@ -23,10 +23,14 @@ static uint32_t cur_batch_id     = 0;
 #define TARGET_POS(x) (x & ((1 << 30) - 1))
 static void paf_print(const record_v r) {
 	for (uint32_t i = 0; i < r.nb_records; i++) {
-		const record_t record   = r.record[i];
-		char *const target_name = TARGET.seq_name[TARGET_ID(record.t_start)];
-		fprintf(OUTPUT, "%s\t%u\t%u\t%u\t%c\t%s\t\n", r.metadata.name, r.metadata.len,
-		        record.q_start - (SE_K - 1), record.q_end, "+-"[record.str], target_name);
+		const record_t record     = r.record[i];
+		char *const target_name   = TARGET.seq_name[TARGET_ID(record.t_start)];
+		const uint32_t target_len = TARGET.seq_len[TARGET_ID(record.t_start)];
+		const uint32_t t_start    = TARGET_POS(record.t_start) - (SE_K - 1);
+		const uint32_t t_end      = TARGET_POS(record.t_end);
+		fprintf(OUTPUT, "%s\t%u\t%u\t%u\t%c\t%s\t%u\t%u\t%u\n", r.metadata.name, r.metadata.len,
+		        record.q_start - (SE_K - 1), record.q_end, "+-"[record.str], target_name, target_len, t_start,
+		        t_end);
 	}
 	free(r.record);
 	free(r.metadata.name);
