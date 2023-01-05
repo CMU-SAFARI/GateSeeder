@@ -192,7 +192,12 @@ index_t index_parse(const char *const file_name) {
 	return index;
 }
 
-void index_destroy(const index_t index) {
+void index_destroy_key_map(const index_t index) {
 	free(index.map);
 	free(index.key);
+}
+
+void index_destroy_target(const index_t index) {
+	free(index.seq_len);
+	free(index.seq_name);
 }

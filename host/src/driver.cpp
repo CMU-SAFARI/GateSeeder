@@ -66,14 +66,14 @@ void demeter_fpga_init(const unsigned nb_cus, const char *const binary_file, con
 	// Initialize the buffers and the states for the I/O
 	for (unsigned i = 0; i < NB_WORKERS; i++) {
 		// Initialize read buf
-		read_buf_init(&worker_buf[i].read_buf, RB_SIZE);
+		read_buf_init(&worker_buf[i].read_buf, BATCH_CAPACITY);
 		// Initialize loc buf
 		POSIX_MEMALIGN(worker_buf[i].loc_buf.loc, 4096, LB_SIZE);
 
 		device_buf[i].seq_len = 0;
 		// Initialize device buffers
 		device_buf[i].seq =
-		    xrt::bo(device, worker_buf[i].read_buf.seq, RB_SIZE, device_buf[i].krnl.group_id(1));
+		    xrt::bo(device, worker_buf[i].read_buf.seq, BATCH_CAPACITY, device_buf[i].krnl.group_id(1));
 		device_buf[i].loc = xrt::bo(device, worker_buf[i].loc_buf.loc, LB_SIZE, device_buf[i].krnl.group_id(4));
 
 		device_buf[i].is_running = 0;

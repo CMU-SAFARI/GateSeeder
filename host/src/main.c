@@ -9,20 +9,21 @@
 #include <sys/resource.h>
 #include <time.h>
 
-unsigned BATCH_SIZE = 3;
-
+// TODO: don't need to set the previous parameters
 unsigned IDX_MAP_SIZE = 27;
 unsigned IDX_MAX_OCC  = 200;
+unsigned SE_W         = 10;
+unsigned SE_K         = 15;
 
-unsigned SE_W = 10;
-unsigned SE_K = 15;
+unsigned BATCH_CAPACITY   = 16777216;
+unsigned MAX_NB_MAPPING   = 3;
+unsigned VT_DISTANCE      = 300;
+float VT_THRESHOLD_FRAC   = 0.02;
+unsigned VT_THRESHOLD_MAX = 20;
 
-unsigned MAX_NB_MAPPING = 5;
-unsigned VT_DISTANCE    = 10;
-
-// TODO: don't need to set the previous parameters
 // TODO: do host pointer buffer mode
 // TODO: try with cache flag
+// TODO: Evaluate the impact of the size of the FIFOs in the device
 
 FILE *OUTPUT;
 target_t TARGET;
@@ -42,37 +43,49 @@ static struct argp_option options[]  = {
      /*
 {0, 0, 0, 0, "Sorting:", 0},
 {"radix_sort", 'R', 0, 0, "use radix sort instead of merge sort", 0},
-
-{0, 0, 0, 0, "Voting:", 0},
-{"vt_thresholds", 'd', "FLOAT1,FLOAT2", 0, "[0.2,0.1]", 0},
-{"vt_max_nb_locs", 'm', "UINT", 0, "maximum number of potential locations after voting [50]", 0},
-{"vt_dist", 'x', "FLOAT,UINT1,UINT2", 0, "[0.05, 200, 1500]", 0},
-{0, 0, 0, 0, "Mapping:", 0},
-{"ma_secondaries", 's', "UINT", 0, "output at most UINT secondary alignments [5]", 0},
 */
+
+    {0, 0, 0, 0, "Mapping:", 0},
+    {"max_nb_mapping", 'm', "UINT", 0, "[3]", 0},
+    {"vt_distance", 'd', "UINT", 0, "[300]", 0},
+    {"vt_threshold", 'h', "FLOAT[,UINT]", 0, "[0.02,20]", 0},
 
     {0, 0, 0, 0, "Ressources:", 0},
     {"nb_threads", 't', "UINT", 0, "number of CPU threads [4]", 0},
-    {"batch_size", 'b', "UINT", 0, "batch size (in reads) processed by each cpu threads [3]", 0},
+    {"batch_capacity", 'b', "UINT", 0, "batch capacity (in bases) [16777216]", 0},
     {"compute_units", 'u', "UINT", 0, "number of FPGA compute units [8]", 0},
-    {0, 0, 0, 0, "Input/Output:", 0},
+
+    {0, 0, 0, 0, "Output:", 0},
     {"output", 'o', "OUTPUT_FILE", 0, "output file [stdout]", 0},
     {0}};
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 	arguments *args = state->input;
 	switch (key) {
+		case 'm':
+			MAX_NB_MAPPING = strtoul(arg, NULL, 10);
+			break;
+		case 'd':
+			VT_DISTANCE = strtoul(arg, NULL, 10);
+			break;
+		case 'h': {
+			char *p;
+			VT_THRESHOLD_FRAC = strtod(arg, &p);
+			if (*p == ',') {
+				VT_THRESHOLD_MAX = strtoul(p + 1, NULL, 10);
+			}
+		} break;
 		case 't':
 			args->nb_threads = strtoul(arg, NULL, 10);
 			break;
 		case 'b':
-			BATCH_SIZE = strtoul(arg, NULL, 10);
-			break;
-		case 'o':
-			FOPEN(OUTPUT, arg, "w");
+			BATCH_CAPACITY = strtoul(arg, NULL, 10);
 			break;
 		case 'u':
 			args->nb_cus = strtoul(arg, NULL, 10);
+			break;
+		case 'o':
+			FOPEN(OUTPUT, arg, "w");
 			break;
 		case ARGP_KEY_ARG:
 			switch (state->arg_num) {
@@ -111,7 +124,7 @@ int main(int argc, char *argv[]) {
 	argp_parse(&argp, argc, argv, 0, 0, &args);
 
 	demeter_fpga_init(args.nb_cus, args.binary_file, args.index);
-	index_destroy(args.index);
+	index_destroy_key_map(args.index);
 
 	TARGET =
 	    (target_t){.nb_seq = args.index.nb_seq, .seq_name = args.index.seq_name, .seq_len = args.index.seq_len};
@@ -125,7 +138,7 @@ int main(int argc, char *argv[]) {
 	        end.tv_sec - start.tv_sec + (end.tv_nsec - start.tv_nsec) / 1000000000.0);
 
 	paf_write_destroy();
-	// TODO: destroy the entire index
+	index_destroy_target(args.index);
 	struct rusage r;
 	getrusage(RUSAGE_SELF, &r);
 	fprintf(stderr, "[INFO] Peak RSS: %f GB\n", r.ru_maxrss / 1048576.0);

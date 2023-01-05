@@ -7,9 +7,7 @@ extern "C" {
 
 #include "demeter_util.h"
 
-// TODO: rename LB_SIZE
 #define LB_SIZE (1ULL << 29)
-#define RB_SIZE (1ULL << 24)
 
 // input_d can only be full or transfer
 // after starting the kernel can be empty
