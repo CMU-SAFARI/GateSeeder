@@ -116,7 +116,7 @@ extern "C" {
 #define FOPEN(file, pathname, mode)                                                                                    \
 	{                                                                                                              \
 		file = fopen(pathname, mode);                                                                          \
-		if (pathname == NULL) {                                                                                \
+		if (file == NULL) {                                                                                    \
 			err(1, "%s:%d, fopen", __FILE__, __LINE__);                                                    \
 		}                                                                                                      \
 	}

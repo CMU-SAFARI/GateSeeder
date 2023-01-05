@@ -12,6 +12,8 @@ KRADIX_SORT_INIT(64, uint64_t, sort_key_64, 8)
 
 extern unsigned MAX_NB_MAPPING;
 extern unsigned VT_DISTANCE;
+extern float VT_THRESHOLD_FRAC;
+extern uint32_t VT_THRESHOLD_MAX;
 
 static pthread_mutex_t fastq_parse_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -74,7 +76,7 @@ static int fill_input(d_worker_t *const worker) {
 #define STR(x) (x & 1)
 #define LOC_OFFSET (1 << 21)
 
-static record_v vote(uint64_t *const loc, const unsigned len) {
+static record_v vote(uint64_t *const loc, const uint32_t len, const uint32_t vt_threshold) {
 	record_v r = {.nb_records = 0};
 	// TODO: replace byt mtalloc
 	MALLOC(r.record, record_t, MAX_NB_MAPPING);
@@ -114,20 +116,59 @@ static record_v vote(uint64_t *const loc, const unsigned len) {
 		}
 		// Else check the number of votes we have and if we are above the coverage threshold
 		else {
-			if (r.nb_records == MAX_NB_MAPPING) {
-				// If not enough votes, we just continue
-				if (r.record[MAX_NB_MAPPING - 1].vt_score >= counter[str]) {
-					q_start[str] = query;
-					q_end[str]   = query;
-					t_start[str] = loc;
-					t_end[str]   = loc;
-					t_ref[str]   = target;
-					counter[str] = 1;
-					continue;
+			if (counter[str] >= vt_threshold) {
+				int new_mapping = 0;
+
+				if (r.nb_records == MAX_NB_MAPPING) {
+					if (counter[str] > r.record[MAX_NB_MAPPING - 1].vt_score) {
+						new_mapping = 1;
+					}
+				} else {
+					new_mapping = 1;
+					r.nb_records++;
 				}
-			} else {
-				r.nb_records++;
+
+				if (new_mapping) {
+					r.record[r.nb_records - 1] = (record_t){
+					    .q_start  = q_start[str],
+					    .q_end    = q_end[str],
+					    .str      = str,
+					    .t_start  = t_start[str],
+					    .t_end    = t_end[str],
+					    .vt_score = counter[str],
+					};
+					for (uint32_t k = r.nb_records - 1; k > 0; k--) {
+						if (r.record[k].vt_score > r.record[k - 1].vt_score) {
+							const record_t tmp = r.record[k];
+							r.record[k]        = r.record[k - 1];
+							r.record[k - 1]    = tmp;
+						} else {
+							break;
+						}
+					}
+				}
+
+				q_start[str] = query;
+				q_end[str]   = query;
+				t_start[str] = loc;
+				t_end[str]   = loc;
+				t_ref[str]   = target;
+				counter[str] = 1;
 			}
+		}
+	}
+
+	if (counter[str] >= vt_threshold) {
+		int new_mapping = 0;
+		if (r.nb_records == MAX_NB_MAPPING) {
+			if (counter[str] > r.record[MAX_NB_MAPPING - 1].vt_score) {
+				new_mapping = 1;
+			}
+		} else {
+			new_mapping = 1;
+			r.nb_records++;
+		}
+		if (new_mapping) {
 			r.record[r.nb_records - 1] = (record_t){
 			    .q_start  = q_start[str],
 			    .q_end    = q_end[str],
@@ -136,7 +177,7 @@ static record_v vote(uint64_t *const loc, const unsigned len) {
 			    .t_end    = t_end[str],
 			    .vt_score = counter[str],
 			};
-			for (unsigned k = r.nb_records - 1; k > 0; k--) {
+			for (uint32_t k = r.nb_records - 1; k > 0; k--) {
 				if (r.record[k].vt_score > r.record[k - 1].vt_score) {
 					const record_t tmp = r.record[k];
 					r.record[k]        = r.record[k - 1];
@@ -145,37 +186,6 @@ static record_v vote(uint64_t *const loc, const unsigned len) {
 					break;
 				}
 			}
-			q_start[str] = query;
-			q_end[str]   = query;
-			t_start[str] = loc;
-			t_end[str]   = loc;
-			t_ref[str]   = target;
-			counter[str] = 1;
-		}
-	}
-
-	if (r.nb_records == MAX_NB_MAPPING) {
-		if (r.record[MAX_NB_MAPPING - 1].vt_score >= counter[str]) {
-			return r;
-		}
-	} else {
-		r.nb_records++;
-	}
-	r.record[r.nb_records - 1] = (record_t){
-	    .q_start  = q_start[str],
-	    .q_end    = q_end[str],
-	    .str      = str,
-	    .t_start  = t_start[str],
-	    .t_end    = t_end[str],
-	    .vt_score = counter[str],
-	};
-	for (unsigned k = r.nb_records - 1; k > 0; k--) {
-		if (r.record[k].vt_score > r.record[k - 1].vt_score) {
-			const record_t tmp = r.record[k];
-			r.record[k]        = r.record[k - 1];
-			r.record[k - 1]    = tmp;
-		} else {
-			break;
 		}
 	}
 	return r;
@@ -187,12 +197,17 @@ static void map_seq(uint64_t *const loc, const uint32_t len, const uint32_t batc
 		paf_write(r, batch_id);
 	} else {
 		radix_sort_64(loc, loc + len);
+
 		/*
+		printf("len: %x\n", len);
 		for (unsigned i = 0; i < len; i++) {
 		        printf("%lx\n", loc[i]);
 		}
 		*/
-		record_v r = vote(loc, len);
+		const uint32_t vt_threshold_frac = (uint32_t)(VT_THRESHOLD_FRAC * (float)metadata.len);
+		const uint32_t vt_threshold =
+		    (vt_threshold_frac < VT_THRESHOLD_MAX) ? vt_threshold_frac : VT_THRESHOLD_MAX;
+		record_v r = vote(loc, len, vt_threshold);
 		r.metadata = metadata;
 		/*
 		for (unsigned i = 0; i < v.nb_votes; i++) {

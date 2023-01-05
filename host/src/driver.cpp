@@ -57,7 +57,7 @@ void demeter_fpga_init(const unsigned nb_cus, const char *const binary_file, con
 	}
 
 	//  Initialize the buffer objects for the index
-	map = xrt::bo(device, index.map, 1 << (IDX_MAP_SIZE + 2), device_buf->krnl.group_id(2));
+	map = xrt::bo(device, index.map, 1ULL << (IDX_MAP_SIZE + 2), device_buf->krnl.group_id(2));
 	key = xrt::bo(device, index.key, index.key_len << 3, device_buf->krnl.group_id(3));
 
 	// Transfer the index

@@ -10,16 +10,16 @@
 #include <time.h>
 
 // TODO: don't need to set the previous parameters
-unsigned IDX_MAP_SIZE = 27;
+unsigned IDX_MAP_SIZE = 30;
 unsigned IDX_MAX_OCC  = 200;
 unsigned SE_W         = 10;
 unsigned SE_K         = 15;
 
 uint32_t BATCH_CAPACITY   = 16777216;
-unsigned MAX_NB_MAPPING   = 3;
-unsigned VT_DISTANCE      = 300;
+uint32_t MAX_NB_MAPPING   = 3;
+uint32_t VT_DISTANCE      = 300;
 float VT_THRESHOLD_FRAC   = 0.02;
-unsigned VT_THRESHOLD_MAX = 20;
+uint32_t VT_THRESHOLD_MAX = 20;
 
 // TODO: do host pointer buffer mode
 // TODO: try with cache flag
