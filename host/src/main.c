@@ -15,7 +15,7 @@ unsigned IDX_MAX_OCC  = 200;
 unsigned SE_W         = 10;
 unsigned SE_K         = 15;
 
-unsigned BATCH_CAPACITY   = 16777216;
+uint32_t BATCH_CAPACITY   = 16777216;
 unsigned MAX_NB_MAPPING   = 3;
 unsigned VT_DISTANCE      = 300;
 float VT_THRESHOLD_FRAC   = 0.02;

@@ -10,6 +10,8 @@
 #define KERNEL_NAME "demeter_kernel"
 #define INSTANCE_NAME "cu"
 
+extern uint32_t BATCH_CAPACITY;
+
 static xrt::device device;
 static xrt::bo map;
 static xrt::bo key;
