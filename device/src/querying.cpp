@@ -76,17 +76,26 @@ query_index_key_loop:
 		pos = ms_pos_i.read();
 	}
 	loc_o << UINT64_MAX;
+	loc_o << UINT64_MAX;
+	loc_o << 0;
 }
 
 void write_loc(hls::stream<uint64_t> &loc_i, uint64_t *const loc_o) {
-	uint64_t loc   = loc_i.read();
+	uint64_t loc0  = loc_i.read();
+	uint64_t loc1  = loc_i.read();
 	uint32_t loc_j = 0;
 write_loc_loop:
-	while (loc != UINT64_MAX) {
+	while (loc0 != UINT64_MAX) {
 #pragma HLS pipeline II = 2
-		loc_o[loc_j] = loc;
-		loc_j++;
-		loc = loc_i.read();
+		loc_o[loc_j]     = loc0;
+		loc_o[loc_j + 1] = loc1;
+		loc_j += 2;
+		loc0 = loc_i.read();
+		loc1 = loc_i.read();
 	}
-	loc_o[loc_j] = UINT64_MAX;
+
+	if (loc1 == UINT64_MAX) {
+		loc_o[loc_j] = UINT64_MAX;
+		loc0         = loc_i.read();
+	}
 }

@@ -88,6 +88,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 					break;
 				case 1:
 					args->index = index_parse(arg);
+					// puts("INDEX PARSED");
 					break;
 				case 2:
 					fastq_open(OPEN_MMAP, arg);
