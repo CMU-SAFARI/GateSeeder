@@ -19,11 +19,11 @@ void demeter_kernel(const uint32_t nb_bases_i, const uint8_t seq_i[SEQ_LEN], con
 
 #pragma HLS dataflow
 
-	hls::stream<seed_t, 1024> seed;
+	hls::stream<seed_t, 256> seed;
 
-	hls::stream<ms_pos_t, 1024> ms_pos;
+	hls::stream<ms_pos_t, 256> ms_pos;
 
-	hls::stream<uint64_t, 1024> loc;
+	hls::stream<uint64_t, 256> loc;
 
 	extract_seeds(seq_i, nb_bases_i, seed);
 
