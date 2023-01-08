@@ -1,0 +1,29 @@
+DRAM_BW = 107.03
+L3_BW = 543.62
+S_ADD = 156.11
+V_ADD = 1764.37
+set terminal pdf enhanced font 'FreeSans,16'
+set output "roofline.pdf"
+set xlabel "Arithmetic Intensity [op/byte]"
+set ylabel "Attainable Performance [Gop/sec]"
+set grid
+set logscale x 10
+set logscale y 10
+#set arrow 1 from 0.01,1.0703 to 10,1070.3 nohead lw 3 lc 2
+dram(x) = DRAM_BW * x
+l3(x) = L3_BW * x
+s_add(x) = S_ADD
+v_add(x) = V_ADD
+set xrange[0.01: 10]
+
+set label "Test" at 0.1,10 rotate by 90 left
+plot for [n=1:5]"<(sed -n '".n."p' point.dat)" u 2:3 with points linestyle n lc "blue" notitle, \
+	dram(x) title "DRAM 107.03 GBps" with lines, \
+	l3(x) title "L3 543.62 GBps" with lines, \
+	s_add(x) title "Integer scalar add peak" with lines, \
+	v_add(x) title "Vector add peak" with lines
+
+
+
+
+
