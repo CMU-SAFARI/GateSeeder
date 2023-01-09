@@ -1,8 +1,9 @@
 DRAM_BW = 107.03
 L3_BW = 543.62
+HBM_BW = 460
 S_ADD = 156.11
 V_ADD = 1764.37
-set terminal pdf enhanced font 'FreeSans,16'
+set terminal pdf enhanced font 'FreeSans,12'
 set output "roofline.pdf"
 set xlabel "Arithmetic Intensity [op/byte]"
 set ylabel "Attainable Performance [Gop/sec]"
@@ -16,12 +17,23 @@ s_add(x) = S_ADD
 v_add(x) = V_ADD
 set xrange[0.01: 10]
 
-set label "Test" at 0.1,10 rotate by 90 left
-plot for [n=1:5]"<(sed -n '".n."p' point.dat)" u 2:3 with points linestyle n lc "blue" notitle, \
-	dram(x) title "DRAM 107.03 GBps" with lines, \
-	l3(x) title "L3 543.62 GBps" with lines, \
-	s_add(x) title "Integer scalar add peak" with lines, \
-	v_add(x) title "Vector add peak" with lines
+set label "DRAM 107.03 GBps" at 0.012,1.6 rotate by 25 left tc "blue" font 'FreeSans, 12'
+set label "L3 543.62 GBps" at 0.012,8.5 rotate by 25 left tc "skyblue" font 'FreeSans, 12'
+set label "Scalar add peak" at 0.012,200 rotate by 0 left tc "red" font 'FreeSans, 12'
+set label "Vector add peak" at 0.012,2300 rotate by 0 left tc "light-red" font 'FreeSans, 12'
+set key right bottom
+
+plot for [n=1:4]"<(sed -n '".n."p' point_48.dat)" u 1:2 with points linestyle n lc "blue" notitle, \
+	for [n=1:4]"<(sed -n '".n."p' point_24.dat)" u 1:2 with points linestyle n lc "red" notitle, \
+	for [n=1:4]"<(sed -n '".n."p' point_12.dat)" u 1:2 with points linestyle n lc "green" notitle, \
+	dram(x) notitle with lines lc "blue", \
+	l3(x) notitle with lines lc "skyblue", \
+	s_add(x) notitle with lines dashtype 2 lc "red", \
+	v_add(x) notitle with lines dashtype 2 lc "red", \
+	"<(echo 0	0)" u 1:2 with points linestyle 1 lc "black" title "Seed extraction", \
+	"<(echo 0	0)" u 1:2 with points linestyle 2 lc "black" title "Index querying", \
+	"<(echo 0	0)" u 1:2 with points linestyle 3 lc "black" title "Location sorting", \
+	"<(echo 0	0)" u 1:2 with points linestyle 4 lc "black" title "Chaining"
 
 
 
