@@ -28,7 +28,7 @@ static void paf_print(const record_v r) {
 		const uint32_t target_len = TARGET.seq_len[TARGET_ID(record.t_start)];
 		const uint32_t t_start    = TARGET_POS(record.t_start) - (SE_K - 1);
 		const uint32_t t_end      = TARGET_POS(record.t_end);
-		fprintf(OUTPUT, "%s\t%u\t%u\t%u\t%c\t%s\t%u\t%u\t%u\n", r.metadata.name, r.metadata.len,
+		fprintf(OUTPUT, "%s\t%u\t%u\t%u\t%c\t%s\t%u\t%u\t%u\t0\t0\t60\n", r.metadata.name, r.metadata.len,
 		        record.q_start - (SE_K - 1), record.q_end, "+-"[record.str], target_name, target_len, t_start,
 		        t_end);
 	}
