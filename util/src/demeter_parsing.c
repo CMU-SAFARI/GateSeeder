@@ -69,6 +69,7 @@ int fastq_parse(read_buf_t *const buf) {
 
 	while (fastq_file_pos < fastq_file_len) {
 		// Get the name
+		int is_fasta          = fastq_file_ptr[fastq_file_pos] == '>';
 		const size_t name_pos = fastq_file_pos + 1;
 		uint8_t c             = fastq_file_ptr[name_pos];
 		unsigned name_len     = 0;
@@ -123,7 +124,13 @@ int fastq_parse(read_buf_t *const buf) {
 		buf->metadata_len++;
 
 		// Increment the pos
-		fastq_file_pos = cur_pos + 2 * read_len + 2;
+		fastq_file_pos = cur_pos + read_len;
+		if (!is_fasta) {
+			while (fastq_file_ptr[fastq_file_pos] != '\n') {
+				fastq_file_pos++;
+			}
+			fastq_file_pos += read_len + 1;
+		}
 	}
 	return 1;
 }
