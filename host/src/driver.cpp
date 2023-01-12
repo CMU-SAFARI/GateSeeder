@@ -24,7 +24,6 @@ struct d_device_t {
 	read_metadata_t *o_metadata;
 	xrt::bo seq;
 	xrt::bo loc;
-	xrt::kernel krnl;
 	xrt::run run;
 	volatile int is_running : 1;
 };
@@ -41,28 +40,29 @@ void demeter_fpga_init(const unsigned nb_cus, const char *const binary_file, con
 	auto uuid = device.load_xclbin(binary_file);
 	std::cerr << "[INFO] " << binary_file << " loaded\n";
 
-	worker_buf = new d_worker_t[NB_WORKERS];
-	device_buf = new d_device_t[NB_WORKERS];
+	worker_buf        = new d_worker_t[NB_WORKERS];
+	device_buf        = new d_device_t[NB_WORKERS];
+	xrt::kernel *krnl = new xrt::kernel[NB_WORKERS];
 
 	// Initialize the kernels
 	const std::string pre_name = std::string(KERNEL_NAME) + std::string(":{") + INSTANCE_NAME;
 
-	// TODO: do a single for loop
+	// Initialize the krnls
 	for (unsigned i = 0; i < nb_cus; i++) {
 		const std::string name = pre_name + std::to_string(i) + "}";
-		device_buf[i].krnl     = xrt::kernel(device, uuid, name);
+		krnl[i]                = xrt::kernel(device, uuid, name);
 	}
 
 	//  Initialize the buffer objects for the index
-	map = xrt::bo(device, index.map, 1ULL << (index.map_size + 2), device_buf->krnl.group_id(2));
-	key = xrt::bo(device, index.key, index.key_len << 3, device_buf->krnl.group_id(3));
+	map = xrt::bo(device, index.map, 1ULL << (index.map_size + 2), krnl->group_id(2));
+	key = xrt::bo(device, index.key, index.key_len << 3, krnl->group_id(3));
 
 	// Transfer the index
 	map.sync(XCL_BO_SYNC_BO_TO_DEVICE);
 	key.sync(XCL_BO_SYNC_BO_TO_DEVICE);
 	std::cerr << "[INFO] Index transferred\n";
 
-	// Initialize the buffers and the states for the I/O
+	// Initialize the buffers for the I/O and their states
 	for (unsigned i = 0; i < NB_WORKERS; i++) {
 		// Initialize read buf
 		read_buf_init(&worker_buf[i].read_buf, BATCH_CAPACITY);
@@ -71,9 +71,12 @@ void demeter_fpga_init(const unsigned nb_cus, const char *const binary_file, con
 
 		device_buf[i].seq_len = 0;
 		// Initialize device buffers
-		device_buf[i].seq =
-		    xrt::bo(device, worker_buf[i].read_buf.seq, BATCH_CAPACITY, device_buf[i].krnl.group_id(1));
-		device_buf[i].loc = xrt::bo(device, worker_buf[i].loc_buf.loc, LB_SIZE, device_buf[i].krnl.group_id(4));
+		device_buf[i].seq = xrt::bo(device, worker_buf[i].read_buf.seq, BATCH_CAPACITY, krnl[i].group_id(1));
+		device_buf[i].loc = xrt::bo(device, worker_buf[i].loc_buf.loc, LB_SIZE, krnl[i].group_id(4));
+
+		// Initialize the metadata buffers
+		device_buf[i].i_metadata = NULL;
+		device_buf[i].o_metadata = NULL;
 
 		device_buf[i].is_running = 0;
 		worker_buf[i].id         = i;
@@ -86,13 +89,13 @@ void demeter_fpga_init(const unsigned nb_cus, const char *const binary_file, con
 		pthread_mutex_init(&worker_buf[i].mutex, NULL);
 
 		// Initialize the run
-		// TODO: maybe don't need the krnl field in device
-		device_buf[i].run = xrt::run(device_buf[i].krnl);
+		device_buf[i].run = xrt::run(krnl[i]);
 		device_buf[i].run.set_arg(1, device_buf[i].seq);
 		device_buf[i].run.set_arg(2, map);
 		device_buf[i].run.set_arg(3, key);
 		device_buf[i].run.set_arg(4, device_buf[i].loc);
 	}
+	delete[] krnl;
 }
 
 d_worker_t *demeter_get_worker(d_worker_t *const worker, const int no_input) {
@@ -160,8 +163,6 @@ int demeter_is_complete(d_worker_t *const worker) {
 }
 
 void demeter_fpga_destroy() {
-	delete &map;
-	delete &key;
 	for (unsigned i = 0; i < NB_WORKERS; i++) {
 		read_buf_destroy(worker_buf[i].read_buf);
 		delete[] worker_buf[i].loc_buf.loc;

@@ -10,14 +10,11 @@
 #include <time.h>
 
 uint32_t SE_K;
-uint32_t BATCH_CAPACITY   = 16777216;
-uint32_t MAX_NB_MAPPING   = 3;
+uint32_t BATCH_CAPACITY   = 10000000;
+uint32_t MAX_NB_MAPPING   = 6;
 uint32_t VT_DISTANCE      = 300;
 float VT_THRESHOLD_FRAC   = 0.02;
 uint32_t VT_THRESHOLD_MAX = 20;
-
-// TODO: try with cache flag
-// TODO: Evaluate the impact of the size of the FIFOs in the device
 
 FILE *OUTPUT;
 target_t TARGET;
@@ -40,13 +37,13 @@ static struct argp_option options[]  = {
 */
 
     {0, 0, 0, 0, "Mapping:", 0},
-    {"max_nb_mapping", 'm', "UINT", 0, "[3]", 0},
+    {"max_nb_mapping", 'm', "UINT", 0, "[6]", 0},
     {"vt_distance", 'd', "UINT", 0, "[300]", 0},
     {"vt_threshold", 'h', "FLOAT[,UINT]", 0, "[0.02,20]", 0},
 
     {0, 0, 0, 0, "Ressources:", 0},
     {"nb_threads", 't', "UINT", 0, "number of CPU threads [4]", 0},
-    {"batch_capacity", 'b', "UINT", 0, "batch capacity (in bases) [16777216]", 0},
+    {"batch_capacity", 'b', "UINT", 0, "batch capacity (in bases) [10000000]", 0},
     {"compute_units", 'u', "UINT", 0, "number of FPGA compute units [8]", 0},
 
     {0, 0, 0, 0, "Output:", 0},
@@ -88,7 +85,6 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 					break;
 				case 1:
 					args->index = index_parse(arg);
-					// puts("INDEX PARSED");
 					break;
 				case 2:
 					fastq_open(OPEN_MMAP, arg);
@@ -137,7 +133,9 @@ int main(int argc, char *argv[]) {
 	        end.tv_sec - start.tv_sec + (end.tv_nsec - start.tv_nsec) / 1000000000.0);
 
 	paf_write_destroy();
+	demeter_fpga_destroy();
 	index_destroy_target(args.index);
+	fastq_close();
 	struct rusage r;
 	getrusage(RUSAGE_SELF, &r);
 	fprintf(stderr, "[INFO] Peak RSS: %f GB\n", r.ru_maxrss / 1048576.0);

@@ -7,7 +7,6 @@
 #include <pthread.h>
 #include <string.h>
 
-extern unsigned NB_THREADS;
 #define IDX_MAGIC "ALOHA"
 
 // TODO: multithread for minimizer extraction
@@ -20,7 +19,8 @@ typedef struct {
 
 typedef struct {
 	gkey_v minimizers;
-	unsigned i;
+	uint32_t i;
+	uint32_t nb_threads;
 } thread_sort_t;
 
 static inline void merge(gkey_t *const keys, const uint32_t l, const uint32_t m, const uint32_t r) {
@@ -69,7 +69,7 @@ static inline void merge(gkey_t *const keys, const uint32_t l, const uint32_t m,
 	free(R);
 }
 
-static void merge_sort(gkey_t *keys, uint32_t l, uint32_t r) {
+static void merge_sort(gkey_t *keys, const uint32_t l, const uint32_t r) {
 	if (l < r) {
 		uint32_t m = l + (r - l) / 2;
 		merge_sort(keys, l, m);
@@ -78,27 +78,28 @@ static void merge_sort(gkey_t *keys, uint32_t l, uint32_t r) {
 	}
 }
 
-static void final_merge(gkey_t *keys, uint32_t n, uint32_t l, uint32_t r) {
+static void final_merge(gkey_t *keys, const uint32_t n, const uint32_t l, const uint32_t r, const uint32_t nb_threads) {
 	if (r == l + 2) {
-		merge(keys, (uint64_t)l * n / NB_THREADS, (uint64_t)(l + 1) * n / NB_THREADS - 1,
-		      (uint64_t)r * n / NB_THREADS - 1);
+		merge(keys, (uint64_t)l * n / nb_threads, (uint64_t)(l + 1) * n / nb_threads - 1,
+		      (uint64_t)r * n / nb_threads - 1);
 	}
 
 	else if (r > l + 2) {
 		uint32_t m = (r + l) / 2;
-		final_merge(keys, n, l, m);
-		final_merge(keys, n, m, r);
-		merge(keys, (uint64_t)l * n / NB_THREADS, (uint64_t)m * n / NB_THREADS - 1,
-		      (uint64_t)r * n / NB_THREADS - 1);
+		final_merge(keys, n, l, m, nb_threads);
+		final_merge(keys, n, m, r, nb_threads);
+		merge(keys, (uint64_t)l * n / nb_threads, (uint64_t)m * n / nb_threads - 1,
+		      (uint64_t)r * n / nb_threads - 1);
 	}
 }
 
 static void *thread_merge_sort(void *arg) {
 	thread_sort_t *param = (thread_sort_t *)arg;
 	gkey_v minimizers    = param->minimizers;
-	unsigned i           = param->i;
-	uint32_t l           = (uint64_t)i * minimizers.len / NB_THREADS;
-	uint32_t r           = (uint64_t)(i + 1) * minimizers.len / NB_THREADS - 1;
+	uint32_t nb_threads  = param->nb_threads;
+	uint32_t i           = param->i;
+	uint32_t l           = (uint64_t)i * minimizers.len / nb_threads;
+	uint32_t r           = (uint64_t)(i + 1) * minimizers.len / nb_threads - 1;
 	if (l < r) {
 		uint32_t m = l + (r - l) / 2;
 		merge_sort(minimizers.keys, l, m);
@@ -108,21 +109,20 @@ static void *thread_merge_sort(void *arg) {
 	return (void *)NULL;
 }
 
-static void sort(const gkey_v minimizers) {
+static void sort(const gkey_v minimizers, const uint32_t nb_threads) {
 	pthread_t *threads;
-	MALLOC(threads, pthread_t, NB_THREADS);
+	MALLOC(threads, pthread_t, nb_threads);
 	thread_sort_t *params;
-	MALLOC(params, thread_sort_t, NB_THREADS);
-	for (size_t i = 0; i < NB_THREADS; i++) {
-		params[i].minimizers = minimizers;
-		params[i].i          = i;
+	MALLOC(params, thread_sort_t, nb_threads);
+	for (uint32_t i = 0; i < nb_threads; i++) {
+		params[i] = (thread_sort_t){.minimizers = minimizers, .i = i, .nb_threads = nb_threads};
 		pthread_create(&threads[i], NULL, thread_merge_sort, (void *)&params[i]);
 	}
 
-	for (size_t i = 0; i < NB_THREADS; i++) {
+	for (size_t i = 0; i < nb_threads; i++) {
 		pthread_join(threads[i], NULL);
 	}
-	final_merge(minimizers.keys, minimizers.len, 0, NB_THREADS);
+	final_merge(minimizers.keys, minimizers.len, 0, nb_threads, nb_threads);
 	free(threads);
 	free(params);
 }
@@ -135,17 +135,17 @@ static void sort(const gkey_v minimizers) {
 // SEED_ID -> 21 bits
 
 void index_write(const char *const file_name, const gindex_t index, const target_t target, const uint32_t w,
-                 const uint32_t k, const uint32_t size_map, const uint32_t max_occ) {
+                 const uint32_t k, const uint32_t map_size, const uint32_t max_occ) {
 
 	FILE *fp;
 	FOPEN(fp, file_name, "wb");
 	fwrite(IDX_MAGIC, sizeof(char), 5, fp);
 	fwrite(&w, sizeof(uint32_t), 1, fp);
 	fwrite(&k, sizeof(uint32_t), 1, fp);
-	fwrite(&size_map, sizeof(uint32_t), 1, fp);
+	fwrite(&map_size, sizeof(uint32_t), 1, fp);
 	fwrite(&max_occ, sizeof(uint32_t), 1, fp);
 	fwrite(&index.key_len, sizeof(uint32_t), 1, fp);
-	fwrite(index.map, sizeof(uint32_t), 1 << size_map, fp);
+	fwrite(index.map, sizeof(uint32_t), 1 << map_size, fp);
 
 	// Write the key array
 	uint64_t *key;
@@ -170,8 +170,9 @@ void index_write(const char *const file_name, const gindex_t index, const target
 	FCLOSE(fp);
 }
 
-void index_gen(const uint32_t w, const uint32_t k, const uint32_t size_map, const uint32_t max_occ,
-               const uint32_t size_ms, const char *const target_file_name, const char *const index_file_name) {
+void index_gen(const uint32_t w, const uint32_t k, const uint32_t map_size, const uint32_t max_occ,
+               const uint32_t ms_size, const char *const target_file_name, const char *const index_file_name,
+               const uint32_t nb_threads) {
 
 	const target_t target = parse_target(target_file_name);
 	fprintf(stderr, "[INFO] nb_sequences: %u\n", target.nb_sequences);
@@ -180,7 +181,7 @@ void index_gen(const uint32_t w, const uint32_t k, const uint32_t size_map, cons
 	MALLOC(minimizers.keys, gkey_t, minimizers.capacity);
 
 	for (uint32_t i = 0; i < target.nb_sequences; i++) {
-		extract_seeds(target.seq[i], target.len[i], i, &minimizers, w, k, size_map);
+		extract_seeds(target.seq[i], target.len[i], i, &minimizers, w, k, map_size);
 		nb_bases += target.len[i];
 
 		// free the target sequence
@@ -191,9 +192,9 @@ void index_gen(const uint32_t w, const uint32_t k, const uint32_t size_map, cons
 	fprintf(stderr, "[INFO] %u extrcated minimizers (%u sequences, %lu bases)\n", minimizers.len,
 	        target.nb_sequences, nb_bases);
 
-	sort(minimizers);
+	sort(minimizers, nb_threads);
 
-	gindex_t index = {.map_len = 1 << size_map};
+	gindex_t index = {.map_len = 1 << map_size};
 	MALLOC(index.map, uint32_t, index.map_len);
 	MALLOC(index.key, gkey_t, minimizers.len);
 
@@ -255,10 +256,10 @@ void index_gen(const uint32_t w, const uint32_t k, const uint32_t size_map, cons
 
 	fprintf(stderr, "[INFO] map_len: %u (%lu MB), key_len: %u (%lu MB)\n", index.map_len,
 	        index.map_len * sizeof(index.map[0]) >> 20, index.key_len, (index.key_len * 8L) >> 20);
-	index_write(index_file_name, index, target, w, k, size_map, max_occ);
+	index_write(index_file_name, index, target, w, k, map_size, max_occ);
 
-	const uint32_t map_ms_len = 1 << (size_ms - 2);
-	const uint32_t key_ms_len = 1 << (size_ms - 3);
+	const uint32_t map_ms_len = 1 << (ms_size - 2);
+	const uint32_t key_ms_len = 1 << (ms_size - 3);
 	fprintf(stderr, "[INFO] %u MS(s) required for the map array\n",
 	        index.map_len / map_ms_len + ((index.map_len % map_ms_len) != 0));
 	fprintf(stderr, "[INFO] %u MS(s) required for the key array\n",
