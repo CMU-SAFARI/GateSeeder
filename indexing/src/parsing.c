@@ -1,24 +1,23 @@
+#include "demeter_util.h"
 #include "parsing.h"
-#include "util.h"
 #include <err.h>
 #include <stdint.h>
 #include <string.h>
-#include <sys/mman.h>
 #include <sys/stat.h>
 
 #define MAX_SEQ_LEN 1 << 30
 #define ENCODE(c) (c & 0x0f) >> 1
 
-target_t parse_target(int fd) {
+target_t parse_target(const char *const file_name) {
 	struct stat statbuf;
+	int fd;
+	OPEN(fd, file_name, O_RDONLY);
 	if (fstat(fd, &statbuf) == -1) {
 		err(1, "fstat");
 	}
-	off_t size        = statbuf.st_size;
-	uint8_t *file_buf = (uint8_t *)mmap(NULL, size, PROT_READ, MAP_SHARED | MAP_POPULATE, fd, 0);
-	if (file_buf == MAP_FAILED) {
-		err(1, "%s:%d, mmap", __FILE__, __LINE__);
-	}
+	off_t size = statbuf.st_size;
+	uint8_t *file_buf;
+	MMAP(file_buf, uint8_t, size, PROT_READ, MAP_SHARED | MAP_POPULATE, fd);
 
 	uint8_t *seq_buf;
 	MALLOC(seq_buf, uint8_t, MAX_SEQ_LEN);
@@ -82,16 +81,8 @@ target_t parse_target(int fd) {
 		seq[j] = seq_buf[j];
 	}
 	seq[seq_len] = '\0';
-	munmap(file_buf, size);
+	MUNMAP(file_buf, size);
+	CLOSE(fd);
 	free(seq_buf);
 	return target;
-}
-
-void target_destroy(const target_t target) {
-	for (unsigned i = 0; i < target.nb_sequences; i++) {
-		free(target.seq[i]);
-		free(target.name[i]);
-	}
-	free(target.seq);
-	free(target.name);
 }

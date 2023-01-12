@@ -4,19 +4,7 @@
 #include "types.h"
 #include <stdint.h>
 
-typedef struct {
-	uint64_t hash; // size: 2*K
-	uint32_t loc;
-	unsigned str : 1;
-} seed_t;
-
-typedef struct {
-	uint32_t capacity;
-	uint32_t len;
-	seed_t *seeds;
-} seed_v;
-
-void extract_seeds(const uint8_t *seq, const uint32_t len, const unsigned chrom_id, key_v *const minimizers,
-                   const unsigned w, const unsigned k, const unsigned b);
+void extract_seeds(const uint8_t *seq, const uint32_t len, const uint32_t chrom_id, gkey_v *const minimizers,
+                   const uint32_t w, const uint32_t k, const uint32_t size_map);
 
 #endif

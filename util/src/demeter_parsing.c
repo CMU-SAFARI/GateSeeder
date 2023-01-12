@@ -1,7 +1,6 @@
 #include "demeter_parsing.h"
 #include "demeter_util.h"
 #include <err.h>
-#include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/mman.h>
@@ -17,7 +16,7 @@ static size_t fastq_file_len;
 static size_t fastq_file_pos;
 static uint8_t *fastq_buf;
 
-void fastq_open(int param, const char *file_name) {
+void fastq_open(const int param, const char *const file_name) {
 	struct stat statbuf;
 	OPEN(fastq_fd, file_name, O_RDONLY);
 	if (fstat(fastq_fd, &statbuf) == -1) {
@@ -25,11 +24,8 @@ void fastq_open(int param, const char *file_name) {
 	}
 	fastq_file_len = statbuf.st_size;
 	if (param == OPEN_MMAP) {
-		fastq_file_ptr = (uint8_t *)mmap(NULL, fastq_file_len, PROT_READ,
-		                                 MAP_SHARED | MAP_POPULATE | MAP_NONBLOCK, fastq_fd, 0);
-		if (fastq_file_ptr == MAP_FAILED) {
-			err(1, "%s:%d, mmap", __FILE__, __LINE__);
-		}
+		MMAP(fastq_file_ptr, uint8_t, fastq_file_len, PROT_READ, MAP_SHARED | MAP_POPULATE | MAP_NONBLOCK,
+		     fastq_fd);
 	} else {
 		// With Malloc and copy
 		FILE *fp;

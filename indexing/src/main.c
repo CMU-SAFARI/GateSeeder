@@ -1,21 +1,21 @@
 #include "indexing.h"
-#include "parsing.h"
-#include "types.h"
 #include <err.h>
-#include <fcntl.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/resource.h>
+#include <time.h>
 #include <unistd.h>
 
 unsigned NB_THREADS = 12;
 
 int main(int argc, char *argv[]) {
 	int option;
-	unsigned w        = 10;
-	unsigned k        = 15;
-	unsigned size_map = 27;
-	unsigned size_ms  = 29;
-	unsigned max_occ  = 500;
+	uint32_t w        = 10;
+	uint32_t k        = 15;
+	uint32_t size_map = 27;
+	uint32_t size_ms  = 29;
+	uint32_t max_occ  = 500;
 	while ((option = getopt(argc, argv, ":w:k:b:f:s:")) != -1) {
 		switch (option) {
 			case 'w':
@@ -31,7 +31,8 @@ int main(int argc, char *argv[]) {
 				max_occ = strtoul(optarg, NULL, 10);
 				break;
 			case 's':
-				size_ms = 29;
+				size_ms = strtoul(optarg, NULL, 10);
+				;
 				break;
 			case ':':
 				errx(1, "option '%c' requires a value", optopt);
@@ -41,35 +42,21 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (optind + 2 != argc) {
-		errx(1, "Usage\t%s [option]* <target.fasta> <index.dti>", argv[0]);
+		fprintf(stderr, "Usage %s [OPTION...] <target.fasta> <index.dti>\n", argv[0]);
+		exit(1);
 	}
 
-	fprintf(stderr, "[INFO] w: %u, k: %u, size_map: %u, size_ms: %u max_occ: %u\n", w, k, size_map, size_ms,
-	        max_occ);
+	fprintf(stderr, "[INFO] w: %u, k: %u, size_map: %u, max_occ: %u size_ms: %u\n", w, k, size_map, max_occ,
+	        size_ms);
 
-	int fd_target = open(argv[optind], O_RDONLY);
-	if (fd_target == -1) {
-		err(1, "open %s", argv[optind]);
-	}
-
-	FILE *index_fp = fopen(argv[optind + 1], "wb");
-	if (index_fp == NULL) {
-		err(1, "fopen %s", argv[optind + 1]);
-	}
-
-	target_t target = parse_target(fd_target);
-	fprintf(stderr, "[INFO] nb_sequences: %u\n", target.nb_sequences);
-	index_t index = gen_index(target, w, k, size_map, max_occ);
-	fprintf(stderr, "[INFO] map_len: %u (%lu MB), key_len: %u (%lu MB)\n", index.map_len,
-	        index.map_len * sizeof(index.map[0]) >> 20, index.key_len, (index.key_len * 8L) >> 20);
-
-	write_gold_index(index_fp, index, target, w, k, size_map, max_occ);
-	const uint32_t map_ms_len = 1 << (size_ms - 2);
-	const uint32_t key_ms_len = 1 << (size_ms - 3);
-	fprintf(stderr, "[INFO] %u MS(s) required for the map array\n",
-	        index.map_len / map_ms_len + ((index.map_len % map_ms_len) != 0));
-	fprintf(stderr, "[INFO] %u MS(s) required for the key array\n",
-	        index.key_len / key_ms_len + ((index.key_len % key_ms_len != 0)));
-	target_destroy(target);
+	struct timespec start, end;
+	clock_gettime(CLOCK_MONOTONIC, &start);
+	index_gen(w, k, size_map, max_occ, size_ms, argv[optind], argv[optind + 1]);
+	clock_gettime(CLOCK_MONOTONIC, &end);
+	fprintf(stderr, "[INFO] Total execution time %f sec\n",
+	        end.tv_sec - start.tv_sec + (end.tv_nsec - start.tv_nsec) / 1000000000.0);
+	struct rusage r;
+	getrusage(RUSAGE_SELF, &r);
+	fprintf(stderr, "[INFO] Peak RSS: %f GB\n", r.ru_maxrss / 1048576.0);
 	return 0;
 }

@@ -36,7 +36,7 @@ typedef struct {
 #define OPEN_MALLOC 0
 #define OPEN_MMAP 1
 
-void fastq_open(int param, const char *const file_name);
+void fastq_open(const int param, const char *const file_name);
 void read_buf_init(read_buf_t *const buf, const uint32_t capacity);
 void read_buf_destroy(const read_buf_t buf);
 int fastq_parse(read_buf_t *const buf);

@@ -1,29 +1,35 @@
+#include "demeter_util.h"
 #include "extraction.h"
-#include "util.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-inline void push_seed(key_v *const minimizers, const seed_t minimizer, const unsigned chrom_id,
-                      const unsigned map_size) {
+typedef struct {
+	uint64_t hash; // size: 2*K
+	uint32_t loc;
+	int8_t str;
+} seed_t;
 
-	const uint32_t bucket_mask = (1 << map_size) - 1;
+typedef struct {
+	uint32_t capacity;
+	uint32_t len;
+	seed_t *seeds;
+} seed_v;
+
+inline void push_seed(gkey_v *const minimizers, const seed_t minimizer, const unsigned chrom_id,
+                      const unsigned size_map) {
+
+	const uint32_t bucket_mask = (1 << size_map) - 1;
 	if (minimizers->capacity == minimizers->len) {
 		minimizers->capacity *= 2;
-		REALLOC(minimizers->keys, keym_t, minimizers->capacity);
+		REALLOC(minimizers->keys, gkey_t, minimizers->capacity);
 	}
-	minimizers->keys[minimizers->len] = (keym_t){.loc       = minimizer.loc,
+	minimizers->keys[minimizers->len] = (gkey_t){.loc       = minimizer.loc,
 	                                             .bucket_id = minimizer.hash & bucket_mask,
-	                                             .seed_id   = minimizer.hash >> map_size,
+	                                             .seed_id   = minimizer.hash >> size_map,
 	                                             .chrom_id  = chrom_id,
 	                                             .str       = minimizer.str};
 	minimizers->len++;
-
-	/*
-	keym_t key = minimizers->keys[minimizers->len - 1];
-	printf("loc: %x, hash: %lx, bucket_id: %x, seed_id: %x, chrom_id: %x, str: %x\n", key.loc, minimizer.hash,
-	       key.bucket_id, key.seed_id, key.chrom_id, key.str);
-	       */
 }
 
 static inline uint64_t hash64(uint64_t key, const uint64_t mask) {
@@ -37,8 +43,8 @@ static inline uint64_t hash64(uint64_t key, const uint64_t mask) {
 	return key;
 }
 
-void extract_seeds(const uint8_t *seq, const uint32_t len, const unsigned chrom_id, key_v *const minimizers,
-                   const unsigned w, const unsigned k, const unsigned map_size) {
+void extract_seeds(const uint8_t *seq, const uint32_t len, const uint32_t chrom_id, gkey_v *const minimizers,
+                   const uint32_t w, const uint32_t k, const uint32_t size_map) {
 	const uint64_t mask  = (1ULL << 2 * k) - 1;
 	const unsigned shift = 2 * (k - 1);
 	uint64_t kmer[2]     = {0, 0};
@@ -70,7 +76,7 @@ void extract_seeds(const uint8_t *seq, const uint32_t len, const unsigned chrom_
 			}
 		} else {
 			if (l >= w + k - 1 && minimizer.hash != UINT64_MAX) {
-				push_seed(minimizers, minimizer, chrom_id, map_size);
+				push_seed(minimizers, minimizer, chrom_id, size_map);
 			}
 			l = 0;
 		}
@@ -78,14 +84,14 @@ void extract_seeds(const uint8_t *seq, const uint32_t len, const unsigned chrom_
 
 		if (current_seed.hash <= minimizer.hash) {
 			if (l >= w + k && minimizer.hash != UINT64_MAX) {
-				push_seed(minimizers, minimizer, chrom_id, map_size);
+				push_seed(minimizers, minimizer, chrom_id, size_map);
 			}
 			minimizer = current_seed;
 			min_pos   = buf_pos;
 
 		} else if (buf_pos == min_pos) {
 			if (l >= w + k - 1) {
-				push_seed(minimizers, minimizer, chrom_id, map_size);
+				push_seed(minimizers, minimizer, chrom_id, size_map);
 			}
 			minimizer.hash = UINT64_MAX;
 			for (unsigned j = buf_pos + 1; j < w; j++) {
@@ -103,12 +109,12 @@ void extract_seeds(const uint8_t *seq, const uint32_t len, const unsigned chrom_
 			if (l >= w + k - 1 && minimizer.hash != UINT64_MAX) {
 				for (unsigned j = buf_pos + 1; j < w; ++j) {
 					if (minimizer.hash == buf[j].hash && minimizer.loc != buf[j].loc) {
-						push_seed(minimizers, buf[j], chrom_id, map_size);
+						push_seed(minimizers, buf[j], chrom_id, size_map);
 					}
 				}
 				for (unsigned j = 0; j < buf_pos; ++j) {
 					if (minimizer.hash == buf[j].hash && minimizer.loc != buf[j].loc) {
-						push_seed(minimizers, buf[j], chrom_id, map_size);
+						push_seed(minimizers, buf[j], chrom_id, size_map);
 					}
 				}
 			}
@@ -118,18 +124,18 @@ void extract_seeds(const uint8_t *seq, const uint32_t len, const unsigned chrom_
 		if (l == w + k - 1 && minimizer.hash != UINT64_MAX) {
 			for (unsigned j = buf_pos + 1; j < w; ++j) {
 				if (minimizer.hash == buf[j].hash && minimizer.loc != buf[j].loc) {
-					push_seed(minimizers, buf[j], chrom_id, map_size);
+					push_seed(minimizers, buf[j], chrom_id, size_map);
 				}
 			}
 			for (unsigned j = 0; j < buf_pos; ++j) {
 				if (minimizer.hash == buf[j].hash && minimizer.loc != buf[j].loc) {
-					push_seed(minimizers, buf[j], chrom_id, map_size);
+					push_seed(minimizers, buf[j], chrom_id, size_map);
 				}
 			}
 		}
 		buf_pos = (buf_pos == w - 1) ? 0 : buf_pos + 1;
 	}
 	if (l >= w + k - 1 && minimizer.hash != UINT64_MAX) {
-		push_seed(minimizers, minimizer, chrom_id, map_size);
+		push_seed(minimizers, minimizer, chrom_id, size_map);
 	}
 }

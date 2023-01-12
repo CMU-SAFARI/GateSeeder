@@ -1,9 +1,14 @@
 #ifndef PARSING_H
 #define PARSING_H
 
-#include "types.h"
+#include <stdint.h>
 
-target_t parse_target(int fd);
-void target_destroy(const target_t target);
+typedef struct {
+	unsigned nb_sequences;
+	uint32_t *len;
+	uint8_t **seq;
+	char **name;
+} target_t;
 
+target_t parse_target(const char *const file_name);
 #endif

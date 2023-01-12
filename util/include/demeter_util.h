@@ -7,10 +7,12 @@ extern "C" {
 
 #include "../src/demeter_parsing.h"
 #include <err.h>
+#include <fcntl.h>
 #include <pthread.h>
 #include <semaphore.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <sys/mman.h>
 #include <unistd.h>
 
 #define MALLOC(var, type, size)                                                                                        \
@@ -129,6 +131,21 @@ extern "C" {
 		}                                                                                                      \
 	}
 
+#define MMAP(ptr, type, length, prot, flags, fd)                                                                       \
+	{                                                                                                              \
+		ptr = (type *)mmap(NULL, length, prot, flags, fd, 0);                                                  \
+		if (ptr == MAP_FAILED) {                                                                               \
+			err(1, "%s:%d, mmap", __FILE__, __LINE__);                                                     \
+		}                                                                                                      \
+	}
+
+#define MUNMAP(ptr, length)                                                                                            \
+	{                                                                                                              \
+		if (munmap(ptr, length) == -1) {                                                                       \
+			err(1, "%s:%d, munmapp", __FILE__, __LINE__);                                                  \
+		}                                                                                                      \
+	}
+
 #define FOPEN(file, pathname, mode)                                                                                    \
 	{                                                                                                              \
 		file = fopen(pathname, mode);                                                                          \
@@ -141,6 +158,13 @@ extern "C" {
 	{                                                                                                              \
 		if (fread(ptr, sizeof(type), nmemb, stream) != nmemb) {                                                \
 			errx(1, "%s:%d, fread", __FILE__, __LINE__);                                                   \
+		}                                                                                                      \
+	}
+
+#define FCLOSE(ptr)                                                                                                    \
+	{                                                                                                              \
+		if (fclose(ptr) == EOF) {                                                                              \
+			err(1, "%s:%d, fclose", __FILE__, __LINE__);                                                   \
 		}                                                                                                      \
 	}
 

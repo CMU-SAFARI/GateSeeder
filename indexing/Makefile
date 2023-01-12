@@ -1,8 +1,11 @@
-SRC_DIR		:= src
-
 CC			:= gcc
+
+SRC_DIR		:= src
+UTIL_DIR := ../util
+
+CPPFLAGS += -I$(UTIL_DIR)/include
 DEPFLAGS	= -MD -MP
-CFLAGS		= -std=gnu11 -g -O3 $(DEPFLAGS) -Wall -Werror -Wextra
+CFLAGS = -std=gnu11 -O3 -g -march=native $(DEPFLAGS) -Wall -Wextra -Werror
 LDLIBS		= -pthread
 
 SRCS		= $(wildcard $(SRC_DIR)/*.c)
