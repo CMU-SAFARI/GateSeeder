@@ -14,6 +14,7 @@ extern unsigned MAX_NB_MAPPING;
 extern unsigned VT_DISTANCE;
 extern float VT_THRESHOLD_FRAC;
 extern uint32_t VT_THRESHOLD_MAX;
+extern float VT_FRAC_MAX;
 
 static pthread_mutex_t fastq_parse_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -183,6 +184,17 @@ static record_v vote(uint64_t *const loc, const uint32_t len, const uint32_t vt_
 				} else {
 					break;
 				}
+			}
+		}
+	}
+
+	// Filter based on a fraction of the best voting score
+	if (r.nb_records > 1) {
+		const uint32_t threshold = (uint32_t)(VT_FRAC_MAX * (float)r.record[0].vt_score);
+		for (uint32_t k = 1; k < r.nb_records; k++) {
+			if (r.record[k].vt_score < threshold) {
+				r.nb_records = k;
+				break;
 			}
 		}
 	}

@@ -13,8 +13,9 @@ uint32_t SE_K;
 uint32_t BATCH_CAPACITY   = 10000000;
 uint32_t MAX_NB_MAPPING   = 6;
 uint32_t VT_DISTANCE      = 300;
-float VT_THRESHOLD_FRAC   = 0.02;
-uint32_t VT_THRESHOLD_MAX = 20;
+float VT_THRESHOLD_FRAC   = 0;
+uint32_t VT_THRESHOLD_MAX = 0;
+float VT_FRAC_MAX         = 0.3;
 
 FILE *OUTPUT;
 target_t TARGET;
@@ -39,7 +40,8 @@ static struct argp_option options[]  = {
     {0, 0, 0, 0, "Mapping:", 0},
     {"max_nb_mapping", 'm', "UINT", 0, "[6]", 0},
     {"vt_distance", 'd', "UINT", 0, "[300]", 0},
-    {"vt_threshold", 'h', "FLOAT[,UINT]", 0, "[0.02,20]", 0},
+    {"vt_threshold", 'h', "FLOAT[,UINT]", 0, "[0,0]", 0},
+    {"vt_frac_max", 'f', "FLOAT", 0, "0.3", 0},
 
     {0, 0, 0, 0, "Ressources:", 0},
     {"nb_threads", 't', "UINT", 0, "number of CPU threads [4]", 0},
@@ -66,6 +68,9 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 				VT_THRESHOLD_MAX = strtoul(p + 1, NULL, 10);
 			}
 		} break;
+		case 'f':
+			VT_FRAC_MAX = strtod(arg, NULL);
+			break;
 		case 't':
 			args->nb_threads = strtoul(arg, NULL, 10);
 			break;
