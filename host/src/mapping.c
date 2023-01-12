@@ -78,7 +78,6 @@ static int fill_input(d_worker_t *const worker) {
 
 static record_v vote(uint64_t *const loc, const uint32_t len, const uint32_t vt_threshold) {
 	record_v r = {.nb_records = 0};
-	// TODO: replace byt mtalloc
 	MALLOC(r.record, record_t, MAX_NB_MAPPING);
 	unsigned counter[2] = {0, 0};
 

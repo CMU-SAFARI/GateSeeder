@@ -129,7 +129,6 @@ void demeter_load_seq(d_worker_t *const worker) {
 	device_buf[id].seq_len    = worker->read_buf.len;
 	device_buf[id].i_batch_id = worker->read_buf.batch_id;
 	device_buf[id].i_metadata = worker->read_buf.metadata;
-	// TODO: use mtalloc
 	MALLOC(worker->read_buf.metadata, read_metadata_t, worker->read_buf.metadata_capacity);
 	LOCK(worker->mutex);
 	worker->input_h = buf_empty;

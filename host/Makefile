@@ -23,7 +23,9 @@ LDLIBS += -lxrt_coreutil -pthread -lstdc++ $(UTIL)
 
 EXE := demeter
 
-$(EXE): $(C_OBJS) $(CXX_OBJS) demeter_util
+all: demeter_util $(EXE)
+
+$(EXE): $(C_OBJS) $(CXX_OBJS) $(UTIL)
 	$(LINK.o) $(C_OBJS) $(CXX_OBJS) $(LOADLIBES) $(LDLIBS) -o $@
 
 demeter_util:
