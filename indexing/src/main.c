@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
 	int option;
 	uint32_t w          = 10;
 	uint32_t k          = 15;
-	uint32_t map_size   = 27;
+	uint32_t map_size   = 30;
 	uint32_t ms_size    = 29;
 	uint32_t max_occ    = 500;
 	uint32_t nb_threads = 4;

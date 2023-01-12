@@ -7,12 +7,15 @@ UTIL_DIR := ../util
 CPPFLAGS += -I$(UTIL_DIR)/include
 CFLAGS = -std=gnu11 -O3 -g -march=native $(DEPFLAGS) -Wall -Wextra -Werror
 
-EVICT: page_cache_evict
-SIM: sim.fastq
+EVICT = page_cache_evict
+SIM = sim.fastq
 
 VPATH = $(SRC_DIR)
 
 all: $(EVICT) $(SIM)
+
+accuracy: $(SIM)
+	./$(SCRIPT_DIR)/accuracy.sh
 
 $(SIM):
 	./$(SCRIPT_DIR)/gen_sim.sh
@@ -24,4 +27,4 @@ clean:
 	$(RM) $(EVICT) $(SIM)
 
 
-.PHONY: all clean
+.PHONY: all clean accuracy
