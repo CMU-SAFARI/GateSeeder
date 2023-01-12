@@ -11,6 +11,7 @@ extern "C" {
 #include <semaphore.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #define MALLOC(var, type, size)                                                                                        \
 	{                                                                                                              \
@@ -110,6 +111,21 @@ extern "C" {
 	{                                                                                                              \
 		if (sem_post(&sem)) {                                                                                  \
 			err(1, "%s:%d, sem_post", __FILE__, __LINE__);                                                 \
+		}                                                                                                      \
+	}
+
+#define OPEN(fd, pathname, flags)                                                                                      \
+	{                                                                                                              \
+		fd = open(pathname, flags);                                                                            \
+		if (fd == -1) {                                                                                        \
+			err(1, "%s:%d, open %s", __FILE__, __LINE__, pathname);                                        \
+		}                                                                                                      \
+	}
+
+#define CLOSE(fd)                                                                                                      \
+	{                                                                                                              \
+		if (close(fd) == -1) {                                                                                 \
+			err(1, "%s:%d, close", __FILE__, __LINE__);                                                    \
 		}                                                                                                      \
 	}
 

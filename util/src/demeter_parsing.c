@@ -6,7 +6,6 @@
 #include <string.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
-#include <unistd.h>
 
 #define MAX_SEQ_LEN 1 << 30
 #define END_OF_READ_BASE 'E'
@@ -20,12 +19,9 @@ static uint8_t *fastq_buf;
 
 void fastq_open(int param, const char *file_name) {
 	struct stat statbuf;
-	fastq_fd = open(file_name, O_RDONLY);
-	if (fastq_fd == -1) {
-		err(1, "open %s", file_name);
-	}
+	OPEN(fastq_fd, file_name, O_RDONLY);
 	if (fstat(fastq_fd, &statbuf) == -1) {
-		err(1, "fstat");
+		err(1, "%s:%d, fstat", __FILE__, __LINE__);
 	}
 	fastq_file_len = statbuf.st_size;
 	if (param == OPEN_MMAP) {
@@ -145,11 +141,9 @@ index_t index_parse(const char *const file_name) {
 	FILE *fp;
 	FOPEN(fp, file_name, "rb");
 	char magic[5];
-	if (fread(magic, sizeof(char), 5, fp) != 5) {
-		errx(1, "parse_index %s", file_name);
-	}
+	FREAD(magic, char, 5, fp);
 	if (strncmp(magic, IDX_MAGIC, 5) != 0) {
-		errx(1, "parse_index %s", file_name);
+		errx(1, "%s:%d, parse_index %s", __FILE__, __LINE__, file_name);
 	}
 
 	index_t index;
