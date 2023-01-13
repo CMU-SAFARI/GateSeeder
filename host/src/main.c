@@ -13,8 +13,8 @@ uint32_t SE_K;
 uint32_t BATCH_CAPACITY   = 10000000;
 uint32_t MAX_NB_MAPPING   = 6;
 uint32_t VT_DISTANCE      = 700;
-float VT_THRESHOLD_FRAC   = 0;
-uint32_t VT_THRESHOLD_MAX = 0;
+float VT_THRESHOLD_FRAC   = 0.01;
+uint32_t VT_THRESHOLD_MAX = 20;
 float VT_FRAC_MAX         = 0.4;
 float VT_MIN_COV          = 0.1;
 

@@ -3,7 +3,7 @@
 set terminal pdf enhanced font 'FreeSans,12'
 set output "performances.pdf"
 set grid
-set size ratio 0.7
+set size ratio 0.5
 
 mm2_runtime="`head -1 performances.dat | awk '{print $4}'`"
 mm2_mapped_reads="`head -1 performances.dat | awk '{print $3}'`"
