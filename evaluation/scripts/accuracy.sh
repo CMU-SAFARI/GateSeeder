@@ -11,7 +11,7 @@ for max_occ in {50..700..50}
 do
 	echo "[ACC] Generating the index with max_occ: $max_occ"
 	../demeter_index -t 32 -f $max_occ $TARGET index.dti
-	for vt_distance in 50 100 200 300 400 500 600 700 1000 1500 2000
+	for vt_distance in {400..800..50}
 	do
 		echo "[ACC] Running demeter with vt_distance: $vt_distance"
 		../demeter -t 32 -d $vt_distance $XCLBIN index.dti $QUERY -o mapping.paf

@@ -5,18 +5,18 @@
 #include <stdint.h>
 
 typedef struct {
-	uint32_t q_start;
-	uint32_t q_end;
-	unsigned str : 1;
 	uint64_t t_start;
 	uint64_t t_end;
+	uint32_t q_start;
+	uint32_t q_end;
 	uint32_t vt_score;
+	int8_t str;
 } record_t;
 
 typedef struct {
 	read_metadata_t metadata;
 	record_t *record;
-	unsigned nb_records;
+	uint32_t nb_records;
 } record_v;
 
 typedef struct {
