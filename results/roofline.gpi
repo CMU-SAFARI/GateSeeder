@@ -1,3 +1,5 @@
+#!/bin/gnuplot
+
 DRAM_BW = 107.03
 L3_BW = 543.62
 HBM_BW = 460

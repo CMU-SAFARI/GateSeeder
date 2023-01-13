@@ -58,4 +58,8 @@ fn main() {
 			cur_mapped = field[5].parse().unwrap();
 		}
 	}
+	println!(
+		"{}\t{}\t{}\t{}\t{}",
+		max_occ, vt_distance, t_mapped, f_mapped, unmapped
+	);
 }

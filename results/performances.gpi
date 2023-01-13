@@ -1,0 +1,23 @@
+#!/bin/gnuplot
+
+set terminal pdf enhanced font 'FreeSans,12'
+set output "performances.pdf"
+set grid
+set size ratio 0.7
+
+mm2_runtime="`head -1 performances.dat | awk '{print $4}'`"
+mm2_mapped_reads="`head -1 performances.dat | awk '{print $3}'`"
+
+set multiplot layout 2,1 rowsfirst
+
+set xlabel "Seed occurence threshold"
+set ylabel "Normalized runtime"
+
+plot '<(tail -n +2 performances.dat)' u 1:($4/mm2_runtime) with linespoints linetype 1 notitle
+
+set xlabel "Seed occurence threshold"
+set ylabel "Normalized throughput"
+
+plot '<(tail -n +2 performances.dat)' u 1:($4/mm2_runtime*$3/mm2_mapped_reads) with linespoints linetype 1 notitle
+
+unset multiplot
