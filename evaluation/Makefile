@@ -14,8 +14,13 @@ VPATH = $(SRC_DIR)
 
 all: $(EVICT) $(SIM)
 
+performances: $(EVICT)
+	$(MAKE) -C ..
+	./$(SCRIPT_DIR)/$@.sh
+
 accuracy: $(SIM)
-	./$(SCRIPT_DIR)/accuracy.sh
+	$(MAKE) -C ..
+	./$(SCRIPT_DIR)/$@.sh
 
 $(SIM):
 	./$(SCRIPT_DIR)/gen_sim.sh
@@ -27,4 +32,4 @@ clean:
 	$(RM) $(EVICT) $(SIM)
 
 
-.PHONY: all clean accuracy
+.PHONY: all clean accuracy performances

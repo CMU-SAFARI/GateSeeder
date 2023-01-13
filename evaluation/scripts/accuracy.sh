@@ -5,7 +5,6 @@ TARGET=$DATA/GCA_000001405.15_GRCh38_no_alt_analysis_set.fasta
 QUERY=sim.fastq
 XCLBIN=../device/demeter.xclbin
 
-make -C ..
 rm -f $RES
 for max_occ in {50..700..50}
 do
@@ -20,9 +19,9 @@ do
 		paftools.js mapeval mapping.paf >> $RES
 	done
 done
-rm -f index.dti
 
 minimap2 -t 32 -x map-ont -o mapping.paf $TARGET $QUERY
 paftools.js mapeval mapping.paf > accuracy_mm2.txt
 
+rm -f index.dti
 rm -f mapping.paf
