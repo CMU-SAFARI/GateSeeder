@@ -1,23 +1,26 @@
 #!/bin/gnuplot
 
-set terminal pdf enhanced font 'FreeSans,12'
+set terminal pdf enhanced font 'FreeSans,8'
 set output "performances.pdf"
 set grid
 set size ratio 0.5
 
 mm2_runtime="`head -1 performances.dat | awk '{print $4}'`"
-mm2_mapped_reads="`head -1 performances.dat | awk '{print $3}'`"
+mm2_nb_mapped="`head -1 performances.dat | awk '{print $2}'`"
+
 
 set multiplot layout 2,1 rowsfirst
 
 set xlabel "Seed occurence threshold"
 set ylabel "Normalized runtime"
 
-plot '<(tail -n +2 performances.dat)' u 1:($4/mm2_runtime) with linespoints linetype 1 notitle
+plot '<(tail -n +2 performances.dat)' u 1:($4/mm2_runtime) with linespoints linetype 1 notitle,\
+		 '< echo "25 0.2"' w impulse dashtype 2 lc "red" notitle
 
 set xlabel "Seed occurence threshold"
-set ylabel "Normalized throughput"
+set ylabel "Normalized throughput of mapped reads"
 
-plot '<(tail -n +2 performances.dat)' u 1:($4/mm2_runtime*$3/mm2_mapped_reads) with linespoints linetype 1 notitle
+plot '<(tail -n +2 performances.dat)' u 1:(mm2_runtime/$4*mm2_nb_mapped/$2) with linespoints linetype 1 notitle,\
+		 '< echo "25 20"' w impulse dashtype 2 lc "red" notitle
 
 unset multiplot

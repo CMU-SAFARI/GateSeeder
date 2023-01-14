@@ -16,6 +16,7 @@ extern float VT_THRESHOLD_FRAC;
 extern uint32_t VT_THRESHOLD_MAX;
 extern float VT_FRAC_MAX;
 extern float VT_MIN_COV;
+extern int VT_EQ;
 
 static pthread_mutex_t fastq_parse_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -195,11 +196,15 @@ static record_v vote(uint64_t *const loc, const uint32_t len, const uint32_t vt_
 
 	// Filter based on a fraction of the best voting score
 	if (r.nb_records > 1) {
-		const uint32_t threshold = (uint32_t)(VT_FRAC_MAX * (float)r.record[0].vt_score);
-		for (uint32_t k = 1; k < r.nb_records; k++) {
-			if (r.record[k].vt_score < threshold) {
-				r.nb_records = k;
-				break;
+		if (VT_EQ && r.record[0].vt_score == r.record[1].vt_score) {
+			r.nb_records = 0;
+		} else {
+			const uint32_t threshold = (uint32_t)(VT_FRAC_MAX * (float)r.record[0].vt_score);
+			for (uint32_t k = 1; k < r.nb_records; k++) {
+				if (r.record[k].vt_score < threshold) {
+					r.nb_records = k;
+					break;
+				}
 			}
 		}
 	}

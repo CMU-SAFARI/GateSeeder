@@ -1,16 +1,23 @@
 #!/bin/gnuplot
 
-
-set terminal pdf enhanced font 'FreeSans,12'
+set terminal pdf enhanced font 'FreeSans,8'
 set output "accuracy.pdf"
-set xlabel "Seed occurence threshold"
-set ylabel "Correct mapping rate"
-set key right bottom
 set grid
-set xrange[0: 700]
+set size ratio 0.5
 
-mm2_error="`head -1 performances.dat | awk '{print $2}'`"
-mm2_mapped="`head -1 performances.dat | awk '{print $3}'`"
+mm2_error_rate="`head -1 performances.dat | awk '{print $3}'`"
+mm2_nb_mapped="`head -1 performances.dat | awk '{print $2}'`"
 
-plot '<(tail -n +2 accuracy.dat)' u 1:($3/NB_READS) with linespoints linetype 1 title "demeter", \
-		 mm2(x) with lines dashtype 2 lc "red" title "minimap2 correct mapping rate"
+set multiplot layout 2,1 rowsfirst
+
+set xlabel "Seed occurence threshold"
+set ylabel "Normalized mapping error rate"
+
+plot '<(tail -n +2 performances.dat)' u 1:($3/mm2_error_rate) with linespoints linetype 1 notitle
+
+set xlabel "Seed occurence threshold"
+set ylabel "Normalized number of mapped reads"
+
+plot '<(tail -n +2 performances.dat)' u 1:($2/mm2_nb_mapped) with linespoints linetype 1 notitle
+
+unset multiplot

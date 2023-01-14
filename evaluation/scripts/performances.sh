@@ -7,7 +7,8 @@ XCLBIN=../device/demeter.xclbin
 
 rm -f $RES
 
-for max_occ in {50..700..50}
+#for max_occ in {50..700..50}
+for max_occ in {10..40..10}
 do
 	echo "[ACC] Generating the index with max_occ: $max_occ"
 	../demeter_index -t 32 -f $max_occ $TARGET $DATA/index.dti
@@ -17,12 +18,12 @@ do
 	../demeter -t 32 $XCLBIN $DATA/index.dti $QUERY -o $DATA/mapping.paf 2>> $RES
 done
 
-echo "[ACC] Generating the index for minimap2"
-minimap2 -t 32 -x map-ont -d $DATA/index.mmi $TARGET
-echo "[ACC] Evicting the index and the reads from the page cache"
-echo "[ACC] Running minimap2"
-./page_cache_evict $DATA/index.mmi $QUERY
-minimap2 -t 32 -x map-ont -o mapping.paf $DATA/index.mmi $QUERY 2>> performances_minimap2.txt
+#echo "[ACC] Generating the index for minimap2"
+#minimap2 -t 32 -x map-ont -d $DATA/index.mmi $TARGET
+#echo "[ACC] Evicting the index and the reads from the page cache"
+#echo "[ACC] Running minimap2"
+#./page_cache_evict $DATA/index.mmi $QUERY
+#minimap2 -t 32 -x map-ont -o mapping.paf $DATA/index.mmi $QUERY 2>> performances_minimap2.txt
 
 rm -f $DATA/index.dti
 rm -f $DATA/index.mmi
