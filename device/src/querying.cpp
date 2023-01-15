@@ -1,3 +1,4 @@
+#include "auto_gen.hpp"
 #include "querying.hpp"
 #include <string.h>
 
@@ -8,8 +9,7 @@ query_index_map_loop:
 	while (seed.str == 0 || seed.EOR == 0) {
 #pragma HLS pipeline II = 2
 		if (seed.EOR == 1) {
-			ms_pos_o << ms_pos_t{
-			    .start_pos = 0, .end_pos = 0, /* TODO.seed_id = 0,*/ .query_loc = 0, .str = 0, .EOR = 1};
+			PUSH_EOR(ms_pos_o);
 		} else {
 			const uint32_t bucket_id = seed.hash.range(bucket_id_msb, 0).to_uint();
 			// access the map
@@ -20,18 +20,20 @@ query_index_map_loop:
 
 			// If there are some potential locations
 			if (start != end) {
-				ms_pos_o << ms_pos_t{.start_pos = start,
-				                     .end_pos   = end,
-				                     // TODO
-				                     //.seed_id   = seed.hash(seed_id_msb, seed_id_lsb),
-				                     .query_loc = seed.loc,
-				                     .str       = seed.str,
-				                     .EOR       = 0};
+				PUSH_POS(ms_pos_o, start, end, seed);
+				/*
+				                                ms_pos_o << ms_pos_t{.start_pos = start,
+				                                                     .end_pos   = end,
+				                                                     // TODO
+				                                                     //.seed_id   =
+				   seed.hash(seed_id_msb, seed_id_lsb), .query_loc = seed.loc, .str       = seed.str,
+				                                                     .EOR       = 0};
+				                                                     */
 			}
 		}
 		seed = seed_i.read();
 	}
-	ms_pos_o << ms_pos_t{.start_pos = 0, .end_pos = 0, /* TODO.seed_id = 0,*/ .query_loc = 0, .str = 1, .EOR = 1};
+	PUSH_EOF(ms_pos_o);
 }
 
 inline uint64_t key_2_loc(const uint64_t key_i, const ap_uint<1> str_i, const ap_uint<READ_SIZE> query_loc_i) {
