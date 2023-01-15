@@ -16,19 +16,9 @@ query_index_map_loop:
 			const uint32_t start = (bucket_id == 0) ? 0 : map_i[bucket_id - 1];
 			const uint32_t end   = map_i[bucket_id];
 
-			// std::cout << std::hex << "start: " << start << " end: " << end << std::endl;
-
 			// If there are some potential locations
 			if (start != end) {
 				PUSH_POS(ms_pos_o, start, end, seed);
-				/*
-				                                ms_pos_o << ms_pos_t{.start_pos = start,
-				                                                     .end_pos   = end,
-				                                                     // TODO
-				                                                     //.seed_id   =
-				   seed.hash(seed_id_msb, seed_id_lsb), .query_loc = seed.loc, .str       = seed.str,
-				                                                     .EOR       = 0};
-				                                                     */
 			}
 		}
 		seed = seed_i.read();
@@ -61,18 +51,8 @@ query_index_key_loop:
 			// Check if we find locations with the same seed_id
 		search_key_loop:
 			for (uint32_t key_j = pos.start_pos; key_j < pos.end_pos; key_j++) {
-				uint64_t key               = key_i[key_j];
-				const ap_uint<64> uint_key = ap_uint<64>(key);
-				// TODO
-				/*const ap_uint<seed_id_size> seed_id =
-				    uint_key.range(seed_id_size - 1 + KEY_SEED_ID_START, KEY_SEED_ID_START);
-				    */
-				// TODO
-				/*if (seed_id == pos.seed_id) {*/
-				// Copy the locations
-				const uint64_t loc = key_2_loc(key, pos.str, pos.query_loc);
-				loc_o << loc;
-				//}
+				uint64_t key = key_i[key_j];
+				PUSH_LOC(loc_o, key, pos);
 			}
 		}
 		pos = ms_pos_i.read();

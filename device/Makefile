@@ -1,6 +1,7 @@
 CXX := g++
 SRC_DIR := src
 UTIL_DIR := ../util
+CONFIG_DIR := config
 
 SRCS = $(wildcard $(SRC_DIR)/*.cpp)
 OBJS = $(SRCS:$(SRC_DIR)/%.cpp=%.o)
@@ -13,13 +14,27 @@ DEPFLAGS = -MD -MP
 CXXFLAGS = -std=c++17 -O3 -g -march=native $(DEPFLAGS) -Wall -Wextra
 LDLIBS = -lstdc++ $(UTIL)
 
+PARAMS = $(wildcard $(CONFIG_DIR)/*.param)
+CONFIG = $(CONFIG_DIR)/demeter.cfg
+XCLBINS = $(PARAMS:$(CONFIG_DIR)/%.param=demeter_%.xclbin)
 SIM = demeter_sim
 
-XOBJ = demeter.xo
-XCLBIN = demeter.xclbin
-CONFIG = config/demeter.cfg
+all: $(XCLBINS)
 
-$(SIM): $(OBJS) demeter_util
+demeter_%.xclbin: $(CONFIG_DIR)/%.param auto_gen $(CONFIG)
+	./auto_gen $<
+	vitis_hls scripts/impl.tcl
+	v++  --kernel_frequency 320 -t hw --link demeter.xo -o $@ --config $(CONFIG)
+#TODO:clean
+
+auto_gen:
+	rustc src/auto_gen.rs
+
+sim: demeter_util $(SIM)
+	#./$< /mnt/scratch/jeudine/chr2-3.dti ../test/dummy.fastq
+
+
+$(SIM): $(OBJS) $(UTIL)
 	$(LINK.o) $(OBJS) $(LOADLIBES) $(LDLIBS) -o $@
 
 #$(OBJS): CPPFLAGS+=-DDEBUG_SEED_EXTRACTION
@@ -32,17 +47,10 @@ demeter_util:
 clean:
 	$(RM) *.o *.d $(SIM) *.log *.xo
 
-sim: $(SIM)
-	./$< /mnt/scratch/jeudine/chr2-3.dti ../test/dummy.fastq
 
 cosim: demeter_util
 	vitis_hls scripts/cosim.tcl
 
-$(XOBJ): $(SRC_DIR)/*
-	vitis_hls scripts/impl.tcl
 
-$(XCLBIN): $(XOBJ) $(CONFIG)
-	v++  --kernel_frequency 320 -t hw --link $(XOBJ) -o $@ --config $(CONFIG)
-
-.PHONY: clean sim cosim demeter_util
+.PHONY: clean sim cosim demeter_util all
 -include $(wildcard *.d)

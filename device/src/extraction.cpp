@@ -1,7 +1,7 @@
 #include "extraction.hpp"
 
-static const ap_uint<64> MASK = (1 << 2 * SE_K) - 1;
-static const ap_uint<64> MAX  = (1 << 2 * SE_K) - 1;
+static const ap_uint<64> MASK = (1UL << 2 * SE_K) - 1;
+static const ap_uint<64> MAX  = (1UL << 2 * SE_K) - 1;
 
 #define END_OF_READ_BASE 'E'
 #define N_BASE 'N'
