@@ -28,7 +28,7 @@ echo "[ACC] Running minimap2"
 start_date=`date +%s%N`
 minimap2 -t 32 -x map-ont -o mapping.paf $DATA/index.mmi $QUERY
 end_date=`date +%s%N`
-echo `expr $end_date - $start_date` > performances_minimap2.txt
+echo `expr $end_date - $start_date` > performances_mm2.txt
 
 rm -f $DATA/index.dti
 rm -f $DATA/index.mmi

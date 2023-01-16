@@ -9,7 +9,7 @@ set terminal pdf enhanced font 'FreeSans,12'
 set output "roofline.pdf"
 set xlabel "Arithmetic Intensity [op/byte]"
 set ylabel "Attainable Performance [Gop/sec]"
-set grid
+set grid mxtics mytics
 set logscale x 10
 set logscale y 10
 #set arrow 1 from 0.01,1.0703 to 10,1070.3 nohead lw 3 lc 2
@@ -19,23 +19,26 @@ s_add(x) = S_ADD
 v_add(x) = V_ADD
 set xrange[0.01: 10]
 
-set label "DRAM 107.03 GBps" at 0.012,1.6 rotate by 25 left tc "blue" font 'FreeSans, 12'
-set label "L3 543.62 GBps" at 0.012,8.5 rotate by 25 left tc "skyblue" font 'FreeSans, 12'
-set label "Scalar add peak" at 0.012,200 rotate by 0 left tc "red" font 'FreeSans, 12'
-set label "Vector add peak" at 0.012,2300 rotate by 0 left tc "light-red" font 'FreeSans, 12'
+set label "DRAM 107.03 GBps" at 0.012,1.6 rotate by 25 left tc "black"
+set label "L3 543.62 GBps" at 0.012,8.5 rotate by 25 left tc "black"
+set label "Scalar add peak" at 0.012,200 rotate by 0 left tc "black"
+set label "Vector add peak" at 0.012,2300 rotate by 0 left tc "black"
 set key right bottom
 
-plot for [n=1:4]"<(sed -n '".n."p' point_48.dat)" u 1:2 with points linestyle n lc "blue" notitle, \
-	for [n=1:4]"<(sed -n '".n."p' point_24.dat)" u 1:2 with points linestyle n lc "red" notitle, \
-	for [n=1:4]"<(sed -n '".n."p' point_12.dat)" u 1:2 with points linestyle n lc "green" notitle, \
-	dram(x) notitle with lines lc "blue", \
-	l3(x) notitle with lines lc "skyblue", \
-	s_add(x) notitle with lines dashtype 2 lc "red", \
-	v_add(x) notitle with lines dashtype 2 lc "red", \
+plot dram(x) notitle with lines lc "black", \
+	l3(x) notitle with lines lc "black", \
+	s_add(x) notitle with lines dashtype 2 lc "black", \
+	v_add(x) notitle with lines dashtype 2 lc "black", \
+	for [n=1:4]"<(sed -n '".n."p' roofline_12.dat)" u 1:2 with points linestyle n lc "green" notitle, \
+	for [n=1:4]"<(sed -n '".n."p' roofline_24.dat)" u 1:2 with points linestyle n lc "red" notitle, \
+	for [n=1:4]"<(sed -n '".n."p' roofline_48.dat)" u 1:2 with points linestyle n lc "blue" notitle, \
 	"<(echo 0	0)" u 1:2 with points linestyle 1 lc "black" title "Seed extraction", \
 	"<(echo 0	0)" u 1:2 with points linestyle 2 lc "black" title "Index querying", \
 	"<(echo 0	0)" u 1:2 with points linestyle 3 lc "black" title "Location sorting", \
-	"<(echo 0	0)" u 1:2 with points linestyle 4 lc "black" title "Chaining"
+	"<(echo 0	0)" u 1:2 with points linestyle 4 lc "black" title "Chaining", \
+	"<(echo 0	0)" u 1:2 with points linestyle 5 lc "green" title "12 threads", \
+	"<(echo 0	0)" u 1:2 with points linestyle 5 lc "red" title "24 threads", \
+	"<(echo 0	0)" u 1:2 with points linestyle 5 lc "blue" title "48 threads"
 
 
 

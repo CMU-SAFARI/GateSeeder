@@ -24,7 +24,7 @@ all: $(XCLBINS)
 demeter_%.xclbin: $(CONFIG_DIR)/%.param auto_gen $(CONFIG)
 	./auto_gen $<
 	vitis_hls scripts/impl.tcl
-	v++  --kernel_frequency 320 -t hw --link demeter.xo -o $@ --config $(CONFIG)
+	v++  --kernel_frequency 317 -t hw --link demeter.xo -o $@ --config $(CONFIG)
 #TODO:clean
 
 auto_gen:
