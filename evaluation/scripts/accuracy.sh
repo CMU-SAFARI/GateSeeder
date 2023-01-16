@@ -3,12 +3,11 @@
 RES=accuracy_demeter.txt
 TARGET=$DATA/GCA_000001405.15_GRCh38_no_alt_analysis_set.fasta
 QUERY=sim.fastq
-XCLBIN=../device/demeter.xclbin
+XCLBIN=../device/demeter_ont.xclbin
 
 rm -f $RES
 
-#for max_occ in {50..700..50}
-for max_occ in {10..40..10}
+for max_occ in {10..100..10}
 do
 	echo "[ACC] Generating the index with max_occ: $max_occ"
 	../demeter_index -t 32 -f $max_occ $TARGET $DATA/index.dti
