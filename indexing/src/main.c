@@ -47,6 +47,10 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	}
 
+	if (map_size > 2 * k) {
+		map_size = 2 * k;
+	}
+
 	fprintf(stderr, "[INFO] w: %u, k: %u, map_size: %u, max_occ: %u ms_size: %u\n", w, k, map_size, max_occ,
 	        ms_size);
 

@@ -11,11 +11,12 @@ if [ $1 = 'ont' ]; then
 	W=10
 	K=15
 	MM2_PRESET='map-ont'
-elif [ $1 = 'hifi']; then
+elif [ $1 = 'hifi' ]; then
 	XCLBIN=../device/demeter_hifi.xclbin
 	W=19
 	K=19
-	RANGE_VT_DISTANCE=$(eval echo "{500..1200..50}")
+	RANGE_MAX_OCC=$(eval echo "{1..5..1}")
+	RANGE_VT_DISTANCE=$(eval echo "{500..10000..100}")
 	MM2_PRESET='map-hifi'
 else
 	exit 1
