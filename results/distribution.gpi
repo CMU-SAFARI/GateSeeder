@@ -2,8 +2,8 @@
 
 data_file=ARG1
 
-set terminal pdf enhanced font 'FreeSans,8'
-set output "distribution.pdf"
+set terminal png enhanced font 'FreeSans,8'
+set output "distribution.png"
 set grid
 
 n=200 #number of intervals

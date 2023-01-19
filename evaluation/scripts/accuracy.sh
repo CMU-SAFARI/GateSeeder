@@ -6,10 +6,10 @@ QUERY=sim.fastq
 
 if [ $1 = 'ont' ]; then
 	XCLBIN=../device/demeter_ont.xclbin
-	RANGE_MAX_OCC=$(eval echo "{10..100..10}")
-	RANGE_VT_DISTANCE=$(eval echo "{500..1100..50}")
 	W=10
 	K=15
+	RANGE_MAX_OCC=$(eval echo "{10..100..10}")
+	RANGE_VT_DISTANCE=$(eval echo "{500..1100..50}")
 	MM2_PRESET='map-ont'
 elif [ $1 = 'hifi' ]; then
 	XCLBIN=../device/demeter_hifi.xclbin
@@ -18,6 +18,13 @@ elif [ $1 = 'hifi' ]; then
 	RANGE_MAX_OCC=$(eval echo "{1..5..1}")
 	RANGE_VT_DISTANCE=$(eval echo "{500..10000..100}")
 	MM2_PRESET='map-hifi'
+elif [ $1 = 'illumina' ]; then
+	XCLBIN=../device/demeter_illumina.xclbin
+	W=11
+	K=21
+	RANGE_MAX_OCC=$(eval echo "{10..100..10}")
+	RANGE_VT_DISTANCE=$(eval echo "{10..150..20}")
+	MM2_PRESET='sr'
 else
 	exit 1
 fi

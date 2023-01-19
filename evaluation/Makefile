@@ -14,6 +14,13 @@ VPATH = $(SRC_DIR)
 
 all: $(GEN_RES) $(EVICT)
 
+results_illumina.dat: $(GEN_RES) $(EVICT)
+	$(MAKE) -C ..
+	./$(SCRIPT_DIR)/gen_sim.sh illumina
+	./$(SCRIPT_DIR)/accuracy.sh illumina
+	./$(SCRIPT_DIR)/performances.sh illumina
+	./$(GEN_RES) accuracy_demeter.txt accuracy_mm2.txt performances_demeter.txt performances_mm2.txt > $@
+
 results_hifi.dat: $(GEN_RES) $(EVICT)
 	$(MAKE) -C ..
 	./$(SCRIPT_DIR)/gen_sim.sh hifi

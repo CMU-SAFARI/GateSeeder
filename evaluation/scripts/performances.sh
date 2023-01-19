@@ -17,6 +17,13 @@ elif [ $1 = 'hifi' ]; then
 	K=19
 	RANGE_MAX_OCC=$(eval echo "{1..5..1}")
 	MM2_PRESET='map-hifi'
+elif [ $1 = 'illumina' ]; then
+	XCLBIN=../device/demeter_illumina.xclbin
+	QUERY=$DATA/D1_S1_L001_R1_001-017.fastq
+	W=11
+	K=21
+	RANGE_MAX_OCC=$(eval echo "{10..100..10}")
+	MM2_PRESET='sr'
 else
 	exit 1
 fi
@@ -26,22 +33,22 @@ rm -f $RES
 
 for max_occ in $RANGE_MAX_OCC
 do
-	echo "[ACC] Generating the index with max_occ: $max_occ"
+	echo "[PERF] Generating the index with max_occ: $max_occ"
 	../demeter_index -t 32 -w $W -k $K -f $max_occ $TARGET $DATA/index.dti
-	echo "[ACC] Evicting the index and the reads from the page cache"
+	echo "[PERF] Evicting the index and the reads from the page cache"
 	./page_cache_evict $DATA/index.dti $QUERY
-	echo "[ACC] Running demeter"
+	echo "[PERF] Running demeter"
 	start_date=`date +%s%N`
 	../demeter -t 32 $XCLBIN $DATA/index.dti $QUERY -o $DATA/mapping.paf
 	end_date=`date +%s%N`
 	echo `expr $end_date - $start_date` >> $RES
 done
 
-echo "[ACC] Generating the index for minimap2"
+echo "[PERF] Generating the index for minimap2"
 minimap2 -t 32 -x $MM2_PRESET -d $DATA/index.mmi $TARGET
-echo "[ACC] Evicting the index and the reads from the page cache"
+echo "[PERF] Evicting the index and the reads from the page cache"
 ./page_cache_evict $DATA/index.mmi $QUERY
-echo "[ACC] Running minimap2"
+echo "[PERF] Running minimap2"
 start_date=`date +%s%N`
 minimap2 -t 32 -x $MM2_PRESET -o $DATA/mapping.paf $DATA/index.mmi $QUERY
 end_date=`date +%s%N`
