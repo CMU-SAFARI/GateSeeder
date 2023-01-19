@@ -5,10 +5,10 @@
 #include "querying.h"
 #include <fcntl.h>
 
-unsigned SE_W         = 10;
-unsigned SE_K         = 15;
-unsigned IDX_MAP_SIZE = 27;
-unsigned IDX_MAX_OCC  = 200;
+unsigned SE_W         = 19;
+unsigned SE_K         = 19;
+unsigned IDX_MAP_SIZE = 30;
+unsigned IDX_MAX_OCC  = 500;
 unsigned BATCH_SIZE   = 1000;
 
 int main(int argc, char *argv[]) {

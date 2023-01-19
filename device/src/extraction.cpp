@@ -28,13 +28,13 @@ void extract_seeds(const uint8_t *seq_i, const uint32_t nb_bases_i, hls::stream<
 
 seed_extraction_loop:
 	for (uint32_t base_n = 0; base_n < nb_bases_i; base_n++) {
-#pragma HLS PIPELINE II = window_size
+#pragma HLS PIPELINE II = 1
 		base_t base(seq_i[base_n]);
-		ap_uint<1> EOR = 0, out[SE_W];
+		ap_uint<1> EOR = 0;
 		ap_uint<2 * SE_K> kmers[SE_W][2];
-		seed_t base_window[SE_W], base_window_2[SE_W];
+		seed_t base_window[SE_W];
 #pragma HLS array_partition type = complete variable = base_window
-#pragma HLS array_partition type = complete variable = base_window_2
+		seed_t min;
 
 		if (base == END_OF_READ_BASE) {
 			EOR                = 1;
@@ -78,37 +78,40 @@ seed_extraction_loop:
 				          */
 			}
 
-			// Copy to reduce the interval
-		copy_loop:
-			for (unsigned i = 0; i < SE_W; i++) {
-#pragma HLS UNROLL
-				base_window_2[i] = base_window[i];
-			}
+			// Find the minimum
+			const seed_t min_0 =
+			    (base_window[0].hash <= base_window[1].hash) ? base_window[0] : base_window[1];
+			const seed_t min_1 =
+			    (base_window[2].hash <= base_window[3].hash) ? base_window[2] : base_window[3];
+			const seed_t min_2 =
+			    (base_window[4].hash <= base_window[5].hash) ? base_window[4] : base_window[5];
+			const seed_t min_3 =
+			    (base_window[6].hash <= base_window[7].hash) ? base_window[6] : base_window[7];
+			const seed_t min_4 =
+			    (base_window[8].hash <= base_window[9].hash) ? base_window[8] : base_window[9];
+			const seed_t min_5 =
+			    (base_window[10].hash <= base_window[11].hash) ? base_window[10] : base_window[11];
+			const seed_t min_6 =
+			    (base_window[12].hash <= base_window[13].hash) ? base_window[12] : base_window[13];
+			const seed_t min_7 =
+			    (base_window[14].hash <= base_window[15].hash) ? base_window[14] : base_window[15];
+			const seed_t min_8 =
+			    (base_window[16].hash <= base_window[17].hash) ? base_window[16] : base_window[17];
+			const seed_t min_9  = (min_0.hash <= min_1.hash) ? min_0 : min_1;
+			const seed_t min_10 = (min_2.hash <= min_3.hash) ? min_2 : min_3;
+			const seed_t min_11 = (min_4.hash <= min_5.hash) ? min_4 : min_5;
+			const seed_t min_12 = (min_6.hash <= min_7.hash) ? min_6 : min_7;
+			const seed_t min_13 = (min_8.hash <= base_window[18].hash) ? min_8 : base_window[18];
+			const seed_t min_14 = (min_9.hash <= min_10.hash) ? min_9 : min_10;
+			const seed_t min_15 = (min_11.hash <= min_12.hash) ? min_11 : min_12;
+			const seed_t min_16 = (min_13.hash <= min_14.hash) ? min_13 : min_14;
+			const seed_t min_17 = (min_15.hash <= min_16.hash) ? min_15 : min_16;
+			min                 = min_17;
 
-			uint64_t min = base_window[0].hash;
-		comp_loop:
-			for (unsigned i = 1; i < SE_W; i++) {
-				if (base_window_2[i].hash < min) {
-					min = base_window_2[i].hash;
-				}
-			}
+			// std::cout << "min hash: " << min.hash << " loc: " << min.loc << std::endl;
+			// std::cout << "prev hash: " << previous_minimizer.hash << " loc: " << previous_minimizer.loc
+			//<< std::endl;
 
-			/*
-			std::cout << "prev_minimum: hash: " << std::hex << previous_minimizer.hash
-			          << " loc: " << previous_minimizer.loc << std::endl;
-			          */
-		find_minimizer_loop:
-			for (unsigned i = 0; i < SE_W; i++) {
-#pragma HLS UNROLL
-				out[i] = (base_window_2[i].hash == min) ? 1 : 0;
-				/*
-				// DEBUG
-				if (out[i] == 1) {
-				        std::cout << "minimum: hash: " << std::hex << base_window_2[i].hash
-				                  << " loc: " << base_window_2[i].loc << std::endl;
-				}
-				*/
-			}
 			EOR = 0;
 		}
 
@@ -116,15 +119,10 @@ seed_extraction_loop:
 		if (length > SE_K + SE_W - 2 || EOR) {
 			if (EOR) {
 				minimizers_o << previous_minimizer;
-			} else {
-				seed_t new_previous_minimizer = previous_minimizer;
-				for (unsigned i = 0; i < SE_W; i++) {
-					if (out[i] && base_window_2[i].loc > previous_minimizer.loc) {
-						minimizers_o << base_window_2[i];
-						new_previous_minimizer = base_window_2[i];
-					}
-				}
-				previous_minimizer = new_previous_minimizer;
+			} else if (min.loc != previous_minimizer.loc) {
+				// std::cout << "hash: " << min.hash << std::endl;
+				minimizers_o << min;
+				previous_minimizer = min;
 			}
 			EOR = 0;
 		}

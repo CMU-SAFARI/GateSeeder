@@ -27,8 +27,8 @@ demeter_%.xclbin: $(CONFIG_DIR)/%.param auto_gen $(CONFIG)
 	v++  --kernel_frequency 317 -t hw --link demeter.xo -o $@ --config $(CONFIG)
 #TODO:clean
 
-auto_gen:
-	rustc src/auto_gen.rs
+auto_gen: src/auto_gen.rs
+	rustc $<
 
 sim: demeter_util $(SIM)
 	#./$< /mnt/scratch/jeudine/chr2-3.dti ../test/dummy.fastq

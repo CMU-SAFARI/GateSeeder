@@ -22,7 +22,7 @@ $(GOLD): $(OBJS) demeter_util
 demeter_util:
 	$(MAKE) -C $(UTIL_DIR)
 
-$(OBJS): CPPFLAGS+=-DHASH_DISTRIBUTION
+$(OBJS): CPPFLAGS+=-DQUERY_INDEX_KEY
 
 clean:
 	$(RM) *.o *.d $(GOLD)

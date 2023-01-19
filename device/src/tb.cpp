@@ -6,12 +6,6 @@
 
 using namespace std;
 
-unsigned SE_W         = 10;
-unsigned SE_K         = 15;
-unsigned IDX_MAP_SIZE = 30;
-unsigned IDX_MAX_OCC  = 200;
-unsigned MS_SIZE      = 1 << 29;
-
 void print_results(uint64_t *results) {
 	uint32_t i   = 0;
 	uint64_t res = results[0];

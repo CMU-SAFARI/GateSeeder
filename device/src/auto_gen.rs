@@ -90,7 +90,7 @@ const static unsigned seed_id_size  = seed_id_msb - bucket_id_msb;
 
 		writeln!(
 			file,
-			"#define PUSH_POS(stream, start, end, seed) stream << ms_pos_t{{.start_pos = start, .seed_id = seed.hash(seed_id_msb, seed_id_lsb), .end_pos = end, .query_loc = seed.loc, .str = seed.str, .EOR = 0}};"
+			"#define PUSH_POS(stream, start, end, seed) stream << ms_pos_t{{.start_pos = start, .end_pos = end, .seed_id = seed.hash(seed_id_msb, seed_id_lsb), .query_loc = seed.loc, .str = seed.str, .EOR = 0}};"
 		)
 		.unwrap();
 
