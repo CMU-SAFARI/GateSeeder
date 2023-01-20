@@ -24,7 +24,7 @@ void fastq_open(const int param, const char *const file_name) {
 	}
 	fastq_file_len = statbuf.st_size;
 	if (param == OPEN_MMAP) {
-		MMAP(fastq_file_ptr, uint8_t, fastq_file_len, PROT_READ, MAP_SHARED | MAP_POPULATE | MAP_NONBLOCK,
+		MMAP(fastq_file_ptr, uint8_t, fastq_file_len, PROT_READ, MAP_PRIVATE | MAP_POPULATE | MAP_NONBLOCK,
 		     fastq_fd);
 	} else {
 		// With Malloc and copy

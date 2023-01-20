@@ -107,31 +107,35 @@ void extract_seeds(const uint8_t *seq, const uint32_t len, const uint32_t chrom_
 				}
 			}
 			if (l >= w + k - 1 && minimizer.hash != UINT64_MAX) {
+				/*
 				for (unsigned j = buf_pos + 1; j < w; ++j) {
-					if (minimizer.hash == buf[j].hash && minimizer.loc != buf[j].loc) {
-						push_seed(minimizers, buf[j], chrom_id, map_size);
-					}
+				        if (minimizer.hash == buf[j].hash && minimizer.loc != buf[j].loc) {
+				                push_seed(minimizers, buf[j], chrom_id, map_size);
+				        }
 				}
 				for (unsigned j = 0; j < buf_pos; ++j) {
-					if (minimizer.hash == buf[j].hash && minimizer.loc != buf[j].loc) {
-						push_seed(minimizers, buf[j], chrom_id, map_size);
-					}
+				        if (minimizer.hash == buf[j].hash && minimizer.loc != buf[j].loc) {
+				                push_seed(minimizers, buf[j], chrom_id, map_size);
+				        }
 				}
+				*/
 			}
 		}
 
 		// If it's the first window
 		if (l == w + k - 1 && minimizer.hash != UINT64_MAX) {
+			/*
 			for (unsigned j = buf_pos + 1; j < w; ++j) {
-				if (minimizer.hash == buf[j].hash && minimizer.loc != buf[j].loc) {
-					push_seed(minimizers, buf[j], chrom_id, map_size);
-				}
+			        if (minimizer.hash == buf[j].hash && minimizer.loc != buf[j].loc) {
+			                push_seed(minimizers, buf[j], chrom_id, map_size);
+			        }
 			}
 			for (unsigned j = 0; j < buf_pos; ++j) {
-				if (minimizer.hash == buf[j].hash && minimizer.loc != buf[j].loc) {
-					push_seed(minimizers, buf[j], chrom_id, map_size);
-				}
+			        if (minimizer.hash == buf[j].hash && minimizer.loc != buf[j].loc) {
+			                push_seed(minimizers, buf[j], chrom_id, map_size);
+			        }
 			}
+			*/
 		}
 		buf_pos = (buf_pos == w - 1) ? 0 : buf_pos + 1;
 	}

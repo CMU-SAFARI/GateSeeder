@@ -34,12 +34,12 @@ rm -f $RES
 for max_occ in $RANGE_MAX_OCC
 do
 	echo "[PERF] Generating the index with max_occ: $max_occ"
-	../demeter_index -t 32 -w $W -k $K -f $max_occ $TARGET $DATA/index.dti
+	#../demeter_index -t 32 -w $W -k $K -f $max_occ $TARGET $DATA/index.dti
 	echo "[PERF] Evicting the index and the reads from the page cache"
 	./page_cache_evict $DATA/index.dti $QUERY
 	echo "[PERF] Running demeter"
 	start_date=`date +%s%N`
-	../demeter -t 32 $XCLBIN $DATA/index.dti $QUERY -o $DATA/mapping.paf
+	../demeter -b 40000000 -t 32 $XCLBIN $DATA/index.dti $QUERY -o $DATA/mapping.paf
 	end_date=`date +%s%N`
 	echo `expr $end_date - $start_date` >> $RES
 done
