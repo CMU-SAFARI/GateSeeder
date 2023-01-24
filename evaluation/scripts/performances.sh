@@ -12,7 +12,7 @@ if [ $1 = 'ont' ]; then
 	MM2_PRESET='map-ont'
 elif [ $1 = 'hifi' ]; then
 	XCLBIN=../device/demeter_hifi.xclbin
-	QUERY=$DATA/m64011_190830_220126.fastq
+	QUERY=$DATA/m64011_190830_220126.fasta
 	W=19
 	K=19
 	RANGE_MAX_OCC=$(eval echo "{1..5..1}")
@@ -34,25 +34,27 @@ rm -f $RES
 for max_occ in $RANGE_MAX_OCC
 do
 	echo "[PERF] Generating the index with max_occ: $max_occ"
-	#../demeter_index -t 32 -w $W -k $K -f $max_occ $TARGET $DATA/index.dti
-	echo "[PERF] Evicting the index and the reads from the page cache"
-	./page_cache_evict $DATA/index.dti $QUERY
+	../demeter_index -t 32 -w $W -k $K -f $max_occ $TARGET $DATA/index.dti
+	echo "[PERF] Locking the reads and the index into RAM"
+	vmtouch -ldw $QUERY $DATA/index.dti
 	echo "[PERF] Running demeter"
 	start_date=`date +%s%N`
 	../demeter -b 40000000 -t 32 $XCLBIN $DATA/index.dti $QUERY -o $DATA/mapping.paf
 	end_date=`date +%s%N`
 	echo `expr $end_date - $start_date` >> $RES
+	pkill vmtouch
 done
 
 echo "[PERF] Generating the index for minimap2"
 minimap2 -t 32 -x $MM2_PRESET -d $DATA/index.mmi $TARGET
-echo "[PERF] Evicting the index and the reads from the page cache"
-./page_cache_evict $DATA/index.mmi $QUERY
+echo "[PERF] Locking the reads and the index into RAM"
+vmtouch -ldw $QUERY $DATA/index.mmi
 echo "[PERF] Running minimap2"
 start_date=`date +%s%N`
 minimap2 -t 32 -x $MM2_PRESET -o $DATA/mapping.paf $DATA/index.mmi $QUERY
 end_date=`date +%s%N`
 echo `expr $end_date - $start_date` > performances_mm2.txt
+pkill vmtouch
 
 rm -f $DATA/index.dti
 rm -f $DATA/index.mmi
