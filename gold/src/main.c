@@ -13,7 +13,8 @@ unsigned BATCH_SIZE   = 1000;
 
 int main(int argc, char *argv[]) {
 	if (argc != 3) {
-		errx(1, "Usage\t%s <index.dti> <query.fastq>", argv[0]);
+		fprintf(stderr, "Usage: %s <index.dti> <query.fastq>\n", argv[0]);
+		exit(1);
 	}
 
 	index_t index = index_parse(argv[1]);

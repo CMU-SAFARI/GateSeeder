@@ -11,7 +11,7 @@ VPATH = $(SRC_DIR)
 
 CPPFLAGS = -I$(XILINX_VITIS_HLS)/include -I$(UTIL_DIR)/include
 DEPFLAGS = -MD -MP
-CXXFLAGS = -std=c++17 -O3 -g -march=native $(DEPFLAGS) -Wall -Wextra
+CXXFLAGS = -std=c++17 -O3 -g -march=native $(DEPFLAGS) -Wall
 LDLIBS = -lstdc++ $(UTIL)
 
 PARAMS = $(wildcard $(CONFIG_DIR)/*.param)
@@ -22,7 +22,7 @@ SIM = demeter_sim
 all: $(XCLBINS)
 
 demeter_%.xclbin: $(CONFIG_DIR)/%.param auto_gen $(CONFIG)
-	./auto_gen $<
+	./auto_gen $< > src/auto_gen.hpp
 	vitis_hls scripts/impl.tcl
 	v++  --kernel_frequency 317 -t hw --link demeter.xo -o $@ --config $(CONFIG)
 #TODO:clean

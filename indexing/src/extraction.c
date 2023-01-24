@@ -49,9 +49,7 @@ void extract_seeds(const uint8_t *seq, const uint32_t len, const uint32_t chrom_
 	const unsigned shift = 2 * (k - 1);
 	uint64_t kmer[2]     = {0, 0};
 	seed_t buf[256];
-	unsigned int l = 0; // l counts the number of bases and is reset to 0 each
-	                    // time there is an ambiguous base
-
+	unsigned int l   = 0;
 	unsigned buf_pos = 0;
 	unsigned min_pos = 0;
 	seed_t minimizer = {.hash = UINT64_MAX, .loc = 0, .str = 0};
@@ -59,16 +57,16 @@ void extract_seeds(const uint8_t *seq, const uint32_t len, const uint32_t chrom_
 	for (uint32_t i = 0; i < len; i++) {
 		uint8_t c           = seq[i];
 		seed_t current_seed = {.hash = UINT64_MAX, .loc = 0, .str = 0};
-		if (c < 4) {                                            // not an ambiguous base
-			kmer[0] = (kmer[0] << 2 | c) & mask;            // forward k-mer
-			kmer[1] = (kmer[1] >> 2) | (2ULL ^ c) << shift; // reverse k-mer
+		if (c < 4) {
+			kmer[0] = (kmer[0] << 2 | c) & mask;
+			kmer[1] = (kmer[1] >> 2) | (2ULL ^ c) << shift;
 			l++;
 			if (l >= k) {
 				// skip "symmetric k-mers"
 				if (kmer[0] == kmer[1]) {
 					current_seed.hash = UINT64_MAX;
 				} else {
-					unsigned char z   = kmer[0] > kmer[1]; // strand
+					unsigned char z   = kmer[0] > kmer[1];
 					current_seed.hash = hash64(kmer[z], mask);
 					current_seed.loc  = i;
 					current_seed.str  = z;
@@ -106,36 +104,6 @@ void extract_seeds(const uint8_t *seq, const uint32_t len, const uint32_t chrom_
 					min_pos   = j;
 				}
 			}
-			if (l >= w + k - 1 && minimizer.hash != UINT64_MAX) {
-				/*
-				for (unsigned j = buf_pos + 1; j < w; ++j) {
-				        if (minimizer.hash == buf[j].hash && minimizer.loc != buf[j].loc) {
-				                push_seed(minimizers, buf[j], chrom_id, map_size);
-				        }
-				}
-				for (unsigned j = 0; j < buf_pos; ++j) {
-				        if (minimizer.hash == buf[j].hash && minimizer.loc != buf[j].loc) {
-				                push_seed(minimizers, buf[j], chrom_id, map_size);
-				        }
-				}
-				*/
-			}
-		}
-
-		// If it's the first window
-		if (l == w + k - 1 && minimizer.hash != UINT64_MAX) {
-			/*
-			for (unsigned j = buf_pos + 1; j < w; ++j) {
-			        if (minimizer.hash == buf[j].hash && minimizer.loc != buf[j].loc) {
-			                push_seed(minimizers, buf[j], chrom_id, map_size);
-			        }
-			}
-			for (unsigned j = 0; j < buf_pos; ++j) {
-			        if (minimizer.hash == buf[j].hash && minimizer.loc != buf[j].loc) {
-			                push_seed(minimizers, buf[j], chrom_id, map_size);
-			        }
-			}
-			*/
 		}
 		buf_pos = (buf_pos == w - 1) ? 0 : buf_pos + 1;
 	}

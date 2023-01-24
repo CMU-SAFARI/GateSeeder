@@ -30,6 +30,8 @@ fi
 
 
 rm -f $RES
+echo "[PERF] Loading the xclbin"
+xbutil program -d 0000:c4:00.1 -u $XCLBIN
 
 for max_occ in $RANGE_MAX_OCC
 do

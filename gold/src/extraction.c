@@ -106,41 +106,8 @@ uint32_t extract_seeds_mapping(const uint8_t *seq, const uint32_t len, seed_v *c
 					min_pos   = j;
 				}
 			}
-			if (l >= SE_W + SE_K - 1 && minimizer.hash != UINT64_MAX) {
-				for (unsigned j = buf_pos + 1; j < SE_W; ++j) {
-					if (minimizer.hash == buf[j].hash && minimizer.loc != buf[j].loc) {
-						if (push_seed_mapping(minimizers, buf[j], partial)) {
-							return buf[j].loc - SE_K + 2;
-						}
-					}
-				}
-				for (unsigned j = 0; j < buf_pos; ++j) {
-					if (minimizer.hash == buf[j].hash && minimizer.loc != buf[j].loc) {
-						if (push_seed_mapping(minimizers, buf[j], partial)) {
-							return buf[j].loc - SE_K + 2;
-						}
-					}
-				}
-			}
 		}
 
-		// If it's the first window
-		if (l == SE_W + SE_K - 1 && minimizer.hash != UINT64_MAX) {
-			for (unsigned j = buf_pos + 1; j < SE_W; ++j) {
-				if (minimizer.hash == buf[j].hash && minimizer.loc != buf[j].loc) {
-					if (push_seed_mapping(minimizers, buf[j], partial)) {
-						return buf[j].loc - SE_K + 2;
-					}
-				}
-			}
-			for (unsigned j = 0; j < buf_pos; ++j) {
-				if (minimizer.hash == buf[j].hash && minimizer.loc != buf[j].loc) {
-					if (push_seed_mapping(minimizers, buf[j], partial)) {
-						return buf[j].loc - SE_K + 2;
-					}
-				}
-			}
-		}
 		buf_pos = (buf_pos == SE_W - 1) ? 0 : buf_pos + 1;
 	}
 	if (l >= SE_W + SE_K - 1 && minimizer.hash != UINT64_MAX) {

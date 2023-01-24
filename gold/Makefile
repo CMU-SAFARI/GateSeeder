@@ -1,4 +1,5 @@
 CC := gcc
+
 SRC_DIR := src
 UTIL_DIR := ../util
 
@@ -12,11 +13,11 @@ CFLAGS = -std=gnu11 -O3 -g -march=native $(DEPFLAGS) -Wall -Wextra -Werror
 LDLIBS = $(UTIL)
 VPATH = $(SRC_DIR)
 
-GOLD = demeter_gold
+EXE = demeter_gold
 
-all: $(GOLD)
+all: demeter_util $(EXE)
 
-$(GOLD): $(OBJS) demeter_util
+$(EXE): $(OBJS) $(UTIL)
 	$(LINK.o) $(OBJS) $(LOADLIBES) $(LDLIBS) -o $@
 
 demeter_util:
@@ -25,7 +26,7 @@ demeter_util:
 $(OBJS): CPPFLAGS+=-DQUERY_INDEX_KEY
 
 clean:
-	$(RM) *.o *.d $(GOLD)
+	$(RM) *.o *.d $(EXE)
 
 .PHONY: clean demeter_util
 -include $(wildcard *.d)

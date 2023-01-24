@@ -22,7 +22,7 @@
 // str = 0 and EOR = 1: end of read
 // str = 1 and EOR = 1: end of file
 struct seed_t {
-	ap_uint<2 * SE_K> hash; // size: 2*K
+	ap_uint<2 * SE_K> hash;
 	ap_uint<READ_SIZE> loc;
 	ap_uint<1> str;
 	ap_uint<1> EOR;
