@@ -59,7 +59,7 @@ static inline task_t next_task(d_worker_t *const worker, const int no_input) {
 
 static int fill_input(d_worker_t *const worker) {
 	LOCK(fastq_parse_mutex);
-	const int res = fastq_parse(&worker->read_buf);
+	const int res = fa_parse(&worker->read_buf);
 	UNLOCK(fastq_parse_mutex);
 	if (!res || worker->read_buf.len != 0) {
 		// printf("read_len[%u] : %u\n", worker->id, worker->read_buf.len);

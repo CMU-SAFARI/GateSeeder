@@ -102,7 +102,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 					args->index = index_parse(arg);
 					break;
 				case 2:
-					fastq_open(OPEN_MMAP, arg);
+					fa_open(OPEN_MMAP, arg);
 					break;
 				default:
 					argp_usage(state);
@@ -143,17 +143,15 @@ int main(int argc, char *argv[]) {
 	fprintf(stderr, "[INFO] Initialization time %f sec\n",
 	        init.tv_sec - start.tv_sec + (init.tv_nsec - start.tv_nsec) / 1000000000.0);
 	mapping_run(args.nb_threads);
-	clock_gettime(CLOCK_MONOTONIC, &end);
-	fprintf(stderr, "[INFO] Total execution time %f sec\n",
-	        end.tv_sec - start.tv_sec + (end.tv_nsec - start.tv_nsec) / 1000000000.0);
-
 	paf_write_destroy();
 	demeter_fpga_destroy();
 	index_destroy_target(args.index);
-	fastq_close();
+	fa_close();
+	clock_gettime(CLOCK_MONOTONIC, &end);
+	fprintf(stderr, "[INFO] Total execution time %f sec\n",
+	        end.tv_sec - start.tv_sec + (end.tv_nsec - start.tv_nsec) / 1000000000.0);
 	struct rusage r;
 	getrusage(RUSAGE_SELF, &r);
 	fprintf(stderr, "[INFO] Peak RSS: %f GB\n", r.ru_maxrss / 1048576.0);
-
 	return 0;
 }

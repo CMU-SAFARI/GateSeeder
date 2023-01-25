@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
 	}
 	*/
 	read_buf_t read_buf;
-	fastq_open(OPEN_MMAP, argv[2]);
+	fa_open(OPEN_MMAP, argv[2]);
 	read_buf_init(&read_buf, 1 << 20);
 
 	std::cout << "Read file open\n";
@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
 	uint64_t *loc_o;
 	MALLOC(loc_o, uint64_t, 1 << 20);
 
-	while (fastq_parse(&read_buf) == 0) {
+	while (fa_parse(&read_buf) == 0) {
 		std::cout << "read buf len: " << read_buf.len << std::endl;
 		demeter_kernel(read_buf.len, read_buf.seq, index.map, index.key, loc_o);
 #if !defined(DEBUG_QUERY_INDEX_MAP) && !defined(DEBUG_QUERY_INDEX_KEY) && !defined(DEBUG_SEED_EXTRACTION)

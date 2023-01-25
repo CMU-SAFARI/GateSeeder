@@ -10,31 +10,37 @@
 #define END_OF_READ_BASE 'E'
 #define IDX_MAGIC "ALOHA"
 
-static int fastq_fd;
-static uint8_t *fastq_file_ptr;
-static size_t fastq_file_len;
-static size_t fastq_file_pos;
-static uint8_t *fastq_buf;
+static int fa_fd;
+static uint8_t *fa_file_ptr;
+static size_t fa_file_len;
+static size_t fa_file_pos;
+static uint8_t *fa_buf;
 
-void fastq_open(const int param, const char *const file_name) {
+void fa_open(const int param, const char *const file_name) {
 	struct stat statbuf;
-	OPEN(fastq_fd, file_name, O_RDONLY);
-	if (fstat(fastq_fd, &statbuf) == -1) {
+	OPEN(fa_fd, file_name, O_RDONLY);
+	if (fstat(fa_fd, &statbuf) == -1) {
 		err(1, "%s:%d, fstat", __FILE__, __LINE__);
 	}
-	fastq_file_len = statbuf.st_size;
+	fa_file_len = statbuf.st_size;
 	if (param == OPEN_MMAP) {
-		MMAP(fastq_file_ptr, uint8_t, fastq_file_len, PROT_READ, MAP_PRIVATE | MAP_POPULATE | MAP_NONBLOCK,
-		     fastq_fd);
+		MMAP(fa_file_ptr, uint8_t, fa_file_len, PROT_READ, MAP_PRIVATE | MAP_POPULATE | MAP_NONBLOCK, fa_fd);
 	} else {
 		// With Malloc and copy
 		FILE *fp;
 		FOPEN(fp, file_name, "rb");
-		MALLOC(fastq_file_ptr, uint8_t, fastq_file_len);
-		FREAD(fastq_file_ptr, uint8_t, fastq_file_len, fp);
+		MALLOC(fa_file_ptr, uint8_t, fa_file_len);
+		FREAD(fa_file_ptr, uint8_t, fa_file_len, fp);
 	}
-	fastq_file_pos = 0;
-	MALLOC(fastq_buf, uint8_t, MAX_SEQ_LEN);
+	fa_file_pos = 0;
+	MALLOC(fa_buf, uint8_t, MAX_SEQ_LEN);
+
+	// Skip the comment lines
+	uint8_t c = fa_file_ptr[fa_file_pos];
+	while (c != '>' && c != '@' && fa_file_pos < fa_file_len) {
+		fa_file_pos++;
+		c = fa_file_ptr[fa_file_pos];
+	}
 }
 
 void read_buf_init(read_buf_t *const buf, const uint32_t capacity) {
@@ -51,41 +57,54 @@ void read_buf_destroy(const read_buf_t buf) {
 	free(buf.metadata);
 }
 
-int fastq_parse(read_buf_t *const buf) {
+int fa_parse(read_buf_t *const buf) {
 	static uint32_t cur_batch_id = 0;
 	buf->len                     = 0;
 	buf->metadata_len            = 0;
 	buf->batch_id                = cur_batch_id;
 	cur_batch_id++;
 
-	while (fastq_file_pos < fastq_file_len) {
+	while (fa_file_pos < fa_file_len) {
+		int is_fastq = fa_file_ptr[fa_file_pos] == '@';
 		// Get the name
-		int is_fasta          = fastq_file_ptr[fastq_file_pos] == '>';
-		const size_t name_pos = fastq_file_pos + 1;
-		uint8_t c             = fastq_file_ptr[name_pos];
+		const size_t name_pos = fa_file_pos + 1;
+		uint8_t c             = fa_file_ptr[name_pos];
 		unsigned name_len     = 0;
 
 		while (c != ' ' && c != '\n') {
 			name_len++;
-			c = fastq_file_ptr[name_pos + name_len];
+			c = fa_file_ptr[name_pos + name_len];
 		}
 
 		size_t cur_pos = name_len + name_pos;
 		name_len++;
 
-		for (; fastq_file_ptr[cur_pos] != '\n'; cur_pos++) {
+		for (; fa_file_ptr[cur_pos] != '\n'; cur_pos++) {
 		}
 		cur_pos++;
 
 		// Get the sequence in buf
 		uint32_t read_len = 0;
-		for (;;) {
-			uint8_t base_c = fastq_file_ptr[cur_pos + read_len];
-			if (base_c == '\n') {
-				break;
+		if (is_fastq) {
+			for (;; cur_pos++) {
+				uint8_t base_c = fa_file_ptr[cur_pos];
+				if (base_c == '\n') {
+					break;
+				}
+				fa_buf[read_len] = base_c;
+				read_len++;
 			}
-			fastq_buf[read_len] = base_c;
-			read_len++;
+		} else {
+			for (; cur_pos < fa_file_len; cur_pos++) {
+				uint8_t base_c = fa_file_ptr[cur_pos];
+				if (base_c == '>') {
+					break;
+				}
+				if (base_c != '\n') {
+					fa_buf[read_len] = base_c;
+					read_len++;
+				}
+			}
 		}
 		read_len++;
 
@@ -95,8 +114,8 @@ int fastq_parse(read_buf_t *const buf) {
 		}
 
 		// Copy the seq into the buf
-		fastq_buf[read_len - 1] = END_OF_READ_BASE;
-		memcpy(&buf->seq[buf->len], fastq_buf, sizeof(uint8_t) * read_len);
+		fa_buf[read_len - 1] = END_OF_READ_BASE;
+		memcpy(&buf->seq[buf->len], fa_buf, sizeof(uint8_t) * read_len);
 		buf->len += read_len;
 
 		// Increase the size of name buffer if necessary
@@ -108,28 +127,30 @@ int fastq_parse(read_buf_t *const buf) {
 		// Set the metadata
 		// Alloc & copy the name into the buf
 		MALLOC(buf->metadata[buf->metadata_len].name, char, name_len);
-		memcpy(buf->metadata[buf->metadata_len].name, &fastq_file_ptr[name_pos], name_len);
+		memcpy(buf->metadata[buf->metadata_len].name, &fa_file_ptr[name_pos], name_len);
 		buf->metadata[buf->metadata_len].name[name_len - 1] = '\0';
 		buf->metadata[buf->metadata_len].len                = read_len - 1;
 
 		buf->metadata_len++;
 
-		// Increment the pos
-		fastq_file_pos = cur_pos + read_len;
-		if (!is_fasta) {
-			while (fastq_file_ptr[fastq_file_pos] != '\n') {
-				fastq_file_pos++;
+		// Update the pos
+		if (is_fastq) {
+			fa_file_pos = cur_pos + 1;
+			while (fa_file_ptr[fa_file_pos] != '\n') {
+				fa_file_pos++;
 			}
-			fastq_file_pos += read_len + 1;
+			fa_file_pos += read_len + 1;
+		} else {
+			fa_file_pos = cur_pos;
 		}
 	}
 	return 1;
 }
 
-void fastq_close() {
-	MUNMAP(fastq_file_ptr, fastq_file_len);
-	free(fastq_buf);
-	CLOSE(fastq_fd);
+void fa_close() {
+	MUNMAP(fa_file_ptr, fa_file_len);
+	free(fa_buf);
+	CLOSE(fa_fd);
 }
 
 index_t index_parse(const char *const file_name) {
