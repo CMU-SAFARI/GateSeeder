@@ -5,7 +5,7 @@ TARGET=$DATA/GCA_000001405.15_GRCh38_no_alt_analysis_set.fasta
 
 if [ $1 = 'ont' ]; then
 	XCLBIN=../device/demeter_ont.xclbin
-	QUERY=$DATA/HG002_ONT-UL_GIAB_20200204_1000filtered_2Mreads.fastq
+	QUERY=$DATA/HG002_ONT-UL_GIAB_20200204_1000filtered_2Mreads.fasta
 	RANGE_MAX_OCC=$(eval echo "{10..100..10}")
 	W=10
 	K=15
@@ -19,7 +19,7 @@ elif [ $1 = 'hifi' ]; then
 	MM2_PRESET='map-hifi'
 elif [ $1 = 'illumina' ]; then
 	XCLBIN=../device/demeter_illumina.xclbin
-	QUERY=$DATA/D1_S1_L001_R1_001-017.fastq
+	QUERY=$DATA/illumina_90.fasta
 	W=11
 	K=21
 	RANGE_MAX_OCC=$(eval echo "{10..100..10}")

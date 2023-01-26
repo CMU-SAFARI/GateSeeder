@@ -2,7 +2,7 @@
 
 RES=accuracy_demeter.txt
 TARGET=$DATA/GCA_000001405.15_GRCh38_no_alt_analysis_set.fasta
-QUERY=sim.fastq
+QUERY=sim.fasta
 
 if [ $1 = 'ont' ]; then
 	XCLBIN=../device/demeter_ont.xclbin
