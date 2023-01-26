@@ -19,7 +19,7 @@ DEPFLAGS = -MD -MP
 CXXFLAGS = -std=c++17 -O3 -g -march=native $(DEPFLAGS) -Wall -Wextra -Werror
 CFLAGS = -std=gnu11 -O3 -g -march=native $(DEPFLAGS) -Wall -Wextra -Werror
 LDFLAGS += -L$(XILINX_XRT)/lib
-LDLIBS += -lxrt_coreutil -pthread -lstdc++ $(UTIL)
+LDLIBS += -lxrt_coreutil -pthread -lstdc++ -lm $(UTIL)
 
 EXE := demeter
 

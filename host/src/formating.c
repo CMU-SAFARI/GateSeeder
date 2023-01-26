@@ -1,4 +1,5 @@
 #include "formating.h"
+#include <math.h>
 
 extern uint32_t SE_K;
 
@@ -22,15 +23,36 @@ static uint32_t cur_batch_id     = 0;
 #define TARGET_ID(x) (x >> 30)
 #define TARGET_POS(x) (x & ((1 << 30) - 1))
 static void paf_print(const record_v r) {
+	// Set the mapping quality
+	unsigned mapq = 0;
+	if (r.nb_records > 1) {
+		const unsigned vt_score_0  = r.record[0].vt_score;
+		const unsigned vt_score_1  = r.record[1].vt_score;
+		const double normalization = (double)(vt_score_0 < 40) ? vt_score_0 : 40;
+		mapq = (unsigned)((1.0 - (double)vt_score_1 / (double)vt_score_0) * log((double)vt_score_0) *
+		                  normalization);
+		if (mapq > 60) {
+			mapq = 60;
+		}
+	} else if (r.nb_records == 1) {
+		const unsigned vt_score_0  = r.record[0].vt_score;
+		const double normalization = (double)(vt_score_0 < 40) ? vt_score_0 : 40;
+		mapq                       = (unsigned)(log((double)vt_score_0) * normalization);
+		if (mapq > 60) {
+			mapq = 60;
+		}
+	}
+
 	for (uint32_t i = 0; i < r.nb_records; i++) {
 		const record_t record     = r.record[i];
 		char *const target_name   = TARGET.seq_name[TARGET_ID(record.t_start)];
 		const uint32_t target_len = TARGET.seq_len[TARGET_ID(record.t_start)];
 		const uint32_t t_start    = TARGET_POS(record.t_start) - (SE_K - 1);
 		const uint32_t t_end      = TARGET_POS(record.t_end);
-		fprintf(OUTPUT, "%s\t%u\t%u\t%u\t%c\t%s\t%u\t%u\t%u\t%u\t%u\t255\tvt:i:%u\n", r.metadata.name,
+		fprintf(OUTPUT, "%s\t%u\t%u\t%u\t%c\t%s\t%u\t%u\t%u\t%u\t%u\t%u\tvt:i:%u\n", r.metadata.name,
 		        r.metadata.len, record.q_start - (SE_K - 1), record.q_end, "+-"[record.str], target_name,
-		        target_len, t_start, t_end, record.vt_score * SE_K, t_end - t_start, record.vt_score);
+		        target_len, t_start, t_end, record.vt_score * SE_K, t_end - t_start, (i == 0) ? mapq : 0,
+		        record.vt_score);
 	}
 	free(r.record);
 	free(r.metadata.name);

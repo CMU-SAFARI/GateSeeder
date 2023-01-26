@@ -10,14 +10,12 @@
 #include <time.h>
 
 uint32_t SE_K;
-uint32_t BATCH_CAPACITY   = 10000000;
-uint32_t MAX_NB_MAPPING   = 6;
-uint32_t VT_DISTANCE      = 700;
-float VT_THRESHOLD_FRAC   = 0.00;
-uint32_t VT_THRESHOLD_MAX = 0;
-float VT_FRAC_MAX         = 0.4;
-float VT_MIN_COV          = 0.1;
-int VT_EQ                 = 1;
+uint32_t BATCH_CAPACITY = 10000000;
+uint32_t MAX_NB_MAPPING = 6;
+uint32_t VT_DISTANCE    = 700;
+float VT_FRAC_MAX       = 0.4;
+float VT_MIN_COV        = 0.1;
+int VT_EQ               = 1;
 
 FILE *OUTPUT;
 target_t TARGET;
@@ -42,9 +40,8 @@ static struct argp_option options[]  = {
     {0, 0, 0, 0, "Mapping:", 0},
     {"max_nb_mapping", 'm', "UINT", 0, "[6]", 0},
     {"vt_distance", 'd', "UINT", 0, "[700]", 0},
-    {"vt_threshold", 'h', "FLOAT[,UINT]", 0, "[0,0]", 0},
     {"vt_frac_max", 'f', "FLOAT", 0, "[0.4]", 0},
-    {"vt_min_cov", 'd', "FLOAT", 0, "[0.1]", 0},
+    {"vt_min_cov", 'c', "FLOAT", 0, "[0.1]", 0},
     {"vt_eq", 'e', 0, 0, "", 0},
 
     {0, 0, 0, 0, "Ressources:", 0},
@@ -65,13 +62,6 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 		case 'd':
 			VT_DISTANCE = strtoul(arg, NULL, 10);
 			break;
-		case 'h': {
-			char *p;
-			VT_THRESHOLD_FRAC = strtod(arg, &p);
-			if (*p == ',') {
-				VT_THRESHOLD_MAX = strtoul(p + 1, NULL, 10);
-			}
-		} break;
 		case 'f':
 			VT_FRAC_MAX = strtod(arg, NULL);
 			break;

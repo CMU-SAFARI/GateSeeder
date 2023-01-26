@@ -12,8 +12,6 @@ KRADIX_SORT_INIT(64, uint64_t, sort_key_64, 8)
 
 extern uint32_t MAX_NB_MAPPING;
 extern uint32_t VT_DISTANCE;
-extern float VT_THRESHOLD_FRAC;
-extern uint32_t VT_THRESHOLD_MAX;
 extern float VT_FRAC_MAX;
 extern float VT_MIN_COV;
 extern int VT_EQ;
@@ -95,8 +93,8 @@ static inline int compare_mapping_locations(const uint32_t vt_score_0, const uin
 
 static inline uint32_t push_mapping_location(const uint32_t vt_score, const uint32_t q_start, const uint32_t q_end,
                                              const uint64_t t_start, const uint64_t t_end, const int8_t str, record_v r,
-                                             const uint32_t vt_threshold, const uint32_t vt_cov_threshold) {
-	if (vt_score >= vt_threshold && (q_end - q_start) >= vt_cov_threshold) {
+                                             const uint32_t vt_cov_threshold) {
+	if (q_end - q_start >= vt_cov_threshold) {
 		int new_mapping = 0;
 
 		if (r.nb_records == MAX_NB_MAPPING) {
@@ -141,8 +139,7 @@ static inline uint32_t push_mapping_location(const uint32_t vt_score, const uint
 #define STR(x) (x & 1)
 #define LOC_OFFSET (1 << 21)
 
-static record_v vote(uint64_t *const loc, const uint32_t len, const uint32_t vt_threshold,
-                     const uint32_t vt_cov_threshold) {
+static record_v vote(uint64_t *const loc, const uint32_t len, const uint32_t vt_cov_threshold) {
 	record_v r = {.nb_records = 0};
 	MALLOC(r.record, record_t, MAX_NB_MAPPING);
 	uint32_t counter[2] = {0, 0};
@@ -182,7 +179,7 @@ static record_v vote(uint64_t *const loc, const uint32_t len, const uint32_t vt_
 		// Else push the mapping location
 		else {
 			r.nb_records = push_mapping_location(counter[str], q_start[str], q_end[str], t_start[str],
-			                                     t_end[str], str, r, vt_threshold, vt_cov_threshold);
+			                                     t_end[str], str, r, vt_cov_threshold);
 			q_start[str] = query;
 			q_end[str]   = query;
 			t_start[str] = loc;
@@ -192,7 +189,7 @@ static record_v vote(uint64_t *const loc, const uint32_t len, const uint32_t vt_
 		}
 	}
 	r.nb_records = push_mapping_location(counter[str], q_start[str], q_end[str], t_start[str], t_end[str], str, r,
-	                                     vt_threshold, vt_cov_threshold);
+	                                     vt_cov_threshold);
 
 	// Filter based on a fraction of the best voting score
 	if (r.nb_records > 1) {
@@ -216,6 +213,19 @@ static void map_seq(uint64_t *const loc, const uint32_t len, const uint32_t batc
 		record_v r = {.metadata = metadata, .nb_records = 0, .record = NULL};
 		paf_write(r, batch_id);
 	} else {
+		/*
+		// Count the number of seeds
+		uint32_t nb_seeds = 1;
+		uint32_t location = QUERY(loc[0]);
+		for (uint32_t i = 1; i < len; i++) {
+		        uint32_t new_location = QUERY(loc[i]);
+		        if (location != new_location) {
+		                location = new_location;
+		                nb_seeds++;
+		        }
+		}
+		*/
+
 		radix_sort_64(loc, loc + len);
 
 		/*
@@ -224,11 +234,9 @@ static void map_seq(uint64_t *const loc, const uint32_t len, const uint32_t batc
 		        printf("%lx\n", loc[i]);
 		}
 		*/
-		const uint32_t vt_threshold_frac = (uint32_t)(VT_THRESHOLD_FRAC * (float)metadata.len);
-		const uint32_t vt_threshold =
-		    (vt_threshold_frac < VT_THRESHOLD_MAX) ? vt_threshold_frac : VT_THRESHOLD_MAX;
+
 		const uint32_t vt_coverage_threshold = (uint32_t)(VT_MIN_COV * (float)metadata.len);
-		record_v r                           = vote(loc, len, vt_threshold, vt_coverage_threshold);
+		record_v r                           = vote(loc, len, vt_coverage_threshold);
 		r.metadata                           = metadata;
 		/*
 		for (unsigned i = 0; i < v.nb_votes; i++) {
