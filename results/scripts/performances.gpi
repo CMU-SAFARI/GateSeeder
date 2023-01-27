@@ -1,0 +1,22 @@
+#!/usr/bin/gnuplot -c
+
+genfarm_file=ARG1
+minimap2_file=ARG2
+
+set terminal pngcairo enhanced font 'FreeSans,12'
+set output "performances.png"
+set grid
+
+minimap2_runtime=system(sprintf("cat %s", minimap2_file))
+
+set boxwidth 0.5
+set style fill solid
+
+set logscale y
+set grid mxtics mytics
+
+set yrange [1:]
+
+set xlabel "Max occurence threshold"
+set ylabel "Speedup over minimap2"
+plot genfarm_file using (minimap2_runtime/$2):xtic(1) with boxes notitle

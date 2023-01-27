@@ -34,11 +34,11 @@ rm -f $RES
 for max_occ in $RANGE_MAX_OCC
 do
 	echo "[ACC] Generating the index with max_occ: $max_occ"
-	../demeter_index -t 32 -w $W -k $K -f $max_occ $TARGET $DATA/index.dti
+	../demeter_index -t 32 -w $W -k $K -f $max_occ $TARGET $DATA/index.gfi
 	for vt_distance in $RANGE_VT_DISTANCE
 	do
 		echo "[ACC] Running demeter with vt_distance: $vt_distance"
-		../demeter -t 32 -d $vt_distance $XCLBIN $DATA/index.dti $QUERY -o mapping.paf
+		../demeter -t 32 -d $vt_distance $XCLBIN $DATA/index.gfi $QUERY -o mapping.paf
 		echo "[ACC] Evaluating the results"
 		echo -e "P\t$max_occ\t$vt_distance" >> $RES
 		paftools.js mapeval mapping.paf >> $RES
@@ -49,5 +49,5 @@ echo "[ACC] Running minimap2"
 minimap2 -t 32 -x $MM2_PRESET -o mapping.paf $TARGET $QUERY
 paftools.js mapeval mapping.paf > accuracy_mm2.txt
 
-rm -f index.dti
+rm -f $DATA/index.gfi
 rm -f mapping.paf

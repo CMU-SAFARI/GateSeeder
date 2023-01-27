@@ -2,7 +2,7 @@
 
 data_file=ARG1
 
-set terminal png enhanced font 'FreeSans,8'
+set terminal pngcairo enhanced font 'FreeSans,12'
 set output "distribution.png"
 set grid
 
@@ -18,4 +18,4 @@ set boxwidth width*0.9
 set style fill solid 0.5 # fill style
 
 #count and plot
-plot data_file u (hist($1,width)):(1.0) smooth freq w boxes lc rgb"green" notitle
+plot data_file u (hist($1,width)):(1.0) smooth freq w boxes notitle
