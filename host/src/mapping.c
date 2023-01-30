@@ -9,12 +9,15 @@
 
 #define sort_key_64(x) (x)
 KRADIX_SORT_INIT(64, uint64_t, sort_key_64, 8)
+#define sort_lt(a, b) (a < b)
+KSORT_INIT(64, uint64_t, sort_lt)
 
 extern uint32_t MAX_NB_MAPPING;
 extern uint32_t VT_DISTANCE;
 extern float VT_FRAC_MAX;
 extern float VT_MIN_COV;
 extern int VT_EQ;
+extern int MERGE_SORT;
 
 static pthread_mutex_t fastq_parse_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -27,6 +30,11 @@ typedef enum
 	HANDLE_OUTPUT,
 	NO_TASK,
 } task_t;
+
+typedef struct {
+	uint64_t *buf;
+	uint32_t capacity;
+} msort_t;
 
 // Should always been protected by the worker mutex
 static inline task_t next_task(d_worker_t *const worker, const int no_input) {
@@ -208,7 +216,8 @@ static record_v vote(uint64_t *const loc, const uint32_t len, const uint32_t vt_
 	return r;
 }
 
-static void map_seq(uint64_t *const loc, const uint32_t len, const uint32_t batch_id, const read_metadata_t metadata) {
+static void map_seq(uint64_t *const loc, const uint32_t len, const uint32_t batch_id, const read_metadata_t metadata,
+                    msort_t *const msort_buf) {
 	if (len == 0) {
 		record_v r = {.metadata = metadata, .nb_records = 0, .record = NULL};
 		paf_write(r, batch_id);
@@ -226,10 +235,18 @@ static void map_seq(uint64_t *const loc, const uint32_t len, const uint32_t batc
 		}
 		*/
 
-		radix_sort_64(loc, loc + len);
+		if (MERGE_SORT) {
+			if (len > msort_buf->capacity) {
+				msort_buf->capacity = len;
+				MALLOC(msort_buf->buf, uint64_t, len);
+			}
+			ks_mergesort_64(len, loc, msort_buf->buf);
+		} else {
+			radix_sort_64(loc, loc + len);
+		}
 
 		/*
-		printf("len: %x\n", len);
+		printf("len: %u\n", len);
 		for (unsigned i = 0; i < len; i++) {
 		        printf("%lx\n", loc[i]);
 		}
@@ -247,7 +264,7 @@ static void map_seq(uint64_t *const loc, const uint32_t len, const uint32_t batc
 	}
 }
 
-static void cpu_map(d_worker_t *const worker) {
+static void cpu_map(d_worker_t *const worker, msort_t *const msort_buf) {
 	uint64_t *const loc             = worker->loc_buf.loc;
 	uint64_t *start_ptr             = loc;
 	uint32_t len                    = 0;
@@ -257,15 +274,12 @@ static void cpu_map(d_worker_t *const worker) {
 	for (uint32_t i = 0; i < (LB_SIZE >> 3); i++) {
 		switch (loc[i]) {
 			case (1ULL << 63):
-				map_seq(start_ptr, len, batch_id, metadata[read_counter]);
+				map_seq(start_ptr, len, batch_id, metadata[read_counter], msort_buf);
 				read_counter++;
 				start_ptr = &loc[i + 1];
 				len       = 0;
 				break;
 			case (UINT64_MAX):
-				flockfile(stdout);
-				// printf("counter: %u\n", read_counter);
-				funlockfile(stdout);
 				free(worker->loc_buf.metadata);
 				LOCK(worker->mutex);
 				worker->output_h = buf_empty;
@@ -283,39 +297,37 @@ static void cpu_map(d_worker_t *const worker) {
 // Main routine executed by each thread
 static void *mapping_routine(__attribute__((unused)) void *arg) {
 	d_worker_t *worker = demeter_get_worker(NULL, 0);
-	(void)&worker;
-	int no_input = 0;
+	int no_input       = 0;
+
+	// For merge sort
+	msort_t msort_buf = {.buf = NULL, .capacity = 0};
 	while (worker) {
 		LOCK(worker->mutex);
 		task_t task = next_task(worker, no_input);
 		UNLOCK(worker->mutex);
 		switch (task) {
 			case FILL_INPUT:
-				// puts("FILL");
 				no_input = fill_input(worker);
 				break;
 			case TRANSFER_INPUT:
-				// puts("INPUT");
 				demeter_load_seq(worker);
 				break;
 			case START_KERNEL:
-				// puts("KERNEL");
 				//  Since this is done "atomically"
 				break;
 			case TRANSFER_OUTPUT:
-				// puts("OUTPUT_D");
 				demeter_load_loc(worker);
 				break;
 			case HANDLE_OUTPUT:
-				// puts("OUTPUT_H");
-				cpu_map(worker);
+				cpu_map(worker, &msort_buf);
 				break;
 			case NO_TASK:
-				// puts("NO_TASK");
 				worker = demeter_get_worker(worker, no_input);
 				break;
 		}
 	}
+
+	free(msort_buf.buf);
 	return (void *)NULL;
 }
 

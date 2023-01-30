@@ -16,6 +16,7 @@ uint32_t VT_DISTANCE    = 700;
 float VT_FRAC_MAX       = 0.4;
 float VT_MIN_COV        = 0.1;
 int VT_EQ               = 1;
+int MERGE_SORT          = 0;
 
 FILE *OUTPUT;
 target_t TARGET;
@@ -43,6 +44,7 @@ static struct argp_option options[]  = {
     {"vt_frac_max", 'f', "FLOAT", 0, "[0.4]", 0},
     {"vt_min_cov", 'c', "FLOAT", 0, "[0.1]", 0},
     {"vt_eq", 'e', 0, 0, "", 0},
+    {"merge_sort", 's', 0, 0, "", 0},
 
     {0, 0, 0, 0, "Ressources:", 0},
     {"nb_threads", 't', "UINT", 0, "number of CPU threads [4]", 0},
@@ -70,6 +72,9 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 			break;
 		case 'e':
 			VT_EQ = 0;
+			break;
+		case 's':
+			MERGE_SORT = 1;
 			break;
 		case 't':
 			args->nb_threads = strtoul(arg, NULL, 10);
