@@ -7,7 +7,6 @@ if [ $1 = 'ont' ]; then
 	XCLBIN=../device/demeter_ont.xclbin
 	QUERY=$DATA/HG002_ONT-UL_GIAB_20200204_1000filtered_2Mreads.fasta
 	#RANGE_MAX_OCC=$(eval echo "{10..100..10}")
-	#RANGE_MAX_OCC=$(eval echo "10 50 100")
 	RANGE_MAX_OCC=(10 50 100)
 	RANGE_BATCH_SIZE=(80000000 40000000 10000000)
 	W=10
@@ -18,7 +17,8 @@ elif [ $1 = 'hifi' ]; then
 	QUERY=$DATA/m64011_190830_220126.fasta
 	W=19
 	K=19
-	RANGE_MAX_OCC=$(eval echo "{1..5..1}")
+	RANGE_MAX_OCC=(1 2 5)
+	RANGE_BATCH_SIZE=(268435456 268435456 268435456)
 	MM2_PRESET='map-hifi'
 elif [ $1 = 'illumina' ]; then
 	XCLBIN=../device/demeter_illumina.xclbin
@@ -44,7 +44,7 @@ do
 	vmtouch -ldw $QUERY $DATA/index.dti
 	echo "[PERF] Running demeter"
 	start_date=`date +%s%N`
-	../demeter -b  ${RANGE_BATCH_SIZE[i]} -t 32 $XCLBIN $DATA/index.dti $QUERY -o $DATA/mapping.paf
+	../demeter -b  ${RANGE_BATCH_SIZE[i]} -t 32 -s $XCLBIN $DATA/index.dti $QUERY -o $DATA/mapping.paf
 	end_date=`date +%s%N`
 	echo `expr $end_date - $start_date` >> $RES
 	pkill vmtouch
