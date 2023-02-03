@@ -9,7 +9,7 @@ if [ $1 = 'ont' ]; then
 	paftools.js pbsim2fq $DATA/GCA_000001405.15_GRCh38_no_alt_analysis_set.fasta.gz.fai *.maf > sim.fasta
 	rm *.maf
 elif [ $1 = 'hifi' ]; then
-	pbsim --strategy wgs --method errhmm --errhmm $DATA/ERRHMM-SEQUEL.model --depth 0.2 --genome $DATA/GCA_000001405.15_GRCh38_no_alt_analysis_set.fasta --seed 23 --length-min 10000 --length-max 100000
+	pbsim --strategy wgs --method errhmm --errhmm $DATA/ERRHMM-SEQUEL.model --depth 0.2 --genome $DATA/GCA_000001405.15_GRCh38_no_alt_analysis_set.fasta --seed 23 --length-min 12000 --length-max 24000
 	rm *.fastq
 	rm *.ref
 	paftools.js pbsim2fq $DATA/GCA_000001405.15_GRCh38_no_alt_analysis_set.fasta.gz.fai *.maf > sim.fasta

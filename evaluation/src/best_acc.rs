@@ -41,6 +41,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 			// Avoid first case
 			if max_occ != 0 {
 				let score = compute_score(&minimap2_perf, &perf);
+				println!("{}", score);
 				if score > best_score {
 					best_score = score;
 					best_vtd = cur_vtd;
@@ -75,5 +76,18 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 fn compute_score(minimap2_perf: &Vec<(f32, u32)>, perf: &Vec<(f32, u32)>) -> i32 {
-	5
+	perf.iter().fold(0, |score, (error, nb_mapped)| {
+		for i in 0..minimap2_perf.len() - 1 {
+			let x0 = minimap2_perf[i].0;
+			let x1 = minimap2_perf[i + 1].0;
+			if error >= &x0 && error <= &x1 {
+				let y0 = minimap2_perf[i].1;
+				let y1 = minimap2_perf[i + 1].1;
+				let a: f32 = (y1 - y0) as f32 / (x1 - x0);
+				let b: f32 = y0 as f32 - x0 * a;
+				return score + *nb_mapped as i32 - (a * error + b) as i32;
+			}
+		}
+		score
+	})
 }
