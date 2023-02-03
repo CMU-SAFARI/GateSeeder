@@ -8,29 +8,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 	let args: Vec<_> = args().collect();
 
 	let path = Path::new(&args[1]);
-	let file_minimap2 = File::open(&path)?;
-
-	let path = Path::new(&args[2]);
 	let file_seedfarm = File::open(&path)?;
-
-	let lines = BufReader::new(&file_minimap2).lines();
-
-	let minimap2_perf: Result<Vec<_>, _> = lines
-		.map(|l| {
-			let l = l?;
-			let field: Vec<_> = l.split('\t').collect();
-			let res = (field[4].parse::<f32>()?, field[5].parse::<u32>()?);
-			Ok::<(f32, u32), Box<dyn Error>>(res)
-		})
-		.collect();
-
-	let minimap2_perf = minimap2_perf?;
 
 	let lines = BufReader::new(&file_seedfarm).lines();
 
 	let mut best_vtd = 0;
 	let mut cur_vtd = 0;
-	let mut best_score = std::i32::MIN;
+	let mut best_score = std::f32::NEG_INFINITY;
 	let mut max_occ = 0;
 	let mut perf: Vec<(f32, u32)> = vec![];
 
@@ -40,7 +24,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 		if field[0].eq("P") {
 			// Avoid first case
 			if max_occ != 0 {
-				let score = compute_score(&minimap2_perf, &perf);
+				let score = compute_score(&perf);
 				println!("{}", score);
 				if score > best_score {
 					best_score = score;
@@ -56,7 +40,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 				if max_occ != 0 {
 					println!("{}\t{}", max_occ, best_vtd);
 				}
-				best_score = std::i32::MIN;
+				best_score = std::f32::NEG_INFINITY;
 				max_occ = cur_max_occ;
 				perf = vec![];
 			}
@@ -66,7 +50,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 	}
 
 	if max_occ != 0 {
-		let score = compute_score(&minimap2_perf, &perf);
+		let score = compute_score(&perf);
 		if score > best_score {
 			best_vtd = cur_vtd;
 		}
@@ -75,19 +59,16 @@ fn main() -> Result<(), Box<dyn Error>> {
 	Ok(())
 }
 
-fn compute_score(minimap2_perf: &Vec<(f32, u32)>, perf: &Vec<(f32, u32)>) -> i32 {
-	perf.iter().fold(0, |score, (error, nb_mapped)| {
-		for i in 0..minimap2_perf.len() - 1 {
-			let x0 = minimap2_perf[i].0;
-			let x1 = minimap2_perf[i + 1].0;
-			if error >= &x0 && error <= &x1 {
-				let y0 = minimap2_perf[i].1;
-				let y1 = minimap2_perf[i + 1].1;
-				let a: f32 = (y1 - y0) as f32 / (x1 - x0);
-				let b: f32 = y0 as f32 - x0 * a;
-				return score + *nb_mapped as i32 - (a * error + b) as i32;
-			}
-		}
-		score
-	})
+fn compute_score(perf: &Vec<(f32, u32)>) -> f32 {
+	let mut score: f32 = 0.0;
+	for i in 0..perf.len() - 1 {
+		let x0 = perf[i].0;
+		let x1 = perf[i + 1].0;
+
+		let y0 = perf[i].1;
+		let y1 = perf[i + 1].1;
+
+		score += (x1 - x0) * (y1 + y0) as f32 / 2.0;
+	}
+	score / (perf[perf.len() - 1].0 - perf[0].0)
 }
