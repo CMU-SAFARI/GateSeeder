@@ -1,18 +1,16 @@
 #!/usr/bin/gnuplot -c
 
-read_type_file=ARG1
-genfarm_0_file=ARG2
-genfarm_1_file=ARG3
-genfarm_2_file=ARG4
-minimap2_file=ARG5
+data_set_file="accuracy/".ARG1.".dat"
 
 
 set terminal pngcairo enhanced font 'FreeSans,12'
 set output "accuracy.png"
 set grid
 
-type=system(sprintf("awk -F '\t' '{print $1}' %s", read_type_file))
-nb_reads=system(sprintf("awk -F '\t' '{print $2}' %s", read_type_file))
+type=system(sprintf("awk -F '\t' '{print $1}' %s", data_set_file))
+nb_reads=system(sprintf("awk -F '\t' '{print $2}' %s", data_set_file))
+
+list=system(sprintf("ls accuracy/*_%s.dat", ARG1))
 
 set xlabel "Error rate of mapped ".type." reads"
 set ylabel "Fraction of mapped reads"
@@ -22,7 +20,4 @@ set grid mxtics mytics
 set key right bottom
 set format x "10^{%T}"
 
-plot '<(tail -n +1 '.genfarm_0_file.')' u 5:($6/nb_reads) with linespoints linetype 1 title system(sprintf("head -n 1 %s", genfarm_0_file)), \
-	'<(tail -n +1 '.genfarm_1_file.')' u 5:($6/nb_reads) with linespoints linetype 2 title system(sprintf("head -n 1 %s", genfarm_1_file)), \
-	'<(tail -n +1 '.genfarm_2_file.')' u 5:($6/nb_reads) with linespoints linetype 3 title system(sprintf("head -n 1 %s", genfarm_2_file)), \
-	'<(tail -n +1 '.minimap2_file.')' u 5:($6/nb_reads) with linespoints linetype 4 title system(sprintf("head -n 1 %s", minimap2_file))
+plot for [file in list] '<(tail -n +1 '.file.')' u 5:($6/nb_reads) with linespoints title system(sprintf("head -n 1 %s", file))
