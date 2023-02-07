@@ -16,14 +16,14 @@
 END {
 	if (h2d_n > 0) {
 		av = h2d/h2d_n;
-		print "H2D: "av;
+		print "H2D: "av/1000000;
 	}
 	if (krnl_n > 0) {
 		av = krnl/krnl_n;
-		print "KRNL: "av;
+		print "KRNL: "av/1000000;
 	}
 	if (d2h_n > 0) {
 		av = d2h/d2h_n;
-		print "D2H: "av;
+		print "D2H: "av/1000000;
 	}
 }
