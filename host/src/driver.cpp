@@ -125,7 +125,15 @@ d_worker_t *demeter_get_worker(d_worker_t *const worker, const int no_input) {
 
 void demeter_load_seq(d_worker_t *const worker) {
 	const unsigned id = worker->id;
+#ifdef PROFILE
+	PROF_INIT;
+	PROF_START;
+#endif
 	device_buf[id].seq.sync(XCL_BO_SYNC_BO_TO_DEVICE);
+#ifdef PROFILE
+	PROF_END;
+	PRINT_PROF("H2D");
+#endif
 	device_buf[id].seq_len    = worker->read_buf.len;
 	device_buf[id].i_batch_id = worker->read_buf.batch_id;
 	device_buf[id].i_metadata = worker->read_buf.metadata;
@@ -138,16 +146,32 @@ void demeter_load_seq(d_worker_t *const worker) {
 
 void demeter_start_kernel(d_worker_t *const worker) {
 	const unsigned id = worker->id;
-	// std::cout << "kernel[" << id << "] started, len: " << device_buf[id].seq_len << std::endl;
 	device_buf[id].run.set_arg(0, device_buf[id].seq_len);
+#ifdef PROFILE
+	PROF_INIT;
+	PROF_START;
+#endif
 	device_buf[id].run.start();
+#ifdef PROFILE
+	device_buf[id].run.wait();
+	PROF_END;
+	PRINT_PROF("KRNL");
+#endif
 	device_buf[id].o_batch_id = device_buf[id].i_batch_id;
 	device_buf[id].o_metadata = device_buf[id].i_metadata;
 	device_buf[id].is_running = 1;
 }
 void demeter_load_loc(d_worker_t *const worker) {
 	const unsigned id = worker->id;
+#ifdef PROFILE
+	PROF_INIT;
+	PROF_START;
+#endif
 	device_buf[id].loc.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
+#ifdef PROFILE
+	PROF_END;
+	PRINT_PROF("D2H");
+#endif
 	worker->loc_buf.batch_id = device_buf[id].o_batch_id;
 	worker->loc_buf.metadata = device_buf[id].o_metadata;
 	LOCK(worker->mutex);

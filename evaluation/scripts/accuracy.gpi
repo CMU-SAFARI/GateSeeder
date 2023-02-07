@@ -1,0 +1,19 @@
+#!/usr/bin/gnuplot -c
+set terminal pdf enhanced font 'FreeSans,12'
+set output "accuracy.pdf"
+set grid
+
+data_set_file=ARG1."/info.dat"
+type=system(sprintf("awk -F '\t' '{print $1}' %s", data_set_file))
+nb_reads=system(sprintf("awk -F '\t' '{print $2}' %s", data_set_file))
+list=system(sprintf("ls %s/*_*.dat", ARG1))
+
+set xlabel "Error rate of mapped ".type." reads"
+set ylabel "Fraction of mapped reads"
+
+set logscale x 10
+set grid mxtics mytics
+set key right bottom
+set format x "10^{%T}"
+
+plot for [file in list] '<(tail -n +1 '.file.')' u 5:($6/nb_reads) with linespoints title system(sprintf("head -n 1 %s", file))

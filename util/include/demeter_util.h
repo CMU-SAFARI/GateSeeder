@@ -13,6 +13,7 @@ extern "C" {
 #include <stdint.h>
 #include <stdlib.h>
 #include <sys/mman.h>
+#include <time.h>
 #include <unistd.h>
 
 #define MALLOC(var, type, size)                                                                                        \
@@ -166,6 +167,20 @@ extern "C" {
 		if (fclose(ptr) == EOF) {                                                                              \
 			err(1, "%s:%d, fclose", __FILE__, __LINE__);                                                   \
 		}                                                                                                      \
+	}
+
+#define PROF_INIT struct timespec start, end
+
+#define PROF_START clock_gettime(CLOCK_MONOTONIC, &start)
+
+#define PROF_END clock_gettime(CLOCK_MONOTONIC, &end)
+
+#define PRINT_PROF(label)                                                                                              \
+	{                                                                                                              \
+		uint64_t time = (end.tv_sec - start.tv_sec) * 1000000000 + (end.tv_nsec - start.tv_nsec);              \
+		flockfile(stdout);                                                                                     \
+		printf("%s\t%lu\n", label, time);                                                                      \
+		funlockfile(stdout);                                                                                   \
 	}
 
 #ifdef __cplusplus

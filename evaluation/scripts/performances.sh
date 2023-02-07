@@ -44,7 +44,7 @@ do
 	vmtouch -ldw $QUERY $DATA/index.dti
 	echo "[PERF] Running demeter"
 	start_date=`date +%s%N`
-	../demeter -b  ${RANGE_BATCH_SIZE[i]} -t 32 -s $XCLBIN $DATA/index.dti $QUERY -o $DATA/mapping.paf
+	../demeter -b  ${RANGE_BATCH_SIZE[i]} -t 32 -s $XCLBIN $DATA/index.dti $QUERY -o $DATA/mapping.paf > time_${RANGE_MAX_OCC[i]}.dat
 	end_date=`date +%s%N`
 	echo `expr $end_date - $start_date` >> $RES
 	pkill vmtouch

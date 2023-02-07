@@ -28,6 +28,8 @@ all: demeter_util $(EXE)
 $(EXE): $(C_OBJS) $(CXX_OBJS) $(UTIL)
 	$(LINK.o) $(C_OBJS) $(CXX_OBJS) $(LOADLIBES) $(LDLIBS) -o $@
 
+driver.o: CXXFLAGS+=-DPROFILE
+
 demeter_util:
 	$(MAKE) -C $(UTIL_DIR)
 
