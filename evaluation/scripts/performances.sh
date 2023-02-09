@@ -29,9 +29,9 @@ elif [ $1 = 'illumina' ]; then
 	query=$DATA/D1_S1_L001_R1_001-017_header.fasta
 	w=11
 	k=21
-	range_max_occ=(20 60 180)
-	range_batch_size=(268435456 134217728 67108864)
-	range_vt_distance=(30 30 10)
+	range_max_occ=(50 150 450)
+	range_batch_size=(134217728  67108864 67108864)
+	range_vt_distance=(10 10 10)
 	#TODO: test without merge sort
 	extra_param="-e -c 0 -s"
 	minimap2_preset='sr'

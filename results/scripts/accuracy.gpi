@@ -15,6 +15,6 @@ set yrange [0.86:1]
 set logscale x 10
 set grid mxtics mytics
 set format x "10^{%T}"
-set key above
+set key above width -2 vertical maxrows 1
 
 plot for [file in list] '<(tail -n +1 '.file.')' u 5:($6/nb_reads) with linespoints title system(sprintf("head -n 1 %s", file))
