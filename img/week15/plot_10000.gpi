@@ -1,9 +1,0 @@
-set terminal svg size 800, 600 enhanced font 'FreeSans,18'
-set output "plot_10000.svg"
-set ylabel "Time (sec)"
-set y2label "Number of locations"
-set xlabel "Window size"
-set style fill solid
-set y2tics 150,25,1150
-set ytics nomirror
-plot 'plot_10000.dat' u 2:3 title 'Execution time', 'plot_10000.dat' u 2:4 axis x1y2 title 'Maximum threshold'

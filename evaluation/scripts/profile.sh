@@ -36,11 +36,11 @@ rm -f $RES_DIR/*
 for i in "${!RANGE_MAX_OCC[@]}";
 do
 	echo "[PROF] Generating the index with max_occ: ${RANGE_MAX_OCC[i]}"
-	../demeter_index -t 32 -w $W -k $K -f ${RANGE_MAX_OCC[i]} $TARGET $DATA/index.sfi
+	../seedfarm_index -t 32 -w $W -k $K -f ${RANGE_MAX_OCC[i]} $TARGET $DATA/index.sfi
 	echo "[PROF] Locking the reads and the index into RAM"
 	vmtouch -ldw $QUERY $DATA/index.sfi
 	echo "[PROF] Running seedfarm"
-	../demeter -b  ${RANGE_BATCH_SIZE[i]} -t 32 -s $XCLBIN $DATA/index.sfi $QUERY -o /dev/null > $RES_DIR/${RANGE_MAX_OCC[i]}.dat
+	../seedfarm -b  ${RANGE_BATCH_SIZE[i]} -t 32 -s $XCLBIN $DATA/index.sfi $QUERY -o /dev/null > $RES_DIR/${RANGE_MAX_OCC[i]}.dat
 done
 
 rm -f $DATA/index.sfi

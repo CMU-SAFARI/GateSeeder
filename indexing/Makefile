@@ -1,19 +1,19 @@
-CC			:= gcc
+CC := gcc
 
-SRC_DIR		:= src
+SRC_DIR := src
 UTIL_DIR := ../util
 
 CPPFLAGS += -I$(UTIL_DIR)/include
-DEPFLAGS	= -MD -MP
+DEPFLAGS = -MD -MP
 CFLAGS = -std=gnu11 -O3 -g -march=native $(DEPFLAGS) -Wall -Wextra -Werror
-LDLIBS		= -pthread
+LDLIBS = -pthread
 
-SRCS		= $(wildcard $(SRC_DIR)/*.c)
-OBJS		= $(SRCS:$(SRC_DIR)/%.c=%.o)
+SRCS = $(wildcard $(SRC_DIR)/*.c)
+OBJS = $(SRCS:$(SRC_DIR)/%.c=%.o)
 
-VPATH		= src
+VPATH = src
 
-EXE			:= demeter_index
+EXE := seedfarm_index
 
 all: $(EXE)
 

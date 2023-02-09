@@ -36,9 +36,9 @@ static unsigned NB_WORKERS;
 void demeter_fpga_init(const unsigned nb_cus, const char *const binary_file, const index_t index) {
 	NB_WORKERS = nb_cus;
 	device     = xrt::device(DEVICE_INDEX);
-	std::cerr << "[INFO] Device " << DEVICE_INDEX << std::endl;
+	std::cerr << "[SFM] Device " << DEVICE_INDEX << std::endl;
 	auto uuid = device.load_xclbin(binary_file);
-	std::cerr << "[INFO] " << binary_file << " loaded\n";
+	std::cerr << "[SFM] " << binary_file << " loaded\n";
 
 	worker_buf        = new d_worker_t[NB_WORKERS];
 	device_buf        = new d_device_t[NB_WORKERS];
@@ -60,7 +60,7 @@ void demeter_fpga_init(const unsigned nb_cus, const char *const binary_file, con
 	// Transfer the index
 	map.sync(XCL_BO_SYNC_BO_TO_DEVICE);
 	key.sync(XCL_BO_SYNC_BO_TO_DEVICE);
-	std::cerr << "[INFO] Index transferred\n";
+	std::cerr << "[SFM] Index transferred\n";
 
 	// Initialize the buffers for the I/O and their states
 	for (unsigned i = 0; i < NB_WORKERS; i++) {

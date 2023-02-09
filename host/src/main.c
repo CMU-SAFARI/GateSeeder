@@ -129,13 +129,13 @@ int main(int argc, char *argv[]) {
 
 	TARGET =
 	    (target_t){.nb_seq = args.index.nb_seq, .seq_name = args.index.seq_name, .seq_len = args.index.seq_len};
-	fprintf(stderr, "[INFO] w: %u, k: %u, map_size: %u, max_occ: %u\n", args.index.w, args.index.k,
+	fprintf(stderr, "[SFM] w: %u, k: %u, map_size: %u, max_occ: %u\n", args.index.w, args.index.k,
 	        args.index.map_size, args.index.max_occ);
 
 	SE_K = args.index.k;
 
 	clock_gettime(CLOCK_MONOTONIC, &init);
-	fprintf(stderr, "[INFO] Initialization time %f sec\n",
+	fprintf(stderr, "[SFM] Initialization time %f sec\n",
 	        init.tv_sec - start.tv_sec + (init.tv_nsec - start.tv_nsec) / 1000000000.0);
 	mapping_run(args.nb_threads);
 	paf_write_destroy();
@@ -143,10 +143,10 @@ int main(int argc, char *argv[]) {
 	index_destroy_target(args.index);
 	fa_close();
 	clock_gettime(CLOCK_MONOTONIC, &end);
-	fprintf(stderr, "[INFO] Total execution time %f sec\n",
+	fprintf(stderr, "[SFM] Total execution time %f sec\n",
 	        end.tv_sec - start.tv_sec + (end.tv_nsec - start.tv_nsec) / 1000000000.0);
 	struct rusage r;
 	getrusage(RUSAGE_SELF, &r);
-	fprintf(stderr, "[INFO] Peak RSS: %f GB\n", r.ru_maxrss / 1048576.0);
+	fprintf(stderr, "[SFM] Peak RSS: %f GB\n", r.ru_maxrss / 1048576.0);
 	return 0;
 }

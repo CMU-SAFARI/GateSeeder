@@ -8,13 +8,13 @@ type=system(sprintf("awk -F '\t' '{print $1}' %s", data_set_file))
 nb_reads=system(sprintf("awk -F '\t' '{print $2}' %s", data_set_file))
 list=system(sprintf("ls accuracy/*_%s.dat", ARG1))
 
-set xlabel "Error rate of mapped ".type." reads"
+set xlabel "Error rate of mapped reads"
 set ylabel "Fraction of mapped reads"
 set yrange [0.86:1]
 
 set logscale x 10
 set grid mxtics mytics
-set key right bottom
 set format x "10^{%T}"
+set key above
 
 plot for [file in list] '<(tail -n +1 '.file.')' u 5:($6/nb_reads) with linespoints title system(sprintf("head -n 1 %s", file))

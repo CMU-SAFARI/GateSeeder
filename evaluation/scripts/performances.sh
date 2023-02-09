@@ -1,66 +1,81 @@
 #!/bin/bash
 
-RES=performances_demeter.txt
-TARGET=$DATA/GCA_000001405.15_GRCh38_no_alt_analysis_set.fasta
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 <ont|hifi|illumina>"
+    exit 1
+fi
 
 if [ $1 = 'ont' ]; then
-	XCLBIN=../device/demeter_ont.xclbin
-	QUERY=$DATA/HG002_ONT-UL_GIAB_20200204_1000filtered_2Mreads.fasta
-	#RANGE_MAX_OCC=$(eval echo "{10..100..10}")
-	RANGE_MAX_OCC=(10 50 100)
-	RANGE_BATCH_SIZE=(80000000 40000000 10000000)
-	W=10
-	K=15
-	MM2_PRESET='map-ont'
+	query=$DATA/HG002_ONT-UL_GIAB_20200204_1000filtered_2Mreads.fasta
+	w=10
+	k=15
+	range_max_occ=(10 50 100)
+	#range_batch_size=(80000000 40000000 10000000)
+	range_batch_size=(134217728 67108864 16777216)
+	range_vt_distance=()
+	extra_param=""
+	minimap2_preset='map-ont'
 elif [ $1 = 'hifi' ]; then
-	XCLBIN=../device/demeter_hifi.xclbin
-	QUERY=$DATA/m64011_190830_220126.fasta
-	W=19
-	K=19
-	RANGE_MAX_OCC=(1 2 5)
-	RANGE_BATCH_SIZE=(268435456 268435456 268435456)
-	MM2_PRESET='map-hifi'
+	query=$DATA/m64011_190830_220126.fasta
+	w=19
+	k=19
+	range_max_occ=(1 2 5)
+	#range_batch_size=(268435456 268435456 268435456)
+	range_batch_size=(536870912  536870912 536870912)
+	range_vt_distance=(5000 4000 4000)
+	extra_param=""
+	minimap2_preset='map-hifi'
 elif [ $1 = 'illumina' ]; then
-	XCLBIN=../device/demeter_illumina.xclbin
-	QUERY=$DATA/illumina_90.fasta
-	W=11
-	K=21
-	RANGE_MAX_OCC=$(eval echo "{10..100..10}")
-	MM2_PRESET='sr'
+	query=$DATA/D1_S1_L001_R1_001-017_header.fasta
+	w=11
+	k=21
+	range_max_occ=(20 60 180)
+	range_batch_size=(268435456 134217728 67108864)
+	range_vt_distance=(30 30 10)
+	#TODO: test without merge sort
+	extra_param="-e -c 0 -s"
+	minimap2_preset='sr'
 else
+    echo "Usage: $0 <ont|hifi|illumina>"
 	exit 1
 fi
 
+target=$DATA/GCA_000001405.15_GRCh38_no_alt_analysis_set.fasta
+paf=$DATA/mapping.paf
 
-rm -f $RES
+xclbin=../device/demeter_$1.xclbin
+res=performance_$1.dat
+
+rm -f $res
+
 echo "[PERF] Loading the xclbin"
-xbutil program -d 0000:c4:00.1 -u $XCLBIN
+xbutil program -d 0000:c4:00.1 -u $xclbin
 
-for i in "${!RANGE_MAX_OCC[@]}";
+for i in "${!range_max_occ[@]}";
 do
-	echo "[PERF] Generating the index with max_occ: ${RANGE_MAX_OCC[i]}"
-	../demeter_index -t 32 -w $W -k $K -f ${RANGE_MAX_OCC[i]} $TARGET $DATA/index.dti
+	echo "[PERF] Generating the index with max_occ: ${range_max_occ[i]}"
+	../seedfarm_index -t 32 -w $w -k $k -f ${range_max_occ[i]} $target $DATA/index.sfi
 	echo "[PERF] Locking the reads and the index into RAM"
-	vmtouch -ldw $QUERY $DATA/index.dti
-	echo "[PERF] Running demeter"
+	vmtouch -ldw $query $DATA/index.sfi
+	echo "[PERF] Running seedfarm"
 	start_date=`date +%s%N`
-	../demeter -b  ${RANGE_BATCH_SIZE[i]} -t 32 -s $XCLBIN $DATA/index.dti $QUERY -o $DATA/mapping.paf > time_${RANGE_MAX_OCC[i]}.dat
+	../seedfarm -t 32 -b ${range_batch_size[i]} -d ${vt_distance[i]} $extra_param $xclbin $DATA/index.sfi $query -o $paf
 	end_date=`date +%s%N`
-	echo `expr $end_date - $start_date` >> $RES
+	echo `expr $end_date - $start_date` >> $res
 	pkill vmtouch
 done
 
 echo "[PERF] Generating the index for minimap2"
-minimap2 -t 32 -x $MM2_PRESET -d $DATA/index.mmi $TARGET
+minimap2 -t 32 -x $minimap2_preset -d $DATA/index.mmi $target
 echo "[PERF] Locking the reads and the index into RAM"
-vmtouch -ldw $QUERY $DATA/index.mmi
+vmtouch -ldw $query $DATA/index.mmi
 echo "[PERF] Running minimap2"
 start_date=`date +%s%N`
-minimap2 -t 32 -x $MM2_PRESET -o $DATA/mapping.paf $DATA/index.mmi $QUERY
+minimap2 -t 32 -x $minimap2_preset -o $paf $DATA/index.mmi $query
 end_date=`date +%s%N`
-echo `expr $end_date - $start_date` > performances_mm2.txt
+echo `expr $end_date - $start_date` >> $res
 pkill vmtouch
 
-rm -f $DATA/index.dti
+rm -f $DATA/index.sfi
 rm -f $DATA/index.mmi
-rm -f $DATA/mapping.paf
+rm -f $paf

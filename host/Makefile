@@ -21,14 +21,14 @@ CFLAGS = -std=gnu11 -O3 -g -march=native $(DEPFLAGS) -Wall -Wextra -Werror
 LDFLAGS += -L$(XILINX_XRT)/lib
 LDLIBS += -lxrt_coreutil -pthread -lstdc++ -lm $(UTIL)
 
-EXE := demeter
+EXE := seedfarm
 
 all: demeter_util $(EXE)
 
 $(EXE): $(C_OBJS) $(CXX_OBJS) $(UTIL)
 	$(LINK.o) $(C_OBJS) $(CXX_OBJS) $(LOADLIBES) $(LDLIBS) -o $@
 
-driver.o: CXXFLAGS+=-DPROFILE
+#driver.o: CXXFLAGS+=-DPROFILE
 
 demeter_util:
 	$(MAKE) -C $(UTIL_DIR)

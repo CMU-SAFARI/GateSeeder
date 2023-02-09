@@ -1,8 +1,8 @@
 HOST_DIR := host
 UTIL_DIR := util
 INDEX_DIR := indexing
-INDEX := demeter_index
-HOST := demeter
+INDEX := seedfarm_index
+HOST := seedfarm
 
 all: build_host build_indexing
 
@@ -18,7 +18,6 @@ clean:
 	$(MAKE) -C $(HOST_DIR) clean
 	$(MAKE) -C $(UTIL_DIR) clean
 	$(MAKE) -C $(INDEX_DIR) clean
-	$(MAKE) -C $(EVALUATION) clean
 	$(RM) $(HOST) $(INDEX)
 
 .PHONY: all clean
