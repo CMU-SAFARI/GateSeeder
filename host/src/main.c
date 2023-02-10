@@ -28,32 +28,26 @@ typedef struct {
 	unsigned nb_threads;
 } arguments;
 
-const char *argp_program_version     = "demeter 0.1.0";
+const char *argp_program_version     = "seedfarm 0.1.0";
 const char *argp_program_bug_address = "<julien@eudine.fr>";
-static char doc[]                    = "FPGA + HBM based read mapper";
-static char args_doc[]               = "<pdi.xclbin> <index.dti> <query.fastq>";
-static struct argp_option options[]  = {
-     /*
-{0, 0, 0, 0, "Sorting:", 0},
-{"radix_sort", 'R', 0, 0, "use radix sort instead of merge sort", 0},
-*/
+static char doc[]                    = "TODO";
+static char args_doc[]               = "<pdi.xclbin> <index.sfi> <query.fa>";
+static struct argp_option options[]  = {{0, 0, 0, 0, "Mapping:", 0},
+                                        {"max_nb_mapping", 'm', "UINT", 0, "[6]", 0},
+                                        {"vt_distance", 'd', "UINT", 0, "[700]", 0},
+                                        {"vt_frac_max", 'f', "FLOAT", 0, "[0.4]", 0},
+                                        {"vt_min_cov", 'c', "FLOAT", 0, "[0.1]", 0},
+                                        {"vt_eq", 'e', 0, 0, "", 0},
+                                        {"merge_sort", 's', 0, 0, "", 0},
 
-    {0, 0, 0, 0, "Mapping:", 0},
-    {"max_nb_mapping", 'm', "UINT", 0, "[6]", 0},
-    {"vt_distance", 'd', "UINT", 0, "[700]", 0},
-    {"vt_frac_max", 'f', "FLOAT", 0, "[0.4]", 0},
-    {"vt_min_cov", 'c', "FLOAT", 0, "[0.1]", 0},
-    {"vt_eq", 'e', 0, 0, "", 0},
-    {"merge_sort", 's', 0, 0, "", 0},
+                                        {0, 0, 0, 0, "Ressources:", 0},
+                                        {"nb_threads", 't', "UINT", 0, "number of CPU threads [4]", 0},
+                                        {"batch_capacity", 'b', "UINT", 0, "batch capacity (in bases) [10000000]", 0},
+                                        {"compute_units", 'u', "UINT", 0, "number of FPGA compute units [8]", 0},
 
-    {0, 0, 0, 0, "Ressources:", 0},
-    {"nb_threads", 't', "UINT", 0, "number of CPU threads [4]", 0},
-    {"batch_capacity", 'b', "UINT", 0, "batch capacity (in bases) [10000000]", 0},
-    {"compute_units", 'u', "UINT", 0, "number of FPGA compute units [8]", 0},
-
-    {0, 0, 0, 0, "Output:", 0},
-    {"output", 'o', "OUTPUT_FILE", 0, "output file [stdout]", 0},
-    {0}};
+                                        {0, 0, 0, 0, "Output:", 0},
+                                        {"output", 'o', "OUTPUT_FILE", 0, "output file [stdout]", 0},
+                                        {0}};
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 	arguments *args = state->input;

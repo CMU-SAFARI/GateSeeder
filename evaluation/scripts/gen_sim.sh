@@ -21,7 +21,7 @@ elif [ $1 = 'illumina' ]; then
 	mason_variator -ir $DATA/GCA_000001405.15_GRCh38_no_alt_analysis_set.fasta -s 3 -ov $DATA/hs38.vcf --snp-rate 1e-3 --small-indel-rate 2e-4 --sv-indel-rate 0 --sv-inversion-rate 0 --sv-translocation-rate 0 --sv-duplication-rate 0 --max-small-indel-size 10
 	mason_simulator -ir $DATA/GCA_000001405.15_GRCh38_no_alt_analysis_set.fasta -iv $DATA/hs38.vcf -n 10000000 --seed 3 -o mason.fq -oa mason_illumina.sam --illumina-prob-mismatch-scale 2.5 --illumina-read-length 150
 	paftools.js mason2fq mason_illumina.sam > $DATA/illumina_sim.fasta
-	rm *.sam *.fq $DATA/GCA_000001405.15_GRCh38_no_alt_analysis_set.fasta.fai
+	rm *.sam *.fq $DATA/GCA_000001405.15_GRCh38_no_alt_analysis_set.fasta.fai $DATA/hs38.vcf
 else
     echo "Usage: $0 <ont|hifi|illumina>"
 	exit 1

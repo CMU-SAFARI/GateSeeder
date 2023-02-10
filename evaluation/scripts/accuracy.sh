@@ -28,8 +28,7 @@ elif [ $1 = 'illumina' ]; then
 	k=21
 	range_max_occ="50 150 450"
 	range_vt_distance="10 20 30 50"
-	#TODO: use merge sort if it's fatser
-	extra_param="-e -c 0"
+	extra_param="-e -c 0 -s"
 	minimap2_preset='sr'
 	nb_reads=$(expr $(wc -l < $query) / 4)
 else
