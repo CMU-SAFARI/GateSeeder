@@ -44,7 +44,6 @@ void demeter_fpga_init(const unsigned nb_cus, const char *const binary_file, con
 	device_buf        = new d_device_t[NB_WORKERS];
 	xrt::kernel *krnl = new xrt::kernel[NB_WORKERS];
 
-	// Initialize the kernels
 	const std::string pre_name = std::string(KERNEL_NAME) + std::string(":{") + INSTANCE_NAME;
 
 	// Initialize the krnls

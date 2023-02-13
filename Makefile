@@ -19,7 +19,7 @@ build_indexing:
 
 build_profiling:
 	$(MAKE) -C $(PROFILE_DIR)
-	ln -fs $(INDEX_DIR)/$(PROFILE) $(PROFILE)
+	ln -fs $(PROFILE_DIR)/$(PROFILE) $(PROFILE)
 
 clean:
 	$(MAKE) -C $(HOST_DIR) clean

@@ -23,7 +23,7 @@ inline uint64_t key_2_loc(const uint64_t key, const unsigned query_str, const ui
 	const uint64_t str            = ((key >> LOC_SHIFT) & 1) ^ query_str;
 
 	// Compute the shifted target_loc
-	const uint64_t target_loc = key_target_loc + (str) ? query_loc : LOC_OFFSET - query_loc;
+	const uint64_t target_loc = key_target_loc + (str ? query_loc : LOC_OFFSET - query_loc);
 
 	// Pack
 	const uint64_t loc = (chrom_id << 53) | (target_loc << 23) | (query_loc << 1) | str;

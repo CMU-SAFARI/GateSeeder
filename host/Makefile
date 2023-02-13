@@ -36,5 +36,5 @@ demeter_util:
 clean:
 	$(RM) *.o *.d $(EXE)
 
-.PHONY: clean demeter_util
+.PHONY: all clean demeter_util
 -include $(wildcard *.d)

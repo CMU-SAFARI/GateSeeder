@@ -37,7 +37,19 @@ static void *cpu_routine(void *arg) {
 			return (void *)NULL;
 		}
 		extract_seeds(seq, len, &seeds, 0);
+		/*
+		fprintf(stdout, "SEEDS:\n");
+		for (uint32_t i = 0; i < seeds.len; i++) {
+		        printf("S\t%lx\n", seeds.a[i].hash);
+		}
+		*/
 		query_index(seeds, &locations, index);
+		/*
+		fprintf(stdout, "LOCS:\n");
+		for (uint32_t i = 0; i < locations.len; i++) {
+		        printf("L\t%lx\n", locations.a[i]);
+		}
+		*/
 	}
 }
 
@@ -50,6 +62,8 @@ void cpu_pipeline(const read_buf_t input, const unsigned nb_threads, const index
 	current_output    = 0;
 	extraction_init();
 
+	PROF_INIT;
+	PROF_START;
 	MALLOC(threads, pthread_t, nb_threads);
 	for (unsigned i = 0; i < nb_threads; i++) {
 		THREAD_START(threads[i], cpu_routine, &thread_arg);
@@ -57,5 +71,7 @@ void cpu_pipeline(const read_buf_t input, const unsigned nb_threads, const index
 	for (unsigned i = 0; i < nb_threads; i++) {
 		THREAD_JOIN(threads[i]);
 	}
+	PROF_END;
+	PRINT_PROF("CPU");
 	free(threads);
 }

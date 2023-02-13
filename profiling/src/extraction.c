@@ -38,6 +38,8 @@ static inline uint64_t hash64(uint64_t key) {
 	return key;
 }
 
+#define ENCODE(c) (c & 0x0f) >> 1
+
 uint32_t extract_seeds(const uint8_t *seq, const uint32_t len, seed_v *const minimizers, int partial) {
 	uint64_t kmer[2] = {0, 0};
 	seed_t buf[256];
@@ -51,7 +53,7 @@ uint32_t extract_seeds(const uint8_t *seq, const uint32_t len, seed_v *const min
 	minimizers->len = 0;
 
 	for (uint32_t i = 0; i < len; i++) {
-		uint8_t c           = seq[i];
+		uint8_t c           = ENCODE(seq[i]);
 		seed_t current_seed = {.hash = UINT64_MAX, .loc = 0, .str = 0};
 		if (c < 4) {                                            // not an ambiguous base
 			kmer[0] = (kmer[0] << 2 | c) & MASK;            // forward k-mer
