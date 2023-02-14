@@ -313,6 +313,9 @@ static void *mapping_routine(__attribute__((unused)) void *arg) {
 				demeter_load_seq(worker);
 				break;
 			case START_KERNEL:
+#ifdef CPU_EX
+				seedfarm_execute(worker);
+#endif
 				//  Since this is done "atomically"
 				break;
 			case TRANSFER_OUTPUT:

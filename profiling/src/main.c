@@ -74,6 +74,7 @@ int main(int argc, char *argv[]) {
 		fpga_init(args.nb_threads_cus, args.batch_capacity, args.binary_file, args.index);
 		while (fpga_pipeline() == 0)
 			;
+		fpga_destroy();
 	} else {
 		read_buf_init(&read_buf, args.batch_capacity);
 		while (fa_parse(&read_buf) == 0) {

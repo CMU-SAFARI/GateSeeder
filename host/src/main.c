@@ -10,6 +10,8 @@
 #include <time.h>
 
 uint32_t SE_K;
+uint32_t SE_W;
+uint32_t IDX_MAP_SIZE;
 uint32_t BATCH_CAPACITY = 10000000;
 uint32_t MAX_NB_MAPPING = 6;
 uint32_t VT_DISTANCE    = 700;
@@ -119,14 +121,18 @@ int main(int argc, char *argv[]) {
 	argp_parse(&argp, argc, argv, 0, 0, &args);
 
 	demeter_fpga_init(args.nb_cus, args.binary_file, args.index);
+#ifndef CPU_EX
 	index_destroy_key_map(args.index);
+#endif
 
 	TARGET =
 	    (target_t){.nb_seq = args.index.nb_seq, .seq_name = args.index.seq_name, .seq_len = args.index.seq_len};
 	fprintf(stderr, "[SFM] w: %u, k: %u, map_size: %u, max_occ: %u\n", args.index.w, args.index.k,
 	        args.index.map_size, args.index.max_occ);
 
-	SE_K = args.index.k;
+	SE_K         = args.index.k;
+	SE_W         = args.index.w;
+	IDX_MAP_SIZE = args.index.map_size;
 
 	clock_gettime(CLOCK_MONOTONIC, &init);
 	fprintf(stderr, "[SFM] Initialization time %f sec\n",
@@ -134,6 +140,9 @@ int main(int argc, char *argv[]) {
 	mapping_run(args.nb_threads);
 	paf_write_destroy();
 	demeter_fpga_destroy();
+#ifdef CPU_EX
+	index_destroy_key_map(args.index);
+#endif
 	index_destroy_target(args.index);
 	fa_close();
 	clock_gettime(CLOCK_MONOTONIC, &end);

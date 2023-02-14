@@ -14,7 +14,7 @@ UTIL = $(UTIL_DIR)/demeter_util.a
 
 VPATH = $(SRC_DIR)
 
-CPPFLAGS += -I$(XILINX_XRT)/include -I$(UTIL_DIR)/include #-DPROFILE
+CPPFLAGS += -I$(XILINX_XRT)/include -I$(UTIL_DIR)/include $(ADDFLAGS)
 DEPFLAGS = -MD -MP
 CXXFLAGS = -std=c++17 -O3 -g -march=native $(DEPFLAGS) -Wall -Wextra -Werror
 CFLAGS = -std=gnu11 -O3 -g -march=native $(DEPFLAGS) -Wall -Wextra -Werror
@@ -27,8 +27,6 @@ all: demeter_util $(EXE)
 
 $(EXE): $(C_OBJS) $(CXX_OBJS) $(UTIL)
 	$(LINK.o) $(C_OBJS) $(CXX_OBJS) $(LOADLIBES) $(LDLIBS) -o $@
-
-#driver.o: CXXFLAGS+=-DPROFILE
 
 demeter_util:
 	$(MAKE) -C $(UTIL_DIR)

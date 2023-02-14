@@ -1,3 +1,4 @@
+#ifndef CPU_EX
 #include "driver.h"
 #include <err.h>
 #include <iostream>
@@ -187,8 +188,9 @@ int demeter_is_complete(d_worker_t *const worker) {
 void demeter_fpga_destroy() {
 	for (unsigned i = 0; i < NB_WORKERS; i++) {
 		read_buf_destroy(worker_buf[i].read_buf);
-		delete[] worker_buf[i].loc_buf.loc;
+		free(worker_buf[i].loc_buf.loc);
 	}
 	delete[] worker_buf;
 	delete[] device_buf;
 }
+#endif

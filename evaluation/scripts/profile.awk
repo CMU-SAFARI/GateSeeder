@@ -10,6 +10,9 @@
 	} else if ($1 == "D2H") {
 		d2h += $2;
 		d2h_n++;
+	} else if ($1 == "CPU") {
+		cpu += $2;
+		cpu_n++;
 	}
 }
 
@@ -25,5 +28,9 @@ END {
 	if (d2h_n > 0) {
 		av = d2h/d2h_n;
 		print "D2H: "av/1000000;
+	}
+	if (cpu_n > 0) {
+		av = cpu/cpu_n;
+		print "CPU: "av/1000000;
 	}
 }

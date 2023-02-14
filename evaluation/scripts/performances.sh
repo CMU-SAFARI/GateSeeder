@@ -74,7 +74,5 @@ minimap2 -t 32 -x $minimap2_preset -o $paf $DATA/index.mmi $query
 end_date=`date +%s%N`
 echo `expr $end_date - $start_date` >> $res
 pkill vmtouch
-rm -f $paf
 
-rm -f $DATA/index.sfi
-rm -f $DATA/index.mmi
+rm -f $DATA/index.sfi $DATA/index.mmi $paf

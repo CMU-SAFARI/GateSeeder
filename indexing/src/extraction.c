@@ -80,7 +80,7 @@ void extract_seeds(const uint8_t *seq, const uint32_t len, const uint32_t chrom_
 		}
 		buf[buf_pos] = current_seed;
 
-		if (current_seed.hash <= minimizer.hash) {
+		if (current_seed.hash < minimizer.hash) {
 			if (l >= w + k && minimizer.hash != UINT64_MAX) {
 				push_seed(minimizers, minimizer, chrom_id, map_size);
 			}
@@ -93,13 +93,13 @@ void extract_seeds(const uint8_t *seq, const uint32_t len, const uint32_t chrom_
 			}
 			minimizer.hash = UINT64_MAX;
 			for (unsigned j = buf_pos + 1; j < w; j++) {
-				if (minimizer.hash >= buf[j].hash) {
+				if (minimizer.hash > buf[j].hash) {
 					minimizer = buf[j];
 					min_pos   = j;
 				}
 			}
 			for (unsigned j = 0; j <= buf_pos; j++) {
-				if (minimizer.hash >= buf[j].hash) {
+				if (minimizer.hash > buf[j].hash) {
 					minimizer = buf[j];
 					min_pos   = j;
 				}

@@ -93,8 +93,8 @@ static void *transfer_device_2_host_routine(void *arg) {
 	cu_t *cu = (cu_t *)arg;
 	cu->loc.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
 
-	uint64_t *loc = cu->loc_buf;
 	/*
+	uint64_t *loc = cu->loc_buf;
 	for (uint32_t i = 0; i < (LB_SIZE >> 3); i++) {
 	        fprintf(stdout, "LOCS:\n");
 	        printf("L\t%lx\n", loc[i]);
@@ -131,7 +131,7 @@ int fpga_pipeline() {
 	PRINT_PROF("H2D");
 
 	PROF_START;
-	// Execute the kernel
+	// Execute the kernels
 	for (unsigned i = 0; i < NB_CUS; i++) {
 		THREAD_START(threads[i], execute_kernel_routine, &cu_buf[i]);
 	}
@@ -154,4 +154,12 @@ int fpga_pipeline() {
 
 	free(threads);
 	return 0;
+}
+
+void fpga_destroy() {
+	for (unsigned i = 0; i < NB_CUS; i++) {
+		read_buf_destroy(cu_buf[i].read_buf);
+		free(cu_buf[i].loc_buf);
+	}
+	delete[] cu_buf;
 }

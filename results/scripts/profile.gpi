@@ -18,4 +18,4 @@ set style fill solid border -1
 set format y "10^{%T}"
 set key below
 
-plot file using ($2/$3):xtic(1) ti "Host to Device", '' u ($2/$4) ti "Kernel", '' u ($2/$5) ti "Device to Host"
+plot file using ($2/$3):xtic(1) ti "Host to Device", '' u ($2/$4) ti "Device to Host", '' u ($2/$5) ti "FPGA Kernel", '' u ($2/$6) ti "CPU Kernel"

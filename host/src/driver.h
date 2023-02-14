@@ -47,6 +47,10 @@ void demeter_load_loc(d_worker_t *const worker);
 int demeter_is_complete(d_worker_t *const worker);
 void demeter_fpga_destroy();
 
+#ifdef CPU_EX
+void seedfarm_execute(d_worker_t *const worker);
+#endif
+
 #ifdef __cplusplus
 }
 #endif
