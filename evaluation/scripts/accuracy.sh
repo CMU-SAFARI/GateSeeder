@@ -46,6 +46,10 @@ rm -f $res_dir/*
 
 echo -e "$1\t$nb_reads" > $res_dir/info.dat
 
+echo "[PROF] Compiling seedfarm:"
+make -C .. clean
+make -C ..
+
 for max_occ in $range_max_occ
 do
 	echo "[ACC] Generating the index with max_occ: $max_occ"

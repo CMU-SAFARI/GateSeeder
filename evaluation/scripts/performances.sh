@@ -45,7 +45,11 @@ res=performance_$1.dat
 
 rm -f $res
 
+echo "[PROF] Compiling seedfarm:"
+make -C .. clean
+make -C ..
 echo "[PERF] Loading the xclbin"
+
 xbutil program -d 0000:c4:00.1 -u $xclbin
 
 for i in "${!max_occ[@]}";

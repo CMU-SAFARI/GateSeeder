@@ -1,0 +1,27 @@
+#!/usr/bin/gnuplot -c
+set terminal eps enhanced font 'FreeSans,15'
+set output "speedup_".ARG1.".eps"
+
+file="speedup/".ARG1.".dat"
+
+set ylabel "Speedup over minimap2"
+set grid mytics
+set logscale y
+set xtics nomirror
+
+set boxwidth 1
+set style fill solid
+
+set style data histogram
+set style histogram cluster gap 1
+set style fill solid border -1
+set key above
+set yrange [1:]
+
+division(a, b) = sprintf("x%.1f", a/b)
+plot file using ($5/$2):xtic(1) ti "1", \
+	'' u ($5/$3) ti "2", \
+	'' u ($5/$4) ti "3", \
+	'' u 0:($5/$2):(division($5,$2)) with labels font "FreeSans,10" offset -3,0.5 notitle, \
+	'' u 0:($5/$3):(division($5,$3)) with labels font "FreeSans,10" offset 0,0.5 notitle ,\
+	'' u 0:($5/$4):(division($5,$4)) with labels font "FreeSans,10" offset 3,0.5 notitle
