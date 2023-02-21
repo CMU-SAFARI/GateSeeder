@@ -1,12 +1,20 @@
 #!/usr/bin/gnuplot -c
-set terminal pdf enhanced font 'FreeSans,15'
-set output "accuracy_".ARG1.".pdf"
+set terminal eps enhanced font 'FreeSans,10' size 8.5cm, 13cm
+set output "accuracy.eps"
 set grid
 
-data_set_file="accuracy/".ARG1.".dat"
-type=system(sprintf("awk -F '\t' '{print $1}' %s", data_set_file))
-nb_reads=system(sprintf("awk -F '\t' '{print $2}' %s", data_set_file))
-list=system(sprintf("ls accuracy/*_%s.dat", ARG1))
+ont_file="accuracy/ont.dat"
+hifi_file="accuracy/hifi.dat"
+illumina_file="accuracy/illumina.dat"
+
+ont_nb_reads=system(sprintf("awk -F '\t' '{print $2}' %s", ont_file))
+ont_list=system(sprintf("ls accuracy/*_ont.dat"))
+
+hifi_nb_reads=system(sprintf("awk -F '\t' '{print $2}' %s", hifi_file))
+hifi_list=system(sprintf("ls accuracy/*_hifi.dat"))
+
+illumina_nb_reads=system(sprintf("awk -F '\t' '{print $2}' %s", illumina_file))
+illumina_list=system(sprintf("ls accuracy/*_illumina.dat"))
 
 set xlabel "Error rate of mapped reads"
 set ylabel "Fraction of mapped reads"
@@ -17,4 +25,11 @@ set grid mxtics mytics
 set format x "10^{%T}"
 set key above width -2 vertical maxrows 1
 
-plot for [file in list] '<(tail -n +1 '.file.')' u 5:($6/nb_reads) with linespoints title system(sprintf("head -n 1 %s", file))
+set multiplot layout 3,1 rowsfirst
+set label 1 '(a)' at graph -0.16,-0.15 font "FreeSans-Bold,13"
+plot for [file in ont_list] '<(tail -n +1 '.file.')' u 5:($6/ont_nb_reads) with linespoints title system(sprintf("head -n 1 %s", file))
+set label 1 '(b)' at graph -0.16,-0.15 font "FreeSans-Bold,13"
+plot for [file in hifi_list] '<(tail -n +1 '.file.')' u 5:($6/hifi_nb_reads) with linespoints title system(sprintf("head -n 1 %s", file))
+set label 1 '(c)' at graph -0.16,-0.15 font "FreeSans-Bold,13"
+plot for [file in illumina_list] '<(tail -n +1 '.file.')' u 5:($6/illumina_nb_reads) with linespoints title system(sprintf("head -n 1 %s", file))
+unset multiplot

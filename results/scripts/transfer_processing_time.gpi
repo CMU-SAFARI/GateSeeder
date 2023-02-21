@@ -1,0 +1,23 @@
+#!/usr/bin/gnuplot -c
+set terminal eps enhanced font 'FreeSans,15'
+set output "transfer_processing_time_".ARG1.".eps"
+
+file="transfer_processing_time/".ARG1.".dat"
+
+set xtics nomirror
+set ylabel "Time per bp (msec/bp)"
+set grid mytics
+set logscale y 10
+
+set boxwidth 1
+set style fill solid
+
+set style data histogram
+set style histogram cluster gap 1
+set style fill solid border -1
+set format y "10^{%T}"
+set key above
+set xtics font "FreeSans,12"
+
+
+plot file using ($3/$2):xtic(1) ti "Host to Device", '' u ($4/$2) ti "Device to Host", '' u ($5/$2) ti "FPGA Kernel", '' u ($6/$2) ti "CPU Kernel"
