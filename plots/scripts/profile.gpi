@@ -1,0 +1,66 @@
+#!/usr/bin/gnuplot -c
+set terminal eps enhanced font 'FreeSans,15' size 20cm,10cm
+set output "profile.eps"
+
+set multiplot layout 1,2
+
+DRAM_BW = 107.03
+L3_BW = 543.62
+HBM_BW = 460
+S_ADD = 156.11
+V_ADD = 1764.37
+
+set xlabel "Arithmetic Intensity (op/byte)"
+set ylabel "Attainable Performance (Gop/sec)"
+set grid mxtics mytics xtics ytics
+set logscale x 10
+set logscale y 10
+#set arrow 1 from 0.01,1.0703 to 10,1070.3 nohead lw 3 lc 2
+dram(x) = DRAM_BW * x
+l3(x) = L3_BW * x
+s_add(x) = S_ADD
+v_add(x) = V_ADD
+set xrange[0.05: 3]
+set yrange[2: 2000]
+
+set label "DRAM 107.03 GBps" at 0.6,80 rotate by 33 left tc "black"
+set label "L3 543.62 GBps" at 0.6,400 rotate by 33 left tc "black"
+set label "Scalar Add Peak" at 0.05,140 rotate by 0 left tc "black"
+set label "Vector Add Peak" at 0.05,1600 rotate by 0 left tc "black"
+set label '(a)' at graph -0.15,0 font "FreeSans-Bold,21"
+set key right bottom
+
+plot dram(x) notitle with lines lc "black", \
+	l3(x) notitle with lines lc "black", \
+	s_add(x) notitle with lines dashtype 2 lc "black", \
+	v_add(x) notitle with lines dashtype 2 lc "black", \
+	for [n=1:4]"<(sed -n '".n."p' profile/12_threads.dat)" u 1:2 with points linestyle n lc "dark-violet" notitle, \
+	for [n=1:4]"<(sed -n '".n."p' profile/24_threads.dat)" u 1:2 with points linestyle n lc "#e69f00" notitle, \
+	for [n=1:4]"<(sed -n '".n."p' profile/48_threads.dat)" u 1:2 with points linestyle n lc "#56b4e9" notitle, \
+	"<(echo 0	0)" u 1:2 with points linestyle 1 lc "black" title "Seed Extraction", \
+	"<(echo 0	0)" u 1:2 with points linestyle 2 lc "black" title "Index Querying", \
+	"<(echo 0	0)" u 1:2 with points linestyle 3 lc "black" title "Location Sorting", \
+	"<(echo 0	0)" u 1:2 with points linestyle 4 lc "black" title "Chaining", \
+	"<(echo 0	0)" u 1:2 with points linestyle 5 lc "dark-violet" title "12 threads", \
+	"<(echo 0	0)" u 1:2 with points linestyle 5 lc "#e69f00" title "24 threads", \
+	"<(echo 0	0)" u 1:2 with points linestyle 5 lc "#56b4e9" title "48 threads"
+
+
+reset
+file_name = 'profile/minimap2_profile.dat'
+
+set boxwidth 0.75 absolute
+set style fill solid 1.00 border -1
+set style data histogram
+set style histogram rowstacked
+set ytics 100 nomirror
+set mytics 5
+set ytics 10
+set grid ytics mytics
+set yrange [0:100]
+set ylabel "Breakdown of the Execution Time (%)"
+set key above horizontal
+
+set label '(b)' at graph -0.15,0 font "FreeSans-Bold,21"
+plot file_name using 2 t "Seed Extraction"  lc rgbcolor "black" lt 1 fs pattern 1, '' using 3 t "Index Querying" lc rgbcolor "black" lt 1 fs pattern 2,'' using 4 t "Location Sorting" lc rgbcolor "black" lt 1 fs pattern 3, '' using 5 t "Chaining" lc rgbcolor "black" lt 1 fs pattern 4, '' using 6 :xtic(1) t "Misc" lc rgbcolor "black" lt 1 fs pattern 5
+unset multiplot

@@ -5,7 +5,7 @@ set output "speedup_".ARG1.".eps"
 file="speedup/".ARG1.".dat"
 
 set ylabel "Speedup over minimap2"
-set grid mytics
+set grid mytics ytics
 set logscale y
 set xtics nomirror
 

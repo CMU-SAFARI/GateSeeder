@@ -6,7 +6,7 @@ file="transfer_processing_time/".ARG1.".dat"
 
 set xtics nomirror
 set ylabel "Time per bp (msec/bp)"
-set grid mytics
+set grid mytics ytics
 set logscale y 10
 
 set boxwidth 1
