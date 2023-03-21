@@ -196,8 +196,10 @@ static record_v vote(uint64_t *const loc, const uint32_t len, const uint32_t vt_
 			counter[str] = 1;
 		}
 	}
-	r.nb_records = push_mapping_location(counter[str], q_start[str], q_end[str], t_start[str], t_end[str], str, r,
-	                                     vt_cov_threshold);
+	r.nb_records =
+	    push_mapping_location(counter[0], q_start[0], q_end[0], t_start[0], t_end[0], 0, r, vt_cov_threshold);
+	r.nb_records =
+	    push_mapping_location(counter[1], q_start[1], q_end[1], t_start[1], t_end[1], 1, r, vt_cov_threshold);
 
 	// Filter based on a fraction of the best voting score
 	if (r.nb_records > 1) {
