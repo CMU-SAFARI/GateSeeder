@@ -28,7 +28,7 @@
           <dia:boolean val="false"/>
         </dia:attribute>
         <dia:attribute name="scaling">
-          <dia:real val="1.2472807424593968"/>
+          <dia:real val="1.2472807168960571"/>
         </dia:attribute>
         <dia:attribute name="fitto">
           <dia:boolean val="true"/>
@@ -94,6 +94,7 @@
       </dia:composite>
     </dia:attribute>
   </dia:diagramdata>
+  <dia:layer name="Background" visible="true" connectable="false"/>
   <dia:layer name="Background" visible="true" connectable="true"/>
   <dia:layer name="Background" visible="true" connectable="true"/>
   <dia:layer name="Background" visible="true" connectable="true"/>
@@ -1373,7 +1374,7 @@ Index#</dia:string>
         <dia:point val="36,9.5"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="33.925,8.08229;36.075,9.91771"/>
+        <dia:rectangle val="33.925,8.425;36.075,9.91771"/>
       </dia:attribute>
       <dia:attribute name="orth_points">
         <dia:point val="36,9.5"/>
@@ -1387,7 +1388,7 @@ Index#</dia:string>
         <dia:enum val="0"/>
       </dia:attribute>
       <dia:attribute name="autorouting">
-        <dia:boolean val="true"/>
+        <dia:boolean val="false"/>
       </dia:attribute>
       <dia:attribute name="line_width">
         <dia:real val="0.14999999999999999"/>
@@ -1399,15 +1400,6 @@ Index#</dia:string>
         <dia:real val="0.5"/>
       </dia:attribute>
       <dia:attribute name="start_arrow_width">
-        <dia:real val="0.5"/>
-      </dia:attribute>
-      <dia:attribute name="end_arrow">
-        <dia:enum val="22"/>
-      </dia:attribute>
-      <dia:attribute name="end_arrow_length">
-        <dia:real val="0.5"/>
-      </dia:attribute>
-      <dia:attribute name="end_arrow_width">
         <dia:real val="0.5"/>
       </dia:attribute>
       <dia:attribute name="corner_radius">
@@ -1423,13 +1415,13 @@ Index#</dia:string>
         <dia:point val="39,12"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="33.925,11.925;39.075,13.125"/>
+        <dia:rectangle val="33.925,11.925;39.075,13.15"/>
       </dia:attribute>
       <dia:attribute name="orth_points">
         <dia:point val="39,12"/>
-        <dia:point val="39,13.05"/>
-        <dia:point val="36.525,13.05"/>
-        <dia:point val="36.525,12.5"/>
+        <dia:point val="39,13.075"/>
+        <dia:point val="36.5375,13.075"/>
+        <dia:point val="36.5375,12.5"/>
         <dia:point val="34,12.5"/>
       </dia:attribute>
       <dia:attribute name="orth_orient">
