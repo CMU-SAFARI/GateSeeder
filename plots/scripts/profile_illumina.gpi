@@ -4,11 +4,11 @@ set output "profile.eps"
 
 set multiplot layout 1,2
 
-DRAM_BW = 107.03
-L3_BW = 543.62
+DRAM_BW = 88.87
+L3_BW = 592.51
 HBM_BW = 460
-S_ADD = 156.11
-V_ADD = 1764.37
+S_ADD = 156.06
+V_ADD = 1759.08
 
 set xlabel "Arithmetic Intensity (op/byte)"
 set ylabel "Attainable Performance (Gop/sec)"
@@ -21,10 +21,10 @@ l3(x) = L3_BW * x
 s_add(x) = S_ADD
 v_add(x) = V_ADD
 set xrange[0.05: 3]
-set yrange[2: 2000]
+set yrange[2: 7000]
 
-set label "DRAM 107.03 GBps" at 0.6,80 rotate by 33 left tc "black"
-set label "L3 543.62 GBps" at 0.6,400 rotate by 33 left tc "black"
+set label "DRAM 88.87 GBps" at 0.6,80 rotate by 33 left tc "black"
+set label "L3 592.51 GBps" at 0.6,400 rotate by 33 left tc "black"
 set label "Scalar Add Peak" at 0.05,140 rotate by 0 left tc "black"
 set label "Vector Add Peak" at 0.05,1600 rotate by 0 left tc "black"
 set label '(a)' at graph -0.15,0 font "FreeSans-Bold,18"
@@ -34,9 +34,9 @@ plot dram(x) notitle with lines lc "black", \
 	l3(x) notitle with lines lc "black", \
 	s_add(x) notitle with lines dashtype 2 lc "black", \
 	v_add(x) notitle with lines dashtype 2 lc "black", \
-	for [n=1:4]"<(sed -n '".n."p' profile/12_threads.dat)" u 1:2 with points linestyle n lc "dark-violet" notitle, \
-	for [n=1:4]"<(sed -n '".n."p' profile/24_threads.dat)" u 1:2 with points linestyle n lc "#e69f00" notitle, \
-	for [n=1:4]"<(sed -n '".n."p' profile/48_threads.dat)" u 1:2 with points linestyle n lc "#56b4e9" notitle, \
+	for [n=1:4]"<(sed -n '".n."p' profile/12_threads_illumina.dat)" u 1:2 with points linestyle n lc "dark-violet" notitle, \
+	for [n=1:4]"<(sed -n '".n."p' profile/24_threads_illumina.dat)" u 1:2 with points linestyle n lc "#e69f00" notitle, \
+	for [n=1:4]"<(sed -n '".n."p' profile/48_threads_illumina.dat)" u 1:2 with points linestyle n lc "#56b4e9" notitle, \
 	"<(echo 0	0)" u 1:2 with points linestyle 5 lc "dark-violet" title "12 threads", \
 	"<(echo 0	0)" u 1:2 with points linestyle 5 lc "#e69f00" title "24 threads", \
 	"<(echo 0	0)" u 1:2 with points linestyle 5 lc "#56b4e9" title "48 threads",\
@@ -47,7 +47,7 @@ plot dram(x) notitle with lines lc "black", \
 
 
 reset
-file_name = 'profile/minimap2_profile.dat'
+file_name = 'profile/minimap2_profile_illumina.dat'
 
 set boxwidth 0.75 absolute
 set style fill solid 1.00 border -1
