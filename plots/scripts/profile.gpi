@@ -67,6 +67,6 @@ set yrange [0:100]
 set ylabel "Breakdown of the Execution Time (%)"
 set key above width -3 vertical maxrows 3
 
-set label '(b)' at graph -0.15,0 font "FreeSans-Bold,18"
+set label '(b)' at graph -0.15,-0.1 font "FreeSans-Bold,18"
 plot file_name using 5 t "Chaining" lc rgbcolor "black" lt 1 fs pattern 4, '' using 4 t "Anchor Sorting" lc rgbcolor "black" lt 1 fs pattern 3, '' using 3 t "Index Querying" lc rgbcolor "black" lt 1 fs pattern 2, '' using 2 t "Seed Extraction" lc rgbcolor "black" lt 1 fs pattern 1, '' using 6 :xtic(1) t "PAF Printing \\& Misc" lc rgbcolor "black" lt 1 fs pattern 5
 unset multiplot
