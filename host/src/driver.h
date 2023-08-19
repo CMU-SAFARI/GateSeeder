@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "demeter_util.h"
+#include "seedfarm_util.h"
 
 #define LB_SIZE (1ULL << 29)
 

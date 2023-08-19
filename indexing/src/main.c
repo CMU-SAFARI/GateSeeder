@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (optind + 2 != argc) {
-		fprintf(stderr, "Usage %s [OPTION...] <target.fasta> <index.dti>\n", argv[0]);
+		fprintf(stderr, "Usage %s [OPTION...] <target.fasta> <index.sfi>\n", argv[0]);
 		exit(1);
 	}
 

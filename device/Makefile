@@ -5,7 +5,7 @@ CONFIG_DIR := config
 
 SRCS = $(wildcard $(SRC_DIR)/*.cpp)
 OBJS = $(SRCS:$(SRC_DIR)/%.cpp=%.o)
-UTIL = $(UTIL_DIR)/demeter_util.a
+UTIL = $(UTIL_DIR)/seedfarm_util.a
 
 VPATH = $(SRC_DIR)
 
@@ -30,7 +30,7 @@ demeter_%.xclbin: $(CONFIG_DIR)/%.param auto_gen $(CONFIG)
 auto_gen: src/auto_gen.rs
 	rustc $<
 
-sim: demeter_util $(SIM)
+sim: seedfarm_util $(SIM)
 	#./$< /mnt/scratch/jeudine/chr2-3.dti ../test/dummy.fastq
 
 
