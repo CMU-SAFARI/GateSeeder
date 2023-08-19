@@ -27,16 +27,16 @@ set label "DRAM 107.03 GBps" at 0.6,80 rotate by 28 left tc "black"
 set label "L3 543.62 GBps" at 0.6,400 rotate by 28 left tc "black"
 set label "Scalar Add Peak" at 0.05,140 rotate by 0 left tc "black"
 set label "Vector Add Peak" at 0.05,1600 rotate by 0 left tc "black"
-set label '(a)' at graph -0.15,0 font "FreeSans-Bold,18"
+set label '(a)' at graph -0.15,-0.02 font "FreeSans-Bold,18"
 set key above
 
 plot dram(x) notitle with lines lc "black", \
 	l3(x) notitle with lines lc "black", \
 	s_add(x) notitle with lines dashtype 2 lc "black", \
 	v_add(x) notitle with lines dashtype 2 lc "black", \
-	for [n=1:4]"<(sed -n '".n."p' profile/12_threads.dat)" u 1:2 with points linestyle n lc "dark-violet" notitle, \
-	for [n=1:4]"<(sed -n '".n."p' profile/24_threads.dat)" u 1:2 with points linestyle n lc "#e69f00" notitle, \
-	for [n=1:4]"<(sed -n '".n."p' profile/48_threads.dat)" u 1:2 with points linestyle n lc "#56b4e9" notitle, \
+	for [n=1:4]"<(sed -n '".n."p' profile/12_threads_ONT.dat)" u 1:2 with points linestyle n lc "dark-violet" notitle, \
+	for [n=1:4]"<(sed -n '".n."p' profile/24_threads_ONT.dat)" u 1:2 with points linestyle n lc "#e69f00" notitle, \
+	for [n=1:4]"<(sed -n '".n."p' profile/48_threads_ONT.dat)" u 1:2 with points linestyle n lc "#56b4e9" notitle, \
 	for [n=1:4]"<(sed -n '".n."p' profile/12_threads_illumina.dat)" u 1:2 with points linestyle n lc "red" notitle, \
 	for [n=1:4]"<(sed -n '".n."p' profile/24_threads_illumina.dat)" u 1:2 with points linestyle n lc "green" notitle, \
 	for [n=1:4]"<(sed -n '".n."p' profile/48_threads_illumina.dat)" u 1:2 with points linestyle n lc "blue" notitle, \
@@ -44,12 +44,12 @@ plot dram(x) notitle with lines lc "black", \
 	"<(echo 0	0)" u 1:2 with points linestyle 2 lc "black" title "Index Querying", \
 	"<(echo 0	0)" u 1:2 with points linestyle 3 lc "black" title "Anchor Sorting", \
 	"<(echo 0	0)" u 1:2 with points linestyle 4 lc "black" title "Chaining", \
-	"<(echo 0	0)" u 1:2 with points linestyle 5 lc "dark-violet" title "ONT 12 threads" at 0.42, 0.36, \
-	"<(echo 0	0)" u 1:2 with points linestyle 5 lc "#e69f00" title "ONT 24 threads" at 0.42, 0.32, \
-	"<(echo 0	0)" u 1:2 with points linestyle 5 lc "#56b4e9" title "ONT 48 threads" at 0.42, 0.28,\
-	"<(echo 0	0)" u 1:2 with points linestyle 5 lc "red" title "Illumina 12 threads" at 0.42, 0.24, \
-	"<(echo 0	0)" u 1:2 with points linestyle 5 lc "green" title "Illumina 24 threads" at 0.42, 0.20, \
-	"<(echo 0	0)" u 1:2 with points linestyle 5 lc "blue" title "Illumina 48 threads" at 0.42, 0.16
+	"<(echo 0	0)" u 1:2 with points linestyle 5 lc "dark-violet" title "ONT\\\_12" at 0.42, 0.36, \
+	"<(echo 0	0)" u 1:2 with points linestyle 5 lc "#e69f00" title "ONT\\\_24" at 0.42, 0.32, \
+	"<(echo 0	0)" u 1:2 with points linestyle 5 lc "#56b4e9" title "ONT\\\_48" at 0.42, 0.28,\
+	"<(echo 0	0)" u 1:2 with points linestyle 5 lc "red" title "ILMN\\\_12" at 0.42, 0.24, \
+	"<(echo 0	0)" u 1:2 with points linestyle 5 lc "green" title "ILMN\\\_24" at 0.42, 0.20, \
+	"<(echo 0	0)" u 1:2 with points linestyle 5 lc "blue" title "ILMN\\\_48" at 0.42, 0.16
 
 
 reset
@@ -67,6 +67,6 @@ set yrange [0:100]
 set ylabel "Breakdown of the Execution Time (%)"
 set key above width -3 vertical maxrows 3
 
-set label '(b)' at graph -0.15,-0.1 font "FreeSans-Bold,18"
+set label '(b)' at graph -0.15,0.0 font "FreeSans-Bold,18"
 plot file_name using 5 t "Chaining" lc rgbcolor "black" lt 1 fs pattern 4, '' using 4 t "Anchor Sorting" lc rgbcolor "black" lt 1 fs pattern 3, '' using 3 t "Index Querying" lc rgbcolor "black" lt 1 fs pattern 2, '' using 2 t "Seed Extraction" lc rgbcolor "black" lt 1 fs pattern 1, '' using 6 :xtic(1) t "PAF Printing \\& Misc" lc rgbcolor "black" lt 1 fs pattern 5
 unset multiplot
