@@ -13,7 +13,7 @@ OBJS = $(SRCS:$(SRC_DIR)/%.c=%.o)
 
 VPATH = src
 
-EXE := seedfarm_index
+EXE := GateSeeder_index
 
 all: $(EXE)
 

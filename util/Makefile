@@ -12,7 +12,7 @@ DEPFLAGS = -MD -MP
 CFLAGS = -O3 -g -march=native $(DEPFLAGS) -Wall -Wextra -Werror -std=gnu11
 ARFLAGS = -rsc
 
-LIB = seedfarm_util.a
+LIB = GateSeeder_util.a
 
 all: $(LIB)
 

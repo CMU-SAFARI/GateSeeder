@@ -45,7 +45,7 @@ res=performance_$1.dat
 
 rm -f $res
 
-echo "[PROF] Compiling seedfarm:"
+echo "[PROF] Compiling GateSeeder:"
 make -C .. clean
 make -C ..
 echo "[PERF] Loading the xclbin"
@@ -55,13 +55,13 @@ xbutil program -d 0000:c4:00.1 -u $xclbin
 for i in "${!max_occ[@]}";
 do
 	echo "[PERF] Generating the index with max_occ: ${max_occ[i]}"
-	../seedfarm_index -t 32 -w $w -k $k -f ${max_occ[i]} $target $DATA/index.sfi
+	../GateSeeder_index -t 32 -w $w -k $k -f ${max_occ[i]} $target $DATA/index.sfi
 	echo "[PERF] Locking the reads and the index into RAM"
 	vmtouch -ldw $query $DATA/index.sfi
-	echo "[PERF] Running seedfarm"
-	echo -e  "../seedfarm -t 32 -b ${batch_size[i]} -d ${vt_distance[i]} $extra_param $xclbin $DATA/index.sfi $query -o $paf"
+	echo "[PERF] Running GateSeeder"
+	echo -e  "../GateSeeder -t 32 -b ${batch_size[i]} -d ${vt_distance[i]} $extra_param $xclbin $DATA/index.sfi $query -o $paf"
 	start_date=`date +%s%N`
-	../seedfarm -t 32 -b ${batch_size[i]} -d ${vt_distance[i]} $extra_param $xclbin $DATA/index.sfi $query -o $paf
+	../GateSeeder -t 32 -b ${batch_size[i]} -d ${vt_distance[i]} $extra_param $xclbin $DATA/index.sfi $query -o $paf
 	end_date=`date +%s%N`
 	echo `expr $end_date - $start_date` >> $res
 	pkill vmtouch

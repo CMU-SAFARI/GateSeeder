@@ -46,21 +46,21 @@ rm -f $res_dir/*
 
 echo -e "$1\t$nb_reads" > $res_dir/info.dat
 
-echo "[PROF] Compiling seedfarm:"
+echo "[PROF] Compiling GateSeeder:"
 make -C .. clean
 make -C ..
 
 for max_occ in $range_max_occ
 do
 	echo "[ACC] Generating the index with max_occ: $max_occ"
-	../seedfarm_index -t 32 -w $w -k $k -f $max_occ $target $DATA/index.sfi
+	../GateSeeder_index -t 32 -w $w -k $k -f $max_occ $target $DATA/index.sfi
 	for vt_distance in $range_vt_distance
 	do
-		echo "[ACC] Running seedfarm with vt_distance: $vt_distance"
-		../seedfarm -t 32 -d $vt_distance $extra_param $xclbin $DATA/index.sfi $query -o $paf
+		echo "[ACC] Running GateSeeder with vt_distance: $vt_distance"
+		../GateSeeder -t 32 -d $vt_distance $extra_param $xclbin $DATA/index.sfi $query -o $paf
 		echo "[ACC] Evaluating the results"
-		echo -e "max_occ: $max_occ, vt_dst: $vt_distance" > $res_dir/seedfarm_${max_occ}_${vt_distance}_$1.dat
-		paftools.js mapeval $paf >> $res_dir/seedfarm_${max_occ}_${vt_distance}_$1.dat
+		echo -e "max_occ: $max_occ, vt_dst: $vt_distance" > $res_dir/GateSeeder_${max_occ}_${vt_distance}_$1.dat
+		paftools.js mapeval $paf >> $res_dir/GateSeeder_${max_occ}_${vt_distance}_$1.dat
 	done
 done
 

@@ -1,7 +1,7 @@
 #ifndef QUERYING_H
 #define QUERYING_H
 
-#include "demeter_util.h"
+#include "GateSeeder_util.h"
 #include "extraction.h"
 #include <stdint.h>
 

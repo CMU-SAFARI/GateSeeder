@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "seedfarm_util.h"
+#include "GateSeeder_util.h"
 
 #define LB_SIZE (1ULL << 29)
 

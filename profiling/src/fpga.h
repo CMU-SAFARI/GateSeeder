@@ -1,6 +1,6 @@
 #ifndef FPGA_H
 #define FPGA_H
-#include "demeter_util.h"
+#include "GateSeeder_util.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -45,17 +45,17 @@ rm -f $res_dir/*
 for i in "${!max_occ[@]}";
 do
 	echo "[PROF] Generating the index with max_occ: ${max_occ[i]}"
-	../seedfarm_index -t 32 -w $w -k $k -f ${max_occ[i]} $target $DATA/index.sfi
-	echo "[PROF] Compiling seedfarm:"
+	../GateSeeder_index -t 32 -w $w -k $k -f ${max_occ[i]} $target $DATA/index.sfi
+	echo "[PROF] Compiling GateSeeder:"
 	make -C .. clean
 	make -C .. ADDFLAGS=-DPROFILE
-	echo "[PROF] Running seedfarm on fpga:"
-	../seedfarm -t 32 -b ${batch_size[i]} -d ${vt_distance[i]} $extra_param $xclbin $DATA/index.sfi $query -o $paf > $res_dir/fpga_$i.dat
-	echo "[PROF] Compiling seedfarm:"
+	echo "[PROF] Running GateSeeder on fpga:"
+	../GateSeeder -t 32 -b ${batch_size[i]} -d ${vt_distance[i]} $extra_param $xclbin $DATA/index.sfi $query -o $paf > $res_dir/fpga_$i.dat
+	echo "[PROF] Compiling GateSeeder:"
 	make -C .. clean
 	make -C .. ADDFLAGS='-DPROFILE -DCPU_EX'
-	echo "[PROF] Running seedfarm on cpu:"
-	../seedfarm -t 32 -b ${batch_size[i]} -d ${vt_distance[i]} $extra_param $xclbin $DATA/index.sfi $query -o $paf > $res_dir/cpu_$i.dat
+	echo "[PROF] Running GateSeeder on cpu:"
+	../GateSeeder -t 32 -b ${batch_size[i]} -d ${vt_distance[i]} $extra_param $xclbin $DATA/index.sfi $query -o $paf > $res_dir/cpu_$i.dat
 done
 
 make -C .. clean

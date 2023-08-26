@@ -1,5 +1,5 @@
+#include "GateSeeder_util.h"
 #include "kernel.hpp"
-#include "seedfarm_util.h"
 #include <err.h>
 #include <fstream>
 #include <iostream>
@@ -44,12 +44,12 @@ int main(int argc, char *argv[]) {
 
 	while (fa_parse(&read_buf) == 0) {
 		std::cout << "read buf len: " << read_buf.len << std::endl;
-		demeter_kernel(read_buf.len, read_buf.seq, index.map, index.key, loc_o);
+		GateSeeder_kernel(read_buf.len, read_buf.seq, index.map, index.key, loc_o);
 #if !defined(DEBUG_QUERY_INDEX_MAP) && !defined(DEBUG_QUERY_INDEX_KEY) && !defined(DEBUG_SEED_EXTRACTION)
 		print_results(loc_o);
 #endif
 	}
-	demeter_kernel(read_buf.len, read_buf.seq, index.map, index.key, loc_o);
+	GateSeeder_kernel(read_buf.len, read_buf.seq, index.map, index.key, loc_o);
 #if !defined(DEBUG_QUERY_INDEX_MAP) && !defined(DEBUG_QUERY_INDEX_KEY) && !defined(DEBUG_SEED_EXTRACTION)
 	print_results(loc_o);
 #endif

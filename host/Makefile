@@ -10,7 +10,7 @@ CXX_OBJS = $(CXX_SRCS:$(SRC_DIR)/%.cpp=%.o)
 C_SRCS = $(wildcard $(SRC_DIR)/*.c)
 C_OBJS = $(C_SRCS:$(SRC_DIR)/%.c=%.o)
 
-UTIL = $(UTIL_DIR)/demeter_util.a
+UTIL = $(UTIL_DIR)/GateSeeder_util.a
 
 VPATH = $(SRC_DIR)
 
@@ -21,18 +21,18 @@ CFLAGS = -std=gnu11 -O3 -g -march=native $(DEPFLAGS) -Wall -Wextra -Werror
 LDFLAGS += -L$(XILINX_XRT)/lib
 LDLIBS += -lxrt_coreutil -pthread -lstdc++ -lm $(UTIL)
 
-EXE := seedfarm
+EXE := GateSeeder
 
-all: demeter_util $(EXE)
+all: GateSeeder_util $(EXE)
 
 $(EXE): $(C_OBJS) $(CXX_OBJS) $(UTIL)
 	$(LINK.o) $(C_OBJS) $(CXX_OBJS) $(LOADLIBES) $(LDLIBS) -o $@
 
-demeter_util:
+GateSeeder_util:
 	$(MAKE) -C $(UTIL_DIR)
 
 clean:
 	$(RM) *.o *.d $(EXE)
 
-.PHONY: all clean demeter_util
+.PHONY: all clean GateSeeder_util
 -include $(wildcard *.d)
