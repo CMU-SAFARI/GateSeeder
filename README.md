@@ -18,7 +18,7 @@
 git clone https://github.com/CMU-SAFARI/GateSeeder
 ```
 ### Building the xclbin files
-To build the `xclbin` files for the three type of datasets run `make` in the `device` directory. You will need Vitis to be installed on your computer.
+To build the `xclbin` files for the three type of datasets run `make` in the `device` directory. You will need Vitis and `rustc` to be installed on your computer.
 
 ### Building the host/indexing/profiling
 To build the host/indexing/profiling program just run `make` in the root directory. You will need `xrt` to be installed on your computer.
