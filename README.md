@@ -92,11 +92,11 @@ GateSeeder
     ├── include
     └── src
 ```            
-1. In the "device" directory, you will find the source code of the FPGA implementation of GateSeeder, the current build targets the Xilinx Alveo U55C FPGA but can be adapted for other Xilinx FPGAs.
+1. In the "device" directory, you will find the source code of the FPGA implementation of GateSeeder, the current build targets the Xilinx Alveo U55C FPGA but it can be adapted for other Xilinx FPGAs.
 2. In the "evaluation" directory, you will find all shell scripts and commands we used to run the experimental evaluations we presented in the paper.
 3. In the "host" directory, you will find the source code of the host implementation of GateSeeder.
 4. In the "plots" directory, you will find all the source code to generate the plots we presented in the paper based on the results of the "evaluation" and "profiling".
-5. In the "profiling" directory, you will find all the profiling host source code, used to measure the kernel and transfer metrics.
+5. In the "profiling" directory, you will find all the profiling host source code we used to measure the kernel and transfer metrics.
 6. In the "util" directory, you will find some utility source code.
 
 
