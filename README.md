@@ -6,7 +6,7 @@
 - [Use Cases](#usecases)
 - [Directory Structure](#directory)
 - [Getting help](#contact)
-- [Citing Genome-on-Diet](#cite)
+- [Citing GateSeeder](#cite)
 
 ## <a name="install"></a>Installation & General usage
 
@@ -107,5 +107,7 @@ If you encounter bugs or have further questions or requests, you can raise an is
 ## <a name="cite"></a>Citing GateSeeder
 
 If you use GateSeeder in your work, please cite:
+
+TODO
 
 [issue]: https://github.com/CMU-SAFARI/GateSeeder/issues
