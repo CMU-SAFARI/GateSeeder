@@ -39,7 +39,7 @@ fi
 target=$DATA/GCA_000001405.15_GRCh38_no_alt_analysis_set.fasta
 paf=$DATA/mapping.paf
 
-xclbin=../device/demeter_$1.xclbin
+xclbin=../device/GateSeeder_$1.xclbin
 res_dir=accuracy_$1
 mkdir -p $res_dir
 rm -f $res_dir/*
