@@ -20,10 +20,7 @@ To build the `xclbin` files for the three type of datasets run `make` in the `de
 ### Building the host/indexing/profiling
 To build the host/indexing/profiling program just run `make` in the root directory. You will need `xrt` to be installed on your computer.
 
-## <a name="usecases"></a>Use Cases
-
 ### Usage
-
 ```sh
 # Indexing
 ./GateSeeder_index [OPTION...] <target.fasta> <index.sfi>
@@ -32,7 +29,8 @@ To build the host/indexing/profiling program just run `make` in the root directo
 ./GateSeeder [OPTION...] <bitstream.xclbin> <index.sfi> <query.fa>
 ```
 
-### Examples
+
+## <a name="usecases"></a>Use Cases
 
 ```sh
 # Illumina sequences
