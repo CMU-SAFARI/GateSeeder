@@ -28,4 +28,4 @@ clean:
 	$(MAKE) -C $(PROFILE_DIR) clean
 	$(RM) $(HOST) $(INDEX) $(PROFILE)
 
-.PHONY: all clean
+.PHONY: all clean build_host build_indexing build_profiling
