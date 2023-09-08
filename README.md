@@ -112,7 +112,18 @@ If you encounter bugs or have further questions or requests, you can raise an is
 ## <a name="cite"></a>Citing GateSeeder
 
 If you use GateSeeder in your work, please cite:
+> Julien Eudine, Mohammed Alser, Gagandeep Singh, Can Alkan, Onur Mutlu
+> "GateSeeder: Near-memory CPU-FPGA Acceleration of Short and Long Read Mapping"
+> (2023) [link](https://arxiv.org/abs/)
 
-TODO
+Below is bibtex format for citation.
+
+```bibtex
+@article{GateSeeder2023,
+    author = {Julien Eudine, Mohammed Alser, Gagandeep Singh, Can Alkan, Onur Mutlu},
+    title = "{GateSeeder: Near-memory CPU-FPGA Acceleration of Short and Long Read Mapping}",
+    year = {2023},
+}
+```
 
 [issue]: https://github.com/CMU-SAFARI/GateSeeder/issues
