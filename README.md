@@ -114,7 +114,7 @@ If you encounter bugs or have further questions or requests, you can raise an is
 If you use GateSeeder in your work, please cite:
 > Julien Eudine and Mohammed Alser, Gagandeep Singh, Can Alkan, Onur Mutlu
 > "GateSeeder: Near-memory CPU-FPGA Acceleration of Short and Long Read Mapping"
-> (2023) [link](https://arxiv.org/abs/)
+> (2023) [link](https://arxiv.org/abs/2309.17063)
 
 Below is bibtex format for citation.
 
